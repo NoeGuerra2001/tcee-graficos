@@ -90,6 +90,8 @@ h1 { font-family: var(--f-math); font-weight: 600; font-size: 32px; line-height:
 .tcee-pto-fantasma { fill: none; stroke: var(--gris); stroke-width: 1.4; }
 
 .tcee-panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.tcee-colfig { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.tcee-colfig .tcee-controles { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; gap: 2px; }
 .tcee-lectura { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
 .tcee-lectura div { line-height: 1.45; }
 .tcee-formula { font-family: var(--f-math); font-style: italic; font-size: 16px; }
@@ -357,7 +359,8 @@ function renderEdgeworth(src, contenedor) {
   const sx = (x) => ML + x * esc;
   const sy = (y) => MT + BH - y * esc;
 
-  const svg = el('svg', { viewBox: `0 0 ${VW} ${VH}`, class: 'tcee-svg', role: 'img' }, raiz);
+  const colFig = html('div', { class: 'tcee-colfig' }, raiz);
+  const svg = el('svg', { viewBox: `0 0 ${VW} ${VH}`, class: 'tcee-svg', role: 'img' }, colFig);
   el('title', {}, svg).textContent = 'Caja de Edgeworth interactiva';
   const defs = el('defs', {}, svg);
   const clip = el('clipPath', { id: 'tcee-clip-' + Math.random().toString(36).slice(2) }, defs);
@@ -389,7 +392,7 @@ function renderEdgeworth(src, contenedor) {
     pintarConceptosEdg(conBox, s, X, Y, ult);
   };
   const cerrar = () => { if (!snap) return; const ex = explicarEdg(snap, copia(s), X, Y); snap = null; if (ex) mostrarPorque(ex); };
-  const controles = html('div', { class: 'tcee-controles' }, panel);
+  const controles = html('div', { class: 'tcee-controles' }, colFig);
 
   const sliders = {};
   const mkSlider = (clave, etiqueta, min, max, step, ayuda) => {

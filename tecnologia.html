@@ -67,7 +67,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--azul); outl
 
 .vista { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
 @media (min-width: 960px) { .vista { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } }
-.figs { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.figs { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.figs .controles { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
 svg.lamina { width: 100%; max-width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
 svg text { fill: var(--fg); }
 .m { font-family: var(--f-math); font-style: italic; font-size: 15px; }
@@ -153,16 +154,18 @@ sub, sup { font-size: 72%; }
   <section id="v-corto" role="tabpanel" aria-labelledby="tab-corto" class="vista-wrap">
     <p class="mirar" id="mirar-corto">Arrastra el punto sobre el producto total. La pendiente del rayo desde el origen es el PMe<sub>L</sub> (tg α) y la de la tangente es el PMag<sub>L</sub>. Donde el rayo es tangente, PMe<sub>L</sub> = PMag<sub>L</sub> y empieza la etapa II. Cada cambio se explica en el recuadro «Qué ha cambiado y por qué», y abajo tienes la ficha de cada concepto.</p>
     <div class="vista" style="margin-top:12px">
-      <div class="figs"><svg class="lamina" id="svg-corto" role="img" aria-label="Producto total, medio y marginal a corto plazo"></svg></div>
-      <div class="panel">
-        <div class="porque" id="porque-corto" aria-live="polite"></div>
-        <div class="lectura" id="lec-corto"></div>
+      <div class="figs"><svg class="lamina" id="svg-corto" role="img" aria-label="Producto total, medio y marginal a corto plazo"></svg>
         <div class="controles">
           <div class="fila"><label for="kbar">K̄₀ (capital fijo)</label><input id="kbar" type="range" min="5" max="15" step="0.1" value="10"><span class="val" id="kbar-v"></span></div>
           <p class="ctl-ayuda">Factor fijo en el C/P. Cambiarlo es comparar plantas de distinto tamaño: desplaza el PT, el punto A y los márgenes.</p>
           <div class="fila"><label for="lsel">L (trabajo)</label><input id="lsel" type="range" min="0.2" max="36" step="0.05" value="8"><span class="val" id="lsel-v"></span></div>
           <p class="ctl-ayuda">Factor variable. Moverlo te desplaza a lo largo del PT; también puedes arrastrar el punto.</p>
         </div>
+      </div>
+      <div class="panel">
+        <div class="porque" id="porque-corto" aria-live="polite"></div>
+        <div class="lectura" id="lec-corto"></div>
+        
         <p class="nota">Función usada: X = 3L²/K̄₀ − L³/K̄₀², homogénea de grado 1 (rendimientos constantes a escala). Con rendimientos constantes se cumple lo que dice el tema de la etapa I: allí el PMag del factor fijo es negativo (Euler: <span class="tex">X = L\cdot\mathrm{PMag}_L + K\cdot\mathrm{PMag}_K</span>).</p>
       </div>
     </div>
@@ -175,12 +178,7 @@ sub, sup { font-size: 72%; }
     <div class="vista" style="margin-top:12px">
       <div class="figs">
         <svg class="lamina" id="svg-iso" role="img" aria-label="Mapa de isocuantas"></svg>
-        <svg class="lamina" id="svg-ln" role="img" aria-label="Logaritmo de K/L frente al logaritmo de la RMST"></svg>
-      </div>
-      <div class="panel">
         <div class="chips" id="formas" role="group" aria-label="Forma funcional"></div>
-        <div class="porque" id="porque-largo" aria-live="polite"></div>
-        <div class="lectura" id="lec-largo"></div>
         <div class="controles">
           <div class="fila"><label for="sig">ES = σ</label><input id="sig" type="range" min="-2.3" max="2.3" step="0.01" value="-0.69"><span class="val" id="sig-v"></span></div>
           <p class="ctl-ayuda">Elasticidad de sustitución: cuánto cambia K/L cuando cambia la RMST. Curva las isocuantas. Escala logarítmica de 0,1 a 10; los botones fijan los casos límite.</p>
@@ -189,6 +187,12 @@ sub, sup { font-size: 72%; }
           <div class="fila"><label for="vv">v (grado de homogeneidad)</label><input id="vv" type="range" min="0.5" max="1.6" step="0.01" value="1"><span class="val" id="vv-v"></span></div>
           <p class="ctl-ayuda">Rendimientos a escala (e = v). Junta o separa las isocuantas sin cambiar su forma ni la RMST.</p>
         </div>
+        <svg class="lamina" id="svg-ln" role="img" aria-label="Logaritmo de K/L frente al logaritmo de la RMST"></svg>
+      </div>
+      <div class="panel">
+        <div class="porque" id="porque-largo" aria-live="polite"></div>
+        <div class="lectura" id="lec-largo"></div>
+        
         <p class="nota">CES en la notación del tema: <span class="tex">X = \gamma\left[\delta K^{-\rho} + (1-\delta)L^{-\rho}\right]^{-v/\rho}</span>, con <span class="tex">\sigma = \frac{1}{1+\rho}</span> y γ = 1. Las isocuantas dibujadas producen X₀, 2X₀, 3X₀ y 4X₀, con X₀ = f(2, 2).</p>
       </div>
     </div>
