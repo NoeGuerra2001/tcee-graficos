@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+/* Parámetros: ?tema=claro|oscuro (fuerza el tema), ?compacto=1 (oculta la cabecera, para insertar en Obsidian) */
+(function () { try {
+  var q = new URLSearchParams(location.search), t = q.get('tema');
+  if (t === 'oscuro' || t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  if (t === 'claro' || t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  if (q.get('compacto')) document.documentElement.classList.add('compacto');
+} catch (e) {} })();
+</script>
+<style>
+html, body { margin: 0; }
+body { font-family: system-ui, sans-serif; font-size: 14px; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.compacto header { display: none !important; }
+.compacto body { padding-block: 8px 24px !important; }
+</style>
+<title>Tecnología de la empresa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script>
+window.MathJax = {
+  tex: { packages: { '[+]': ['html'] } },
+  svg: { fontCache: 'local' },
+  options: { enableAssistiveMml: false },
+  startup: { typeset: false, ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => { try { document.head.appendChild(MathJax.svgStylesheet()); } catch (e) {} window.__mjListo = true; if (window.montar) window.montar(document.body); }); } },
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.min.js"></script>
+<style>
+/* Layout: lámina de pizarra a la izquierda (SVG), lectura y mandos a la derecha; una columna en móvil. Dos pestañas: corto y largo plazo. */
+:root {
+  --bg: #fbfaf7; --fg: #1d2230; --muted: #5f6676; --line: #d9dbe2; --panel: #f1f2f5;
+  --azul: #2E5C8A; --naranja: #D9671E; --verde: #548235; --rojo: #C00000; --gris: #7F7F7F; --punto: #1F3864;
+  --z1: rgba(192,0,0,.07); --z2: rgba(84,130,53,.10); --z3: rgba(127,127,127,.12);
+  --f-math: "STIX Two Text", "STIXGeneral", "Cambria Math", "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+header { display: flex; flex-direction: column; gap: 4px; }
+.eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-math); font-weight: 600; font-size: 32px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.intro { color: var(--muted); max-width: 70ch; margin: 0; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tabs button, .chips button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--fg); cursor: pointer; }
+.tabs button[aria-selected="true"], .chips button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.mirar { font-size: 13.5px; max-width: 80ch; margin: 0; padding-left: 12px; border-left: 2px solid var(--line); }
+
+.vista { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+@media (min-width: 960px) { .vista { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } }
+.figs { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+svg.lamina { width: 100%; max-width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+svg text { fill: var(--fg); }
+.m { font-family: var(--f-math); font-style: italic; font-size: 15px; }
+.r { font-family: var(--f-body); font-style: normal; font-size: 11.5px; letter-spacing: .04em; }
+.eje { stroke: var(--fg); stroke-width: 1.3; fill: none; }
+.tick { stroke: var(--fg); stroke-width: 1; }
+.tlab { font-family: var(--f-body); font-size: 11px; fill: var(--muted) !important; }
+.guia { stroke: var(--gris); stroke-width: .9; stroke-dasharray: 4 4; fill: none; }
+.cur { fill: none; stroke-width: 2.4; }
+.cur-fina { fill: none; stroke-width: 1.1; opacity: .55; }
+.tang { fill: none; stroke-width: 1.6; }
+.rayo { fill: none; stroke-width: 1.4; stroke-dasharray: 6 4; }
+.pto { stroke: var(--bg); stroke-width: 1.5; }
+.drag { cursor: grab; }
+.drag:active { cursor: grabbing; }
+.z1 { fill: var(--z1); } .z2 { fill: var(--z2); } .z3 { fill: var(--z3); }
+
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.lectura { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.lectura .f { font-family: var(--f-math); font-style: italic; font-size: 16px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 2px 22px; font-variant-numeric: tabular-nums; }
+.kv div { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
+.kv b { font-weight: 500; }
+.lectura .msg { margin-top: 4px; }
+.etapa { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px; border: 1px solid currentColor; }
+.e1 { color: var(--rojo); } .e2 { color: var(--verde); } .e3 { color: var(--muted); }
+.controles { display: flex; flex-direction: column; gap: 6px; }
+.fila { display: grid; grid-template-columns: minmax(8.5em, 12em) minmax(0, 1fr) 3.6em; align-items: center; gap: 8px; }
+.fila input[type=range] { width: 100%; accent-color: var(--azul); }
+.val { text-align: right; font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ayuda { color: var(--muted); font-size: 12.5px; }
+.nota { font-size: 12.5px; color: var(--muted); max-width: 80ch; margin: 0; }
+sub, sup { font-size: 72%; }
+.porque { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.porque .eti, .sec-eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.porque h3 { font-family: var(--f-math); font-size: 19px; font-weight: 600; margin: 0; }
+.porque p { margin: 0; }
+.porque details { margin-top: 4px; }
+.porque summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.porque .prev { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.ctl-ayuda { margin: -2px 0 6px; font-size: 12.5px; color: var(--muted); }
+.sec { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.sec h2 { font-family: var(--f-math); font-size: 22px; font-weight: 600; margin: 0; }
+.conceptos { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.concepto { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.concepto.cambia { border-color: var(--rojo); background: var(--z1); }
+.concepto .cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.concepto h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.concepto p { margin: 0; font-size: 13px; }
+.concepto .formula { font-family: var(--f-math); font-style: italic; font-size: 15px; overflow-x: auto; }
+.concepto .valor { font-variant-numeric: tabular-nums; }
+.concepto .ref { color: var(--muted); font-size: 11.5px; }
+.formas { display: flex; flex-direction: column; gap: 3px; }
+.formas .lbl { font-family: var(--f-body); font-style: normal; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.formas .ec { font-family: var(--f-math); font-style: italic; font-size: 16px; overflow-x: auto; }
+.formas .fijo { font-family: var(--f-body); font-style: normal; font-size: 12.5px; color: var(--muted); }
+.tex { display: inline-block; max-width: 100%; vertical-align: middle; }
+.tex[data-d="1"] { display: block; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.tex:not([data-ok]) { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; }
+.tex mjx-container { margin: 0 !important; }
+.tex[data-d="1"] mjx-container { text-align: left !important; }
+.tex g.mv { color: var(--azul); fill: var(--azul); stroke: var(--azul); }
+.formas .tex[data-d="1"] { font-size: 112%; }
+.mod { color: var(--azul); font-weight: 600; border-bottom: 1px dotted currentColor; }
+.chip-cambia { font-size: 11px; color: var(--rojo); border: 1px solid currentColor; border-radius: 999px; padding: 0 7px; white-space: nowrap; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TCEE · Parte A) · 3A11 · Tecnología de la empresa a corto y largo plazo</div>
+    <h1>Tecnología de la empresa</h1>
+    <p class="intro">Corto plazo: producto total, medio y marginal con las tres etapas. Largo plazo: isocuantas, RMST, elasticidad de sustitución y rendimientos a escala. Arrastra los puntos y mueve los deslizadores.</p>
+  </header>
+  <div class="tabs" role="tablist" aria-label="Horizonte">
+    <button type="button" role="tab" id="tab-corto" aria-selected="true" aria-controls="v-corto">Corto plazo · §2. 1</button>
+    <button type="button" role="tab" id="tab-largo" aria-selected="false" aria-controls="v-largo">Largo plazo · §1. 2 y §2. 2</button>
+  </div>
+
+  <!-- ============================== CORTO PLAZO ============================== -->
+  <section id="v-corto" role="tabpanel" aria-labelledby="tab-corto" class="vista-wrap">
+    <p class="mirar" id="mirar-corto">Arrastra el punto sobre el producto total. La pendiente del rayo desde el origen es el PMe<sub>L</sub> (tg α) y la de la tangente es el PMag<sub>L</sub>. Donde el rayo es tangente, PMe<sub>L</sub> = PMag<sub>L</sub> y empieza la etapa II. Cada cambio se explica en el recuadro «Qué ha cambiado y por qué», y abajo tienes la ficha de cada concepto.</p>
+    <div class="vista" style="margin-top:12px">
+      <div class="figs"><svg class="lamina" id="svg-corto" role="img" aria-label="Producto total, medio y marginal a corto plazo"></svg></div>
+      <div class="panel">
+        <div class="porque" id="porque-corto" aria-live="polite"></div>
+        <div class="lectura" id="lec-corto"></div>
+        <div class="controles">
+          <div class="fila"><label for="kbar">K̄₀ (capital fijo)</label><input id="kbar" type="range" min="5" max="15" step="0.1" value="10"><span class="val" id="kbar-v"></span></div>
+          <p class="ctl-ayuda">Factor fijo en el C/P. Cambiarlo es comparar plantas de distinto tamaño: desplaza el PT, el punto A y los márgenes.</p>
+          <div class="fila"><label for="lsel">L (trabajo)</label><input id="lsel" type="range" min="0.2" max="36" step="0.05" value="8"><span class="val" id="lsel-v"></span></div>
+          <p class="ctl-ayuda">Factor variable. Moverlo te desplaza a lo largo del PT; también puedes arrastrar el punto.</p>
+        </div>
+        <p class="nota">Función usada: X = 3L²/K̄₀ − L³/K̄₀², homogénea de grado 1 (rendimientos constantes a escala). Con rendimientos constantes se cumple lo que dice el tema de la etapa I: allí el PMag del factor fijo es negativo (Euler: <span class="tex">X = L\cdot\mathrm{PMag}_L + K\cdot\mathrm{PMag}_K</span>).</p>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-corto"></div></div>
+  </section>
+
+  <!-- ============================== LARGO PLAZO ============================== -->
+  <section id="v-largo" role="tabpanel" aria-labelledby="tab-largo" class="vista-wrap" hidden>
+    <p class="mirar" id="mirar-largo">Arrastra el método de producción P. Su isocuanta va en trazo grueso; la recta roja es la tangente, cuya pendiente es la RMST<sup>K</sup><sub>L</sub>. Cambia σ y mira cómo se curvan las isocuantas; cambia v y mira cómo se juntan o se separan.</p>
+    <div class="vista" style="margin-top:12px">
+      <div class="figs">
+        <svg class="lamina" id="svg-iso" role="img" aria-label="Mapa de isocuantas"></svg>
+        <svg class="lamina" id="svg-ln" role="img" aria-label="Logaritmo de K/L frente al logaritmo de la RMST"></svg>
+      </div>
+      <div class="panel">
+        <div class="chips" id="formas" role="group" aria-label="Forma funcional"></div>
+        <div class="porque" id="porque-largo" aria-live="polite"></div>
+        <div class="lectura" id="lec-largo"></div>
+        <div class="controles">
+          <div class="fila"><label for="sig">ES = σ</label><input id="sig" type="range" min="-2.3" max="2.3" step="0.01" value="-0.69"><span class="val" id="sig-v"></span></div>
+          <p class="ctl-ayuda">Elasticidad de sustitución: cuánto cambia K/L cuando cambia la RMST. Curva las isocuantas. Escala logarítmica de 0,1 a 10; los botones fijan los casos límite.</p>
+          <div class="fila"><label for="del">δ (peso de K)</label><input id="del" type="range" min="0.2" max="0.8" step="0.01" value="0.5"><span class="val" id="del-v"></span></div>
+          <p class="ctl-ayuda">Peso del capital en la CES. Inclina las isocuantas y cambia el nivel de la RMST, no la ES.</p>
+          <div class="fila"><label for="vv">v (grado de homogeneidad)</label><input id="vv" type="range" min="0.5" max="1.6" step="0.01" value="1"><span class="val" id="vv-v"></span></div>
+          <p class="ctl-ayuda">Rendimientos a escala (e = v). Junta o separa las isocuantas sin cambiar su forma ni la RMST.</p>
+        </div>
+        <p class="nota">CES en la notación del tema: <span class="tex">X = \gamma\left[\delta K^{-\rho} + (1-\delta)L^{-\rho}\right]^{-v/\rho}</span>, con <span class="tex">\sigma = \frac{1}{1+\rho}</span> y γ = 1. Las isocuantas dibujadas producen X₀, 2X₀, 3X₀ y 4X₀, con X₀ = f(2, 2).</p>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-largo"></div></div>
+  </section>
+</div>
+
+<script>
+'use strict';
+const NS = 'http://www.w3.org/2000/svg';
+const fmt = (v, d = 2) => Number.isFinite(v)
+  ? v.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—';
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+/* ------------------------------------------------ ecuaciones con MathJax (SVG) */
+const TEXC = new Map();
+const escH = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const TX = (tex) => `<span class="tex" data-d="1">${escH(tex)}</span>`;
+const TI = (tex) => `<span class="tex">${escH(tex)}</span>`;
+const fT = (v, d = 2) => fmt(v, d).replace(/,/g, '{,}');
+const MV = (t) => String.raw`\class{mv}{${t}}`;
+function montar(root) {
+  if (!window.__mjListo || !root) return;
+  root.querySelectorAll('span.tex:not([data-ok])').forEach((s) => {
+    const tex = s.textContent, d = s.dataset.d === '1', key = (d ? 'D' : 'I') + tex;
+    try {
+      let n = TEXC.get(key);
+      if (!n) { n = MathJax.tex2svg(tex, { display: d }); TEXC.set(key, n); if (TEXC.size > 600) TEXC.delete(TEXC.keys().next().value); }
+      s.replaceChildren(n.cloneNode(true)); s.dataset.ok = '1'; s.setAttribute('aria-label', tex);
+    } catch (e) { /* se queda el texto plano */ }
+  });
+}
+window.montar = montar;
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if ((k === 'stroke' || k === 'fill') && String(v).startsWith('var(')) e.style.setProperty(k, v);
+    else e.setAttribute(k, v);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+/* texto matemático: "PMag_L", "x^2" */
+function tx(parent, x, y, txt, attrs = {}) {
+  const t = el('text', Object.assign({ x, y, class: 'm' }, attrs), parent);
+  const re = /([_^])(\{[^}]*\}|.)/g; let last = 0, m;
+  const push = (s, sh) => { if (!s) return; const ts = el('tspan', {}, t);
+    if (sh) { ts.setAttribute('baseline-shift', sh); ts.setAttribute('font-size', '72%'); } ts.textContent = s; };
+  while ((m = re.exec(txt))) { push(txt.slice(last, m.index)); const b = m[2][0] === '{' ? m[2].slice(1, -1) : m[2];
+    push(b, m[1] === '_' ? 'sub' : 'super'); last = re.lastIndex; }
+  push(txt.slice(last));
+  return t;
+}
+function limpiar(g) { while (g.firstChild) g.removeChild(g.firstChild); }
+function path(pts) {
+  let d = '', on = false;
+  for (const p of pts) { if (!p) { on = false; continue; } d += (on ? 'L' : 'M') + p[0].toFixed(2) + ',' + p[1].toFixed(2); on = true; }
+  return d;
+}
+/* panel con escalas lineales */
+function panel(svg, x0, y0, w, h, xr, yr) {
+  const P = { x0, y0, w, h, xr, yr };
+  P.sx = (x) => x0 + (x - xr[0]) / (xr[1] - xr[0]) * w;
+  P.sy = (y) => y0 + h - (y - yr[0]) / (yr[1] - yr[0]) * h;
+  P.ix = (px) => xr[0] + (px - x0) / w * (xr[1] - xr[0]);
+  P.iy = (py) => yr[0] + (y0 + h - py) / h * (yr[1] - yr[0]);
+  const id = 'c' + Math.random().toString(36).slice(2);
+  const cp = el('clipPath', { id }, svg); el('rect', { x: x0, y: y0 - 2, width: w + 2, height: h + 4 }, cp);
+  P.clip = `url(#${id})`;
+  /* curva f(x) cortada al rango */
+  P.curva = (f, a = xr[0], b = xr[1], n = 400) => {
+    const pts = [];
+    for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n, y = f(x);
+      pts.push(Number.isFinite(y) && y >= yr[0] - (yr[1] - yr[0]) && y <= yr[1] + (yr[1] - yr[0]) ? [P.sx(x), P.sy(y)] : null); }
+    return path(pts);
+  };
+  return P;
+}
+function puntoSVG(svg, evt) {
+  const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+/* arrastre con el estado en el <svg> (cada redibujo sustituye los nodos) */
+function habilitarArrastre(svg, redibujar, alSoltar) {
+  svg._drag = null;
+  svg.addEventListener('pointermove', (e) => { if (!svg._drag) return; svg._drag(puntoSVG(svg, e)); redibujar(); });
+  const fin = (e) => { const habia = !!svg._drag; svg._drag = null; try { svg.releasePointerCapture(e.pointerId); } catch (_) {} if (habia && alSoltar) alSoltar(); };
+  svg.addEventListener('pointerup', fin); svg.addEventListener('pointercancel', fin);
+}
+function arrastrable(svg, nodo, mover, alEmpezar) {
+  nodo.classList.add('drag');
+  nodo.addEventListener('pointerdown', (e) => { e.preventDefault(); if (alEmpezar) alEmpezar(); svg._drag = mover; try { svg.setPointerCapture(e.pointerId); } catch (_) {} });
+}
+function ejes(g, P, xlab, ylab, xt, yt, conCero) {
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0 + P.w + 8, y2: P.y0 + P.h, class: 'eje' }, g);
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0, y2: P.y0 - 8, class: 'eje' }, g);
+  el('path', { d: `M${P.x0 + P.w + 8},${P.y0 + P.h - 4}l7,4l-7,4z`, fill: 'var(--fg)' }, g);
+  el('path', { d: `M${P.x0 - 4},${P.y0 - 8}l4,-7l4,7z`, fill: 'var(--fg)' }, g);
+  tx(g, P.x0 + P.w + 14, P.y0 + P.h + 30, xlab, { 'text-anchor': 'end' });
+  tx(g, P.x0 + 8, P.y0 - 4, ylab, { 'text-anchor': 'start' });
+  for (const v of xt || []) { el('line', { x1: P.sx(v), y1: P.y0 + P.h, x2: P.sx(v), y2: P.y0 + P.h + 4, class: 'tick' }, g);
+    el('text', { x: P.sx(v), y: P.y0 + P.h + 15, class: 'tlab', 'text-anchor': 'middle' }, g).textContent = fmt(v, 0); }
+  for (const v of yt || []) { el('line', { x1: P.x0 - 4, y1: P.sy(v), x2: P.x0, y2: P.sy(v), class: 'tick' }, g);
+    el('text', { x: P.x0 - 7, y: P.sy(v) + 4, class: 'tlab', 'text-anchor': 'end' }, g).textContent = fmt(v, 0); }
+  if (conCero) el('line', { x1: P.x0, y1: P.sy(0), x2: P.x0 + P.w, y2: P.sy(0), class: 'eje', 'stroke-width': .8 }, g);
+}
+
+/* =================================================================== CORTO PLAZO */
+const CP = { a: 3, b: 1, K: 10, L: 8 };
+const X = (L, K) => CP.a * L * L / K - CP.b * L ** 3 / (K * K);
+const PMe = (L, K) => CP.a * L / K - CP.b * L * L / (K * K);
+const PMg = (L, K) => 2 * CP.a * L / K - 3 * CP.b * L * L / (K * K);
+const PMgK = (L, K) => -CP.a * L * L / (K * K) + 2 * CP.b * L ** 3 / K ** 3;
+
+const svgC = document.getElementById('svg-corto');
+svgC.setAttribute('viewBox', '0 0 660 640');
+const LMAX = 36;
+const PT = panel(svgC, 70, 30, 560, 280, [0, LMAX], [0, 66]);
+const PM = panel(svgC, 70, 360, 560, 230, [0, LMAX], [-2, 3.4]);
+const gC = el('g', {}, svgC);
+let snapC = null;
+const empezarC = () => { if (!snapC) snapC = Object.assign({}, CP); };
+const cerrarC = () => { if (!snapC) return; const e = explicarCorto(snapC, Object.assign({}, CP)); snapC = null; if (e) mostrarPorque('corto', e); };
+habilitarArrastre(svgC, dibujarCorto, cerrarC);
+
+function dibujarCorto() {
+  limpiar(gC);
+  const K = CP.K, L = CP.L = clamp(CP.L, 0.2, LMAX);
+  const L1 = CP.a * K / (2 * CP.b);        // máx. PMe  (PMe = PMag)
+  const L2 = 2 * CP.a * K / (3 * CP.b);    // máx. PT   (PMag = 0)
+  const LA = CP.a * K / (3 * CP.b);        // inflexión A (máx. PMag)
+
+  for (const P of [PT, PM]) {
+    const zonas = [[0, L1, 'z1'], [L1, L2, 'z2'], [L2, LMAX, 'z3']];
+    for (const [a, b, c] of zonas) el('rect', { x: P.sx(a), y: P.y0, width: Math.max(0, P.sx(Math.min(b, LMAX)) - P.sx(a)), height: P.h, class: c }, gC);
+    for (const v of [L1, L2]) if (v < LMAX) el('line', { x1: P.sx(v), y1: P.y0 - 6, x2: P.sx(v), y2: P.y0 + P.h, class: 'guia' }, gC);
+  }
+  const etqs = [[0, L1, 'I'], [L1, L2, 'II'], [L2, LMAX, 'III']];
+  for (const [a, b, t] of etqs) { if (a >= LMAX) continue;
+    el('text', { x: (PT.sx(a) + PT.sx(Math.min(b, LMAX))) / 2, y: PT.y0 + 14, class: 'm', 'text-anchor': 'middle', style: 'font-style:normal;font-weight:600' }, gC).textContent = t; }
+  if (L1 < LMAX) el('text', { x: PM.sx(L1), y: PM.y0 - 10, class: 'r', 'text-anchor': 'middle' }, gC).textContent = 'MARGEN EXTENSIVO';
+  if (L2 < LMAX) el('text', { x: PM.sx(L2), y: PM.y0 + PM.h + 34, class: 'r', 'text-anchor': 'middle' }, gC).textContent = 'MARGEN INTENSIVO';
+
+  ejes(gC, PT, 'L', 'X', [0, 10, 20, 30], [0, 20, 40, 60]);
+  ejes(gC, PM, 'L', 'PMe_L, PMag_L', [0, 10, 20, 30], [-2, -1, 1, 2, 3], true);
+  tx(gC, PT.x0 + PT.w - 4, PT.y0 + PT.h - 8, 'K = K̄_0', { 'text-anchor': 'end', class: 'm', style: 'font-size:13px' });
+
+  const gk = el('g', { 'clip-path': PT.clip }, gC);
+  el('path', { d: PT.curva((l) => X(l, K)), class: 'cur', stroke: 'var(--azul)' }, gk);
+  const x = X(L, K), pme = PMe(L, K), pmg = PMg(L, K);
+  // rayo (PMe = tg α) y tangente (PMag)
+  el('path', { d: path([[PT.sx(0), PT.sy(0)], [PT.sx(Math.min(LMAX, L * 1.6)), PT.sy(pme * Math.min(LMAX, L * 1.6))]]), class: 'rayo', stroke: 'var(--naranja)' }, gk);
+  const dl = 7;
+  el('path', { d: path([[PT.sx(L - dl), PT.sy(x - pmg * dl)], [PT.sx(L + dl), PT.sy(x + pmg * dl)]]), class: 'tang', stroke: 'var(--rojo)' }, gk);
+  // punto A (inflexión)
+  if (LA < LMAX) { el('circle', { cx: PT.sx(LA), cy: PT.sy(X(LA, K)), r: 3.5, fill: 'var(--fg)' }, gC);
+    tx(gC, PT.sx(LA) + 7, PT.sy(X(LA, K)) + 15, 'A', { style: 'font-style:normal' }); }
+  // ángulo α
+  const ang = Math.atan2(PT.sy(0) - PT.sy(pme * 10), PT.sx(10) - PT.sx(0));
+  const rr = 30;
+  el('path', { d: `M${PT.sx(0) + rr},${PT.sy(0)} A${rr},${rr} 0 0 0 ${PT.sx(0) + rr * Math.cos(ang)},${PT.sy(0) - rr * Math.sin(ang)}`, fill: 'none', stroke: 'var(--naranja)', 'stroke-width': 1.2 }, gC);
+  tx(gC, PT.sx(0) + rr + 6, PT.sy(0) - 6, 'α', { style: 'fill:var(--naranja);font-size:14px' });
+  // punto arrastrable
+  el('line', { x1: PT.sx(L), y1: PT.sy(x), x2: PM.sx(L), y2: PM.y0 + PM.h, class: 'guia' }, gC);
+  const p = el('circle', { cx: PT.sx(L), cy: PT.sy(x), r: 7, class: 'pto', fill: 'var(--punto)' }, gC);
+  arrastrable(svgC, p, (q) => { CP.L = clamp(PT.ix(q.x), 0.2, LMAX); }, empezarC);
+  tx(gC, PT.sx(Math.min(LMAX, 30)) + 4, PT.sy(X(Math.min(LMAX, 30), K)) - 8, 'PT', { style: 'fill:var(--azul);font-style:normal;font-size:13px' });
+
+  const gm = el('g', { 'clip-path': PM.clip }, gC);
+  el('path', { d: PM.curva((l) => PMe(l, K)), class: 'cur', stroke: 'var(--naranja)' }, gm);
+  el('path', { d: PM.curva((l) => PMg(l, K)), class: 'cur', stroke: 'var(--rojo)' }, gm);
+  for (const [v, c] of [[pme, 'var(--naranja)'], [pmg, 'var(--rojo)']]) if (v > PM.yr[0])
+    el('circle', { cx: PM.sx(L), cy: PM.sy(v), r: 5, class: 'pto', fill: c }, gC);
+  // etiquetas de las curvas
+  const lPe = Math.min(LMAX - 2, 1.15 * L2), lPg = 0.55 * LA;
+  tx(gC, PM.sx(lPe) + 6, PM.sy(PMe(lPe, K)) - 6, 'PMe_L', { style: 'fill:var(--naranja);font-style:normal;font-size:13px' });
+  tx(gC, PM.sx(lPg) - 6, PM.sy(PMg(lPg, K)) - 4, 'PMag_L', { 'text-anchor': 'end', style: 'fill:var(--rojo);font-style:normal;font-size:13px' });
+
+  // lectura
+  const eps = pmg / pme, pk = PMgK(L, K);
+  const etapa = L < L1 ? 1 : L < L2 ? 2 : 3;
+  const lec = document.getElementById('lec-corto');
+  const Lm = MV('L'), Km = MV(String.raw`\bar K_0`);
+  const ROMs = { 1: 'I', 2: 'II', 3: 'III' }, cls = { 1: 'e1', 2: 'e2', 3: 'e3' };
+  lec.innerHTML = `
+    <div class="formas">
+      <span class="lbl">Forma general · en color, lo que puedes mover</span>
+      ${TX(String.raw`X = a\,\frac{${Lm}^2}{${Km}} - b\,\frac{${Lm}^3}{${Km}^2}`)}
+      ${TX(String.raw`\mathrm{PMe}_L = \frac{X}{L} = a\,\frac{${Lm}}{${Km}} - b\,\frac{${Lm}^2}{${Km}^2}`)}
+      ${TX(String.raw`\mathrm{PMag}_L = \frac{dX}{dL} = 2a\,\frac{${Lm}}{${Km}} - 3b\,\frac{${Lm}^2}{${Km}^2}`)}
+      <span class="fijo">Parámetros fijos: a = 3, b = 1. Notación propia: el tema no fija una forma funcional para el PT.</span>
+      <span class="lbl" style="margin-top:6px">Con tus valores</span>
+      ${TX(String.raw`X = 3\cdot\frac{${fT(L)}^2}{${fT(K, 1)}} - \frac{${fT(L)}^3}{${fT(K, 1)}^2} = ${fT(x)}`)}
+      ${TX(String.raw`\mathrm{PMe}_L = \frac{${fT(x)}}{${fT(L)}} = ${fT(pme, 3)},\qquad \mathrm{PMag}_L = ${fT(pmg, 3)}`)}
+      ${TX(String.raw`\varepsilon_L = \frac{\mathrm{PMag}_L}{\mathrm{PMe}_L} = \frac{${fT(pmg, 3)}}{${fT(pme, 3)}} = ${fT(eps, 3)}`)}
+    </div>
+    <div class="kv"><div><span>L</span><b>${fmt(L)}</b></div><div><span>K̄₀</span><b>${fmt(K, 1)}</b></div><div><span>X</span><b>${fmt(x)}</b></div><div><span>PMag<sub>K</sub></span><b>${fmt(pk, 3)}</b></div><div><span>PMe<sub>L</sub> = X/L = tg α</span><b>${fmt(pme, 3)}</b></div><div><span>PMag<sub>L</sub> = dX/dL</span><b>${fmt(pmg, 3)}</b></div><div><span>ε<sub>L</sub> = PMag<sub>L</sub>/PMe<sub>L</sub></span><b>${fmt(eps, 3)}</b></div><div><span>Etapa</span><b><span class="etapa ${cls[etapa]}">Etapa ${ROMs[etapa]}</span></b></div></div>`;
+  montar(lec);
+  pintarConceptosCorto();
+  document.getElementById('kbar-v').textContent = fmt(K, 1);
+  document.getElementById('lsel').value = L;
+  document.getElementById('lsel-v').textContent = fmt(L, 1);
+}
+for (const [id, k] of [['kbar', 'K'], ['lsel', 'L']]) {
+  const inp = document.getElementById(id);
+  inp.addEventListener('input', () => { empezarC(); CP[k] = parseFloat(inp.value); dibujarCorto(); });
+  inp.addEventListener('change', cerrarC);
+}
+
+/* =================================================================== LARGO PLAZO */
+const LP = { forma: 'cd', sigma: 1, delta: 0.5, v: 1, L: 3, K: 5 };
+function tec(st = LP) {
+  const { forma, delta: d, v } = st;
+  const s = forma === 'cd' ? 1 : forma === 'leon' ? 0 : forma === 'lin' ? Infinity : st.sigma;
+  const rho = forma === 'ces' ? 1 / s - 1 : null;
+  const f = (K, L) => {
+    if (forma === 'cd') return Math.pow(K, v * d) * Math.pow(L, v * (1 - d));
+    if (forma === 'leon') return Math.pow(Math.min(K, L), v);
+    if (forma === 'lin') return Math.pow(d * K + (1 - d) * L, v);
+    const B = d * Math.pow(K, -rho) + (1 - d) * Math.pow(L, -rho);
+    return Math.pow(B, -v / rho);
+  };
+  /* K sobre la isocuanta de nivel X0 para un L dado */
+  const iso = (X0, L) => {
+    if (forma === 'cd') return Math.pow(X0 / Math.pow(L, v * (1 - d)), 1 / (v * d));
+    if (forma === 'lin') { const K = (Math.pow(X0, 1 / v) - (1 - d) * L) / d; return K >= 0 ? K : NaN; }
+    if (forma === 'leon') return NaN;
+    const br = (Math.pow(X0, -rho / v) - (1 - d) * Math.pow(L, -rho)) / d;
+    return br > 0 ? Math.pow(br, -1 / rho) : NaN;
+  };
+  /* PMag por fórmula cerrada */
+  const pm = (K, L) => {
+    const x = f(K, L);
+    if (forma === 'cd') return { L: v * (1 - d) * x / L, K: v * d * x / K };
+    if (forma === 'lin') { const S = d * K + (1 - d) * L; return { L: v * (1 - d) * Math.pow(S, v - 1), K: v * d * Math.pow(S, v - 1) }; }
+    if (forma === 'leon') { const m = Math.min(K, L), g = v * Math.pow(m, v - 1);
+      return K > L ? { L: g, K: 0 } : K < L ? { L: 0, K: g } : { L: NaN, K: NaN }; }
+    const B = d * Math.pow(K, -rho) + (1 - d) * Math.pow(L, -rho);
+    return { L: v * (1 - d) * Math.pow(L, -rho - 1) * Math.pow(B, -v / rho - 1),
+             K: v * d * Math.pow(K, -rho - 1) * Math.pow(B, -v / rho - 1) };
+  };
+  return { f, iso, pm, s, rho };
+}
+const svgI = document.getElementById('svg-iso'); svgI.setAttribute('viewBox', '0 0 600 470');
+const PI = panel(svgI, 60, 26, 500, 390, [0, 10], [0, 10 * 390 / 500 * 1.0]);
+PI.yr = [0, 7.8];
+const gI = el('g', {}, svgI);
+const svgL = document.getElementById('svg-ln'); svgL.setAttribute('viewBox', '0 0 600 230');
+const PL = panel(svgL, 60, 26, 500, 160, [-3, 3], [-2.2, 2.2]);
+const gL = el('g', {}, svgL);
+let snapL = null;
+const empezarL = () => { if (!snapL) snapL = Object.assign({}, LP); };
+const cerrarL = () => { if (!snapL) return; const e = explicarLargo(snapL, Object.assign({}, LP)); snapL = null; if (e) mostrarPorque('largo', e); };
+habilitarArrastre(svgI, dibujarLargo, cerrarL);
+
+const FORMAS = [['leon', 'Leontief (σ = 0)'], ['ces', 'CES'], ['cd', 'Cobb-Douglas (σ = 1)'], ['lin', 'Lineal (σ = ∞)']];
+const cont = document.getElementById('formas');
+for (const [k, t] of FORMAS) {
+  const b = document.createElement('button'); b.type = 'button'; b.id = 'forma-' + k; b.dataset.k = k; b.textContent = t;
+  b.addEventListener('click', () => { empezarL(); LP.forma = k; if (k === 'ces' && Math.abs(LP.sigma - 1) < 0.03) LP.sigma = 0.5; dibujarLargo(); cerrarL(); });
+  cont.appendChild(b);
+}
+document.getElementById('sig').addEventListener('input', (e) => {
+  empezarL(); const s = Math.exp(parseFloat(e.target.value)); LP.sigma = s; LP.forma = Math.abs(s - 1) < 0.03 ? 'cd' : 'ces'; dibujarLargo(); });
+document.getElementById('del').addEventListener('input', (e) => { empezarL(); LP.delta = parseFloat(e.target.value); dibujarLargo(); });
+document.getElementById('vv').addEventListener('input', (e) => { empezarL(); LP.v = parseFloat(e.target.value); dibujarLargo(); });
+for (const id of ['sig', 'del', 'vv']) document.getElementById(id).addEventListener('change', cerrarL);
+
+function dibujarLargo() {
+  limpiar(gI); limpiar(gL);
+  const T = tec();
+  const P = PI;
+  LP.L = clamp(LP.L, 0.15, 9.9); LP.K = clamp(LP.K, 0.15, 7.7);
+  ejes(gI, P, 'L', 'K', [0, 2, 4, 6, 8, 10], [0, 2, 4, 6]);
+  const gc = el('g', { 'clip-path': P.clip }, gI);
+
+  // diagonal (isoclina de la proporción K/L = 1) y niveles X0..4X0
+  const X0 = T.f(2, 2);
+  el('line', { x1: P.sx(0), y1: P.sy(0), x2: P.sx(7.8), y2: P.sy(7.8), class: 'guia' }, gc);
+  const dibIso = (lvl, cls, color) => {
+    if (LP.forma === 'leon') {
+      const c = Math.pow(lvl, 1 / LP.v);
+      el('path', { d: path([[P.sx(c), P.sy(P.yr[1] + 1)], [P.sx(c), P.sy(c)], [P.sx(P.xr[1] + 1), P.sy(c)]]), class: cls, stroke: color }, gc);
+      return;
+    }
+    // muestreo en L con densidad mayor cerca del origen
+    const pts = [];
+    for (let i = 1; i <= 700; i++) { const L = 10 * Math.pow(i / 700, 1.6); const K = T.iso(lvl, L);
+      pts.push(Number.isFinite(K) && K < 40 ? [P.sx(L), P.sy(K)] : null); }
+    el('path', { d: path(pts), class: cls, stroke: color }, gc);
+  };
+  for (let j = 1; j <= 4; j++) {
+    dibIso(j * X0, 'cur-fina', 'var(--azul)');
+    const t = 2 * Math.pow(j, 1 / LP.v);
+    if (t < 7.6) { el('circle', { cx: P.sx(t), cy: P.sy(t), r: 3, fill: 'var(--azul)' }, gI);
+      tx(gI, P.sx(t) + 6, P.sy(t) + 14, j === 1 ? 'X₀' : j + 'X₀', { style: 'fill:var(--azul);font-size:12.5px;font-style:normal' }); }
+  }
+
+  // punto P, su isocuanta, tangente e isoclina
+  const L = LP.L, K = LP.K, xP = T.f(K, L), pm = T.pm(K, L);
+  const rmst = pm.L / pm.K;
+  dibIso(xP, 'cur', 'var(--azul)');
+  el('line', { x1: P.sx(0), y1: P.sy(0), x2: P.sx(L * 20), y2: P.sy(K * 20), class: 'rayo', stroke: 'var(--verde)' }, gc);
+  if (Number.isFinite(rmst) && rmst > 0) {
+    const h = 2.2 / Math.sqrt(1 + rmst * rmst);
+    el('path', { d: path([[P.sx(L - h), P.sy(K + rmst * h)], [P.sx(L + h), P.sy(K - rmst * h)]]), class: 'tang', stroke: 'var(--rojo)' }, gc);
+  }
+  const p = el('circle', { cx: P.sx(L), cy: P.sy(K), r: 7, class: 'pto', fill: 'var(--punto)' }, gI);
+  tx(gI, P.sx(L) + 9, P.sy(L > 0 ? K : K) - 9, 'P', { style: 'font-style:normal;font-weight:600' });
+  arrastrable(svgI, p, (q) => { LP.L = P.ix(q.x); LP.K = P.iy(q.y); }, empezarL);
+
+  // ln(K/L) frente a ln(RMST): pendiente σ
+  const Q = PL;
+  ejes(gL, Q, 'ln RMST', 'ln(K/L)', [-3, -2, -1, 0, 1, 2, 3], [-2, -1, 0, 1, 2], true);
+  el('line', { x1: Q.sx(0), y1: Q.y0, x2: Q.sx(0), y2: Q.y0 + Q.h, class: 'eje', 'stroke-width': .8 }, gL);
+  const gq = el('g', { 'clip-path': Q.clip }, gL);
+  const c0 = Math.log((1 - LP.delta) / LP.delta);       // ln RMST = c0 + (1/σ) ln(K/L)
+  if (LP.forma === 'leon') {
+    el('line', { x1: Q.sx(-3), y1: Q.sy(0), x2: Q.sx(3), y2: Q.sy(0), class: 'cur', stroke: 'var(--verde)' }, gq);
+  } else if (LP.forma === 'lin') {
+    el('line', { x1: Q.sx(c0), y1: Q.y0, x2: Q.sx(c0), y2: Q.y0 + Q.h, class: 'cur', stroke: 'var(--verde)' }, gq);
+  } else {
+    el('path', { d: Q.curva((lr) => T.s * (lr - c0), -3, 3, 2), class: 'cur', stroke: 'var(--verde)' }, gq);
+  }
+  const lkl = Math.log(K / L), lr = Math.log(rmst);
+  if (Number.isFinite(lr)) el('circle', { cx: Q.sx(clamp(lr, -3.2, 3.2)), cy: Q.sy(clamp(lkl, -2.4, 2.4)), r: 5, class: 'pto', fill: 'var(--punto)' }, gL);
+  el('text', { x: Q.x0 + Q.w, y: Q.y0 + 4, class: 'tlab', 'text-anchor': 'end' }, gL).textContent =
+    'pendiente = σ  (la b₁ de la regresión MCO del tema)';
+
+  // lectura
+  const sTxt = LP.forma === 'leon' ? '0' : LP.forma === 'lin' ? '∞' : fmt(T.s, 2);
+  const formula = { cd: `X = K<sup>${fmt(LP.v * LP.delta)}</sup> · L<sup>${fmt(LP.v * (1 - LP.delta))}</sup>`,
+    lin: `X = (${fmt(LP.delta)}K + ${fmt(1 - LP.delta)}L)<sup>${fmt(LP.v)}</sup>`,
+    leon: `X = [mín(K, L)]<sup>${fmt(LP.v)}</sup>`,
+    ces: `X = [${fmt(LP.delta)}K<sup>${fmt(-T.rho)}</sup> + ${fmt(1 - LP.delta)}L<sup>${fmt(-T.rho)}</sup>]<sup>${fmt(-LP.v / T.rho)}</sup>` }[LP.forma];
+  const d_ = MV(String.raw`\delta`), K_ = MV('K'), L_ = MV('L'), v_ = MV('v'), r_ = MV(String.raw`\rho`), s_ = MV(String.raw`\sigma`);
+  const GEN = {
+    ces: String.raw`X = \gamma\left[${d_}\,${K_}^{-${r_}} + (1-${d_})\,${L_}^{-${r_}}\right]^{-${v_}/${r_}},\qquad ${r_} = \frac{1}{${s_}} - 1`,
+    cd: String.raw`X = \gamma\,${K_}^{${v_}${d_}}\,${L_}^{${v_}(1-${d_})}`,
+    lin: String.raw`X = \gamma\left[${d_}\,${K_} + (1-${d_})\,${L_}\right]^{${v_}}`,
+    leon: String.raw`X = \gamma\left[\min(${K_}, ${L_})\right]^{${v_}}`,
+  }[LP.forma];
+  const GEN_R = LP.forma === 'leon' ? String.raw`\mathrm{RMST}^K_L = \begin{cases} \infty & \text{si } ${K_} > ${L_} \\ 0 & \text{si } ${K_} < ${L_} \\ \text{no definida} & \text{si } ${K_} = ${L_} \end{cases}`
+    : LP.forma === 'lin' ? String.raw`\mathrm{RMST}^K_L = \frac{\mathrm{PMag}_L}{\mathrm{PMag}_K} = \frac{1-${d_}}{${d_}}`
+    : String.raw`\mathrm{RMST}^K_L = \frac{\mathrm{PMag}_L}{\mathrm{PMag}_K} = \frac{1-${d_}}{${d_}}\left(\frac{${K_}}{${L_}}\right)^{1/${s_}}`;
+  const dd = fT(LP.delta), d1 = fT(1 - LP.delta), KK = fT(K), LL = fT(L), vv = fT(LP.v);
+  const VAL = {
+    ces: String.raw`X(P) = \left[${dd}\cdot ${KK}^{${fT(-T.rho)}} + ${d1}\cdot ${LL}^{${fT(-T.rho)}}\right]^{${fT(-LP.v / T.rho)}} = ${fT(xP)}`,
+    cd: String.raw`X(P) = ${KK}^{${fT(LP.v * LP.delta)}}\cdot ${LL}^{${fT(LP.v * (1 - LP.delta))}} = ${fT(xP)}`,
+    lin: String.raw`X(P) = \left(${dd}\cdot ${KK} + ${d1}\cdot ${LL}\right)^{${vv}} = ${fT(xP)}`,
+    leon: String.raw`X(P) = \left[\min(${KK}, ${LL})\right]^{${vv}} = ${fT(xP)}`,
+  }[LP.forma];
+  const VAL_R = LP.forma === 'leon' ? (K > L ? String.raw`\mathrm{RMST}^K_L = \infty` : K < L ? String.raw`\mathrm{RMST}^K_L = 0` : String.raw`\mathrm{RMST}^K_L\ \text{no definida}`)
+    : LP.forma === 'lin' ? String.raw`\mathrm{RMST}^K_L = \frac{${d1}}{${dd}} = ${fT(rmst, 3)}`
+    : String.raw`\mathrm{RMST}^K_L = \frac{${d1}}{${dd}}\left(\frac{${KK}}{${LL}}\right)^{1/${fT(T.s)}} = ${fT(rmst, 3)}`;
+  document.getElementById('lec-largo').innerHTML = `
+    <div class="formas">
+      <span class="lbl">Forma general · en color, lo que puedes mover</span>
+      ${TX(GEN)}
+      ${TX(GEN_R)}
+      <span class="fijo">Parámetro fijo: γ = 1. K y L se mueven arrastrando P.</span>
+      <span class="lbl" style="margin-top:6px">Con tus valores</span>
+      ${TX(VAL)}
+      ${TX(VAL_R)}
+    </div>
+    <div class="kv"><div><span>P = (L; K)</span><b>(${fmt(L)}; ${fmt(K)})</b></div><div><span>X en P</span><b>${fmt(xP)}</b></div><div><span>PMag<sub>L</sub></span><b>${fmt(pm.L, 3)}</b></div><div><span>PMag<sub>K</sub></span><b>${fmt(pm.K, 3)}</b></div><div><span>RMST<sup>K</sup><sub>L</sub> = PMag<sub>L</sub>/PMag<sub>K</sub></span><b>${Number.isFinite(rmst) ? fmt(rmst, 3) : (rmst === Infinity ? '∞' : '—')}</b></div><div><span>K/L</span><b>${fmt(K / L, 3)}</b></div><div><span>ES = σ</span><b>${sTxt}</b></div><div><span>e = v</span><b>${fmt(LP.v)}</b></div></div>`;
+  montar(document.getElementById('lec-largo'));
+  pintarConceptosLargo();
+  document.querySelectorAll('#formas button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === LP.forma)));
+  const sl = document.getElementById('sig');
+  if (LP.forma === 'ces' || LP.forma === 'cd') sl.value = Math.log(LP.forma === 'cd' ? 1 : LP.sigma);
+  document.getElementById('sig-v').textContent = sTxt;
+  document.getElementById('del').value = LP.delta; document.getElementById('del-v').textContent = fmt(LP.delta);
+  document.getElementById('vv').value = LP.v; document.getElementById('vv-v').textContent = fmt(LP.v);
+  // en Leontief δ no interviene
+  document.getElementById('del').disabled = LP.forma === 'leon';
+}
+
+/* ===================================================== EXPLICACIONES Y CONCEPTOS */
+const MO = (t) => `<span class="mod">${t}</span>`;
+const f1 = (v) => fmt(v, 1), f2 = (v) => fmt(v, 2), f3 = (v) => fmt(v, 3);
+const pct = (a, b) => { const p = (b / a - 1) * 100; return (p >= 0 ? '+' : '') + fmt(p, 1) + ' %'; };
+const sube = (a, b) => (b > a ? 'sube' : 'baja');
+const ROM = { 1: 'I', 2: 'II', 3: 'III' };
+const PM_ = (s) => `PMag<sub>${s}</sub>`, PE_ = (s) => `PMe<sub>${s}</sub>`;
+
+/* ---------- panel «Qué ha cambiado y por qué» ---------- */
+const HIST = { corto: [], largo: [] };
+const ULT = { corto: new Set(), largo: new Set() };
+function mostrarPorque(k, e) {
+  HIST[k].unshift(e); HIST[k] = HIST[k].slice(0, 6);
+  ULT[k] = e.cambia || new Set();
+  const box = document.getElementById('porque-' + k);
+  const [act, ...prev] = HIST[k];
+  box.innerHTML = `<div class="eti">Qué ha cambiado y por qué</div><h3>${act.titulo}</h3>` +
+    act.p.map((t) => `<p>${t}</p>`).join('') +
+    (prev.length ? `<details><summary>Cambios anteriores (${prev.length})</summary>` +
+      prev.map((h) => `<div class="prev"><b>${h.titulo}</b>${h.p.map((t) => `<p>${t}</p>`).join('')}</div>`).join('') + '</details>' : '');
+  montar(box);
+  if (k === 'corto') pintarConceptosCorto(); else pintarConceptosLargo();
+}
+function pintarConceptos(id, lista, cambia) {
+  const c = document.getElementById(id);
+  c.innerHTML = lista.map((x) => `
+    <article class="concepto${cambia.has(x.k) ? ' cambia' : ''}">
+      <div class="cab"><h4>${x.n}</h4>${cambia.has(x.k) ? '<span class="chip-cambia">ha cambiado</span>' : ''}</div>
+      <p class="def">${x.d}</p>
+      ${x.f ? `<div class="formula">${TX(x.f)}</div>` : ''}
+      ${x.v !== undefined ? `<p class="valor">Ahora: <b>${x.v}</b></p>` : ''}
+      ${x.ref ? `<p class="ref">${x.ref}</p>` : ''}
+    </article>`).join('');
+  montar(c);
+}
+
+/* ---------- CORTO PLAZO ---------- */
+const etapaDe = (L, K) => (L < 1.5 * K ? 1 : L < 2 * K ? 2 : 3);
+const mC = (s) => ({ X: X(s.L, s.K), pme: PMe(s.L, s.K), pmg: PMg(s.L, s.K), pmk: PMgK(s.L, s.K),
+  eps: PMg(s.L, s.K) / PMe(s.L, s.K), et: etapaDe(s.L, s.K), LA: s.K, L1: 1.5 * s.K, L2: 2 * s.K, r: s.L / s.K });
+
+function textoEtapa(et, m) {
+  return {
+    1: `Estás en la etapa I: ${PM_('L')} > ${PE_('L')}, así que el ${PE_('L')} crece y ε<sub>L</sub> > 1. Por Euler, con rendimientos constantes ${PM_('K')} < 0 justo cuando ${PM_('L')} > ${PE_('L')}: hay demasiado capital fijo para tan poco trabajo (${PM_('K')} = ${f3(m.pmk)}).`,
+    2: `Estás en la etapa II: ${PE_('L')} ≥ ${PM_('L')} ≥ 0, así que 0 ≤ ε<sub>L</sub> ≤ 1 y los dos productos marginales son no negativos (${PM_('K')} = ${f3(m.pmk)}). Es la zona donde produce una empresa racional; el punto exacto lo fijan los precios de los factores.`,
+    3: `Estás en la etapa III: ${PM_('L')} < 0 y ε<sub>L</sub> < 0. Hay tanto trabajo para el capital fijo que un trabajador más reduce la producción.`,
+  }[et];
+}
+function cruces(a, b, A, B, K) {
+  const out = [], lo = Math.min(A.L, B.L), hi = Math.max(A.L, B.L);
+  if (lo < 1.5 * K && hi >= 1.5 * K) out.push(`Has cruzado el margen extensivo (L = 1,5K̄₀ = ${f1(1.5 * K)}), donde ${PE_('L')} = ${PM_('L')} y el ${PE_('L')} está en su máximo (2,25). Allí ${PM_('K')} = 0 y cambia de signo.`);
+  if (lo < 2 * K && hi >= 2 * K) out.push(`Has cruzado el margen intensivo (L = 2K̄₀ = ${f1(2 * K)}), donde ${PM_('L')} = 0 y el PT está en su máximo (X = 4K̄₀ = ${f1(4 * K)}).`);
+  return out;
+}
+function explicarCorto(A, B) {
+  if (Math.abs(A.K - B.K) > 1e-9) return explicarCapital(A, B);
+  if (Math.abs(A.L - B.L) > 1e-9) return explicarTrabajo(A, B);
+  return null;
+}
+function explicarTrabajo(A, B) {
+  const K = B.K, a = mC(A), b = mC(B), lo = Math.min(A.L, B.L), hi = Math.max(A.L, B.L), up = B.L > A.L;
+  const p = [], cambia = new Set(['L', 'PT', 'PMe', 'PMag', 'eps']);
+  p.push(`Has ${up ? 'aumentado' : 'reducido'} el trabajo de L = ${f1(A.L)} a L = ${f1(B.L)} con el capital fijo en K̄₀ = ${f1(K)}. En el C/P solo puede variar el factor variable, así que te mueves a lo largo del mismo PT.`);
+  if (lo < b.L2 && hi > b.L2)
+    p.push(`La producción pasa de X = ${f2(a.X)} a X = ${f2(b.X)}. Entre L = ${f1(lo)} y L = ${f1(hi)} el PT pasa por su máximo (X = ${f1(4 * K)}) en L = 2K̄₀ = ${f1(b.L2)}, donde ${PM_('L')} = 0: antes de ese punto cada unidad de trabajo suma producción y después la resta.`);
+  else if (hi <= b.L2)
+    p.push(`La producción ${sube(a.X, b.X)} de X = ${f2(a.X)} a X = ${f2(b.X)} porque en todo el tramo entre L = ${f1(lo)} y L = ${f1(hi)} el ${PM_('L')} es positivo: cada unidad de trabajo añadida suma producción y cada una retirada la resta.`);
+  else
+    p.push(`La producción ${sube(a.X, b.X)} de X = ${f2(a.X)} a X = ${f2(b.X)} porque todo el tramo está más allá del máximo del PT (L = 2K̄₀ = ${f1(b.L2)}): allí el ${PM_('L')} es negativo, y añadir trabajo reduce la producción.`);
+  if (hi <= b.LA)
+    p.push(`El ${PM_('L')} ${sube(a.pmg, b.pmg)} de ${f3(a.pmg)} a ${f3(b.pmg)}. Todo el tramo está antes del punto A (L = K̄₀ = ${f1(b.LA)}), donde el PT es convexo: con poco trabajo para el capital disponible, cada trabajador adicional aprovecha capital infrautilizado y aporta más que el anterior.`);
+  else if (lo >= b.LA)
+    p.push(`El ${PM_('L')} ${sube(a.pmg, b.pmg)} de ${f3(a.pmg)} a ${f3(b.pmg)}. Todo el tramo está después del punto A (L = K̄₀ = ${f1(b.LA)}), donde actúa la ley de rendimientos decrecientes: con K̄₀ fijo, cada trabajador adicional dispone de menos capital (L/K̄₀ pasa de ${f2(a.r)} a ${f2(b.r)}) y aporta menos que el anterior.`);
+  else
+    p.push(`El ${PM_('L')} pasa de ${f3(a.pmg)} a ${f3(b.pmg)}. Por el camino cruza el punto A (L = K̄₀ = ${f1(b.LA)}), donde alcanza su máximo (${PM_('L')} = 3): antes de A crece porque el capital está infrautilizado y después decrece por la ley de rendimientos decrecientes.`);
+  if (hi <= b.L1)
+    p.push(`El ${PE_('L')} ${sube(a.pme, b.pme)} de ${f3(a.pme)} a ${f3(b.pme)} porque en todo el tramo ${PM_('L')} > ${PE_('L')}: el trabajador marginal aporta más que la media, así que añadirlo la eleva y retirarlo la reduce.`);
+  else if (lo >= b.L1)
+    p.push(`El ${PE_('L')} ${sube(a.pme, b.pme)} de ${f3(a.pme)} a ${f3(b.pme)} porque en todo el tramo ${PM_('L')} < ${PE_('L')}: el trabajador marginal aporta menos que la media, así que añadirlo la reduce y retirarlo la eleva.`);
+  else
+    p.push(`El ${PE_('L')} pasa de ${f3(a.pme)} a ${f3(b.pme)}. Por el camino cruza su máximo en L = 1,5K̄₀ = ${f1(b.L1)}, donde ${PE_('L')} = ${PM_('L')} = 2,25: a la izquierda el trabajador marginal aporta más que la media y la eleva; a la derecha aporta menos y la reduce.`);
+  p.push(`La elasticidad producto ${TI(String.raw`\varepsilon_L = \frac{\mathrm{PMag}_L}{\mathrm{PMe}_L}`)} pasa de ${f3(a.eps)} a ${f3(b.eps)}: ahora, un 1 % más de trabajo ${b.eps >= 0 ? 'aumenta' : 'reduce'} la producción un ${f2(Math.abs(b.eps))} %.`);
+  const cr = cruces(a, b, A, B, K);
+  if (a.et !== b.et) { cambia.add('etapa'); cambia.add('margenes'); cambia.add('PMagK');
+    p.push(cr.join(' ') + ` Pasas de la etapa ${ROM[a.et]} a la ${ROM[b.et]}. ` + textoEtapa(b.et, b)); }
+  else p.push(`Sigues en la etapa ${ROM[b.et]}. ` + textoEtapa(b.et, b));
+  if (Math.sign(a.pmk) !== Math.sign(b.pmk)) cambia.add('PMagK');
+  return { titulo: `L: ${f1(A.L)} → ${f1(B.L)}`, p, cambia };
+}
+function explicarCapital(A, B) {
+  const L = B.L, a = mC(A), b = mC(B), up = B.K > A.K, klo = Math.min(A.K, B.K), khi = Math.max(A.K, B.K);
+  const p = [], cambia = new Set(['Kbar', 'PT', 'PMe', 'PMag', 'eps', 'PMagK', 'A', 'margenes', 'euler']);
+  p.push(`Has ${up ? 'aumentado' : 'reducido'} el capital fijo de K̄₀ = ${f1(A.K)} a K̄₀ = ${f1(B.K)} con L = ${f1(L)}. En el C/P el capital es un dato: cambiarlo equivale a comparar dos plantas de distinto tamaño, cada una con su propio PT.`);
+  p.push(`La función es homogénea de grado 1, así que ${PE_('L')} y ${PM_('L')} dependen solo de la proporción L/K̄₀, que pasa de ${f2(a.r)} a ${f2(b.r)}: cada trabajador dispone ahora de ${up ? 'más' : 'menos'} capital.`);
+  p.push(`Por esa misma razón, todos los límites se desplazan en proporción a K̄₀: el punto A pasa a L = K̄₀ = ${f1(b.LA)}, el margen extensivo a L = 1,5K̄₀ = ${f1(b.L1)} y el intensivo a L = 2K̄₀ = ${f1(b.L2)}. Los máximos del ${PE_('L')} (2,25) y del ${PM_('L')} (3) no cambian; el del PT sí, porque vale X = 4K̄₀ = ${f1(4 * B.K)}.`);
+  const Ks = L / 1.5;
+  if (Ks > klo && Ks < khi)
+    p.push(`La producción pasa de X = ${f2(a.X)} a X = ${f2(b.X)}. Por el camino alcanza su máximo con K̄₀ = L/1,5 = ${f1(Ks)}: con menos capital que eso, ${PM_('K')} > 0 y cada unidad de capital suma producción; con más, ${PM_('K')} < 0 (para este L estarías en la etapa I) y la resta.`);
+  else if (khi <= Ks)
+    p.push(`La producción ${sube(a.X, b.X)} de X = ${f2(a.X)} a X = ${f2(b.X)} porque en todo el tramo ${PM_('K')} > 0: con L = ${f1(L)} > 1,5K̄₀ el capital es el factor relativamente escaso y cada unidad suma producción.`);
+  else
+    p.push(`La producción ${sube(a.X, b.X)} de X = ${f2(a.X)} a X = ${f2(b.X)} porque en todo el tramo ${PM_('K')} < 0: con L = ${f1(L)} < 1,5K̄₀ estás en la etapa I, sobra capital para el trabajo disponible y ${up ? 'añadir más capital reduce la producción' : 'retirar capital aumenta la producción'}.`);
+  p.push(`Con L fijo, ${PE_('L')} = X/L se mueve igual que X: pasa de ${f3(a.pme)} a ${f3(b.pme)}. El ${PM_('L')} pasa de ${f3(a.pmg)} a ${f3(b.pmg)}: en función de L/K̄₀, el ${PM_('L')} crece hasta L/K̄₀ = 1 (punto A) y decrece a partir de ahí, y has pasado de L/K̄₀ = ${f2(a.r)} a ${f2(b.r)}.`);
+  if (a.et !== b.et) { cambia.add('etapa');
+    p.push(`Pasas de la etapa ${ROM[a.et]} a la ${ROM[b.et]} sin mover L: lo que se ha movido son los límites de etapa. ` + textoEtapa(b.et, b)); }
+  else p.push(`Sigues en la etapa ${ROM[b.et]}. ` + textoEtapa(b.et, b));
+  return { titulo: `K̄₀: ${f1(A.K)} → ${f1(B.K)}`, p, cambia };
+}
+function inicialCorto() {
+  const m = mC(CP);
+  return { titulo: 'Punto de partida', cambia: new Set(), p: [
+    `Con K̄₀ = ${f1(CP.K)} y L = ${f1(CP.L)} se producen X = ${f2(m.X)} unidades. El ${PE_('L')} (pendiente del rayo, tg α) vale ${f3(m.pme)} y el ${PM_('L')} (pendiente de la tangente) vale ${f3(m.pmg)}.`,
+    textoEtapa(m.et, m),
+    'Mueve L o K̄₀: aquí aparecerá qué ha cambiado y por qué.'] };
+}
+function pintarConceptosCorto() {
+  const m = mC(CP), K = CP.K, L = CP.L;
+  pintarConceptos('con-corto', [
+    { k: 'PT', n: 'Producto total (PT)', d: 'Cantidad de output X que se obtiene con L unidades de trabajo, dado el capital fijo. Es la función de producción a C/P.', f: String.raw`X = \frac{3L^2}{\bar K_0} - \frac{L^3}{\bar K_0^2}`, v: `X = ${f2(m.X)}`, ref: '3A11 §2. 1' },
+    { k: 'Kbar', n: 'Factor fijo K̄₀', d: 'En el C/P hay factores fijos, constantes y no modificables. Aquí es el capital: solo se puede variar la producción a través del trabajo.', v: `K̄₀ = ${f1(K)}`, ref: '3A11 §2. 1' },
+    { k: 'L', n: 'Factor variable L', d: 'Input que la empresa puede ajustar en el C/P. El punto que arrastras es la combinación (L, X) sobre el PT.', v: `L = ${f1(L)}`, ref: '3A11 §2. 1' },
+    { k: 'PMe', n: `Producto medio ${PE_('L')}`, d: 'Producción por unidad de trabajo. Gráficamente es la pendiente del rayo que une el origen con el punto del PT.', f: String.raw`\mathrm{PMe}_L = \frac{X}{L} = \operatorname{tg}\alpha`, v: f3(m.pme), ref: '3A11 §2. 1. 1' },
+    { k: 'PMag', n: `Producto marginal ${PM_('L')}`, d: 'Lo que añade a la producción la última unidad de trabajo. Gráficamente es la pendiente de la tangente al PT.', f: String.raw`\mathrm{PMag}_L = \frac{dX}{dL}`, v: f3(m.pmg), ref: '3A11 §2. 1. 2' },
+    { k: 'A', n: 'Punto A', d: `Punto de inflexión del PT y máximo del ${PM_('L')}. A su izquierda el PT es convexo (${PM_('L')} creciente); a su derecha, cóncavo (rendimientos decrecientes).`, v: `L = K̄₀ = ${f1(m.LA)}`, ref: '3A11 §2. 1. 2, figura' },
+    { k: 'eps', n: 'Elasticidad producto ε<sub>L</sub>', d: 'Variación porcentual de la producción ante una variación porcentual del input variable.', f: String.raw`\varepsilon_L = \frac{dX/X}{dL/L} = \frac{\mathrm{PMag}_L}{\mathrm{PMe}_L}`, v: f3(m.eps), ref: '3A11 §2. 1. 4' },
+    { k: 'etapa', n: 'Etapas de la producción', d: `I: del origen al máximo del ${PE_('L')} (ε<sub>L</sub> > 1). II: del máximo del ${PE_('L')} al máximo del PT (0 ≤ ε<sub>L</sub> ≤ 1). III: ${PM_('L')} < 0 (ε<sub>L</sub> < 0).`, v: `Etapa ${ROM[m.et]}`, ref: '3A11 §2. 1. 3' },
+    { k: 'margenes', n: 'Margen extensivo e intensivo', d: `Límites de la etapa II en el Gráfico 15 del tema. El extensivo está en el máximo del ${PE_('L')} (${PE_('L')} = ${PM_('L')}); el intensivo, donde ${PM_('L')} = 0 (máximo del PT).`, v: `L = ${f1(m.L1)} y L = ${f1(m.L2)}`, ref: '3A11 §2. 1. 3, figura' },
+    { k: 'PMagK', n: `${PM_('K')} del factor fijo`, d: 'Lo que añadiría a la producción una unidad más de capital con L dado. En la etapa I es negativo: sobra capital para el trabajo disponible.', f: String.raw`\mathrm{PMag}_K = \frac{\partial X}{\partial K}`, v: f3(m.pmk), ref: '3A11 §2. 1. 3, etapa I' },
+    { k: 'euler', n: 'Rendimientos constantes y Euler', d: `La función es homogénea de grado 1, así que el producto se reparte exactamente entre los dos factores. De ahí sale que ${PM_('K')} < 0 equivale a ${PM_('L')} > ${PE_('L')}.`, f: String.raw`X = L\cdot\mathrm{PMag}_L + K\cdot\mathrm{PMag}_K`, v: `${f2(L * m.pmg)} + ${f2(K * m.pmk)} = ${f2(m.X)}`, ref: '3A11 §2. 2. 2' },
+  ], ULT.corto);
+}
+
+/* ---------- LARGO PLAZO ---------- */
+const NOMBRE = { leon: 'Leontief (complementariedad perfecta)', cd: 'Cobb-Douglas', lin: 'lineal (sustituibilidad perfecta)', ces: 'CES' };
+function mL(s) {
+  const T = tec(s), pm = T.pm(s.K, s.L), x = T.f(s.K, s.L);
+  const rho = s.forma === 'ces' ? T.rho : s.forma === 'cd' ? 0 : s.forma === 'lin' ? -1 : Infinity;
+  return { T, X: x, pmL: pm.L, pmK: pm.K, rmst: pm.L / pm.K, kl: s.K / s.L, s: T.s, rho };
+}
+const fR = (r) => (Number.isFinite(r) ? f3(r) : r === Infinity ? '∞' : 'no definida');
+const fS = (s) => (s === Infinity ? '∞' : f2(s));
+function explicarLargo(A, B) {
+  const cdces = (f) => f === 'cd' || f === 'ces';
+  if (cdces(A.forma) && cdces(B.forma) && Math.abs(mL(A).s - mL(B).s) > 1e-9) return explicarSigma(A, B);
+  if (A.forma !== B.forma) return explicarForma(A, B);
+  if (Math.abs(A.delta - B.delta) > 1e-9) return explicarDelta(A, B);
+  if (Math.abs(A.v - B.v) > 1e-9) return explicarV(A, B);
+  if (Math.abs(A.L - B.L) > 1e-9 || Math.abs(A.K - B.K) > 1e-9) return explicarP(A, B);
+  return null;
+}
+function frasesRMSTLeontief(s) {
+  return s.K > s.L ? `P está en el tramo vertical: sobra capital, ${PM_('K')} = 0 y la RMST<sup>K</sup><sub>L</sub> es infinita.`
+    : s.K < s.L ? `P está en el tramo horizontal: sobra trabajo, ${PM_('L')} = 0 y la RMST<sup>K</sup><sub>L</sub> es 0.`
+    : 'P está en el vértice: la RMST<sup>K</sup><sub>L</sub> no está definida porque no hay sustitución posible.';
+}
+function explicarP(A, B) {
+  const a = mL(A), b = mL(B), p = [], cambia = new Set(['P', 'iso', 'X', 'RMST', 'isoclina']);
+  p.push(`Has movido el método de producción P de (L; K) = (${f2(A.L)}; ${f2(A.K)}) a (${f2(B.L)}; ${f2(B.K)}).`);
+  const dkl = Math.log(b.kl / a.kl);
+  if (Math.abs(b.X / a.X - 1) < 0.01) p.push(`X apenas cambia (${f2(a.X)} → ${f2(b.X)}): te has movido casi a lo largo de la misma isocuanta, sustituyendo un factor por otro.`);
+  else p.push(`X ${sube(a.X, b.X)} de ${f2(a.X)} a ${f2(b.X)}: P está ahora en una isocuanta ${b.X > a.X ? 'más alejada del origen' : 'más cercana al origen'}, y en las isocuantas más alejadas hay más output.`);
+  if (Math.abs(dkl) < 0.005) {
+    const lam = B.L / A.L;
+    p.push(`K/L no cambia (${f3(b.kl)}): te has movido a lo largo de la isoclina de P, el rayo que sale del origen. Como la función es homotética, la RMST<sup>K</sup><sub>L</sub> tampoco cambia (${fR(b.rmst)}). Solo cambia la escala: has multiplicado K y L por λ = ${f2(lam)}, y X se multiplica por λ<sup>v</sup> = ${f3(Math.pow(lam, B.v))}.`);
+    cambia.delete('RMST'); cambia.add('rend');
+  } else if (B.forma === 'leon') {
+    p.push(`K/L pasa de ${f3(a.kl)} a ${f3(b.kl)}. ${frasesRMSTLeontief(B)} Con Leontief, X depende solo de mín(K, L) = ${f2(Math.min(B.K, B.L))}: el factor que sobra no añade nada.`);
+  } else if (B.forma === 'lin') {
+    p.push(`K/L pasa de ${f3(a.kl)} a ${f3(b.kl)}, pero la RMST<sup>K</sup><sub>L</sub> sigue en (1−δ)/δ = ${f3(b.rmst)}. Con sustitutos perfectos, el PMag de cada factor no depende de la proporción en que se usen, así que la isocuanta tiene la misma pendiente en todos sus puntos (σ = ∞).`);
+    cambia.delete('RMST');
+  } else {
+    const dlr = Math.log(b.rmst / a.rmst);
+    p.push(`La proporción K/L pasa de ${f3(a.kl)} a ${f3(b.kl)} (${pct(a.kl, b.kl)}) y la ${TI(String.raw`\mathrm{RMST}^K_L = \frac{\mathrm{PMag}_L}{\mathrm{PMag}_K}`)} pasa de ${f3(a.rmst)} a ${f3(b.rmst)} (${pct(a.rmst, b.rmst)}). ${dkl > 0
+      ? `Con más capital por trabajador, el trabajo es relativamente más escaso: su PMag sube respecto al del capital y hay que renunciar a más K por cada unidad adicional de L.`
+      : `Con menos capital por trabajador, el capital es relativamente más escaso: su PMag sube respecto al del trabajo y basta con renunciar a menos K por cada unidad adicional de L.`}`);
+    p.push(`La relación entre los dos cambios es la ES: ${TI(String.raw`\frac{\Delta\ln(K/L)}{\Delta\ln\mathrm{RMST}} = ${fT(dkl / dlr)} = \sigma`)}. ${b.s < 1 ? 'Como σ < 1, la RMST se mueve en mayor proporción que K/L: los factores se sustituyen mal.' : b.s > 1 ? 'Como σ > 1, la RMST se mueve en menor proporción que K/L: los factores se sustituyen bien.' : 'Con Cobb-Douglas (σ = 1), ambos cambian en la misma proporción.'} En el gráfico inferior, el punto se ha desplazado a lo largo de la recta de pendiente σ.`);
+    cambia.add('ln'); cambia.add('kl');
+  }
+  return { titulo: `P: (${f2(A.L)}; ${f2(A.K)}) → (${f2(B.L)}; ${f2(B.K)})`, p, cambia };
+}
+function explicarSigma(A, B) {
+  const a = mL(A), b = mL(B), p = [], cambia = new Set(['sigma', 'rho', 'RMST', 'X', 'iso', 'ln']);
+  const baja = b.s < a.s;
+  p.push(`Has ${baja ? 'reducido' : 'aumentado'} la ES de σ = ${fS(a.s)} a σ = ${fS(b.s)}, así que ${TI(String.raw`\rho = \frac{1}{\sigma} - 1`)} pasa de ${f2(a.rho)} a ${f2(b.rho)}.`);
+  const lk = Math.log(b.kl);
+  let r = `En P la proporción K/L = ${f3(b.kl)} no cambia, pero la RMST<sup>K</sup><sub>L</sub> pasa de ${fR(a.rmst)} a ${fR(b.rmst)}, porque en la CES ${TI(String.raw`\mathrm{RMST}^K_L = \frac{1-\delta}{\delta}\left(\frac{K}{L}\right)^{1/\sigma}`)}. `;
+  if (Math.abs(lk) < 0.03) r += 'Como K/L ≈ 1, el factor ${TI(String.raw`(K/L)^{1/\sigma}`)} vale casi 1 y la RMST apenas depende de σ.';
+  else if (lk > 0) r += baja ? 'En P hay más K que L, así que una σ menor eleva el exponente 1/σ y la RMST sube: con factores menos sustituibles hay que entregar más K por cada unidad de L, que es el factor escaso.'
+    : 'En P hay más K que L, así que una σ mayor reduce el exponente 1/σ y la RMST baja: con factores más sustituibles, el factor escaso (L) se valora menos.';
+  else r += baja ? 'En P hay más L que K, así que una σ menor hace que la RMST baje: con factores menos sustituibles, el factor abundante (L) vale aún menos en términos de K.'
+    : 'En P hay más L que K, así que una σ mayor hace que la RMST suba: con factores más sustituibles, el factor abundante (L) se penaliza menos.';
+  p.push(r);
+  p.push(`Las isocuantas ${baja ? 'se curvan más y se acercan a la forma en L de Leontief (σ = 0)' : 'se aplanan y se acercan a la recta de los sustitutos perfectos (σ = ∞)'}.${Math.sign(a.rho) !== Math.sign(b.rho) ? (b.rho > 0 ? ' Con ρ > 0 tienen asíntotas: no se puede producir con un solo factor.' : ' Con ρ < 0 cortan los ejes: se puede producir con un solo factor.') : ''}`);
+  if (Math.abs(lk) >= 0.03) p.push(`X en P ${sube(a.X, b.X)} de ${f2(a.X)} a ${f2(b.X)}: con una combinación desequilibrada de factores, ${baja ? 'una σ menor produce menos, porque el factor escaso limita más la producción' : 'una σ mayor produce más, porque el factor abundante compensa mejor al escaso'}. Sobre la diagonal (K = L) la CES da X = K<sup>v</sup> sea cual sea σ, por eso los puntos X₀ a 4X₀ no se mueven.`);
+  return { titulo: `σ: ${fS(a.s)} → ${fS(b.s)}`, p, cambia };
+}
+function explicarDelta(A, B) {
+  const a = mL(A), b = mL(B), p = [], cambia = new Set(['delta', 'RMST', 'X', 'iso', 'ln']);
+  const up = B.delta > A.delta;
+  p.push(`Has ${up ? 'aumentado' : 'reducido'} δ, el parámetro de distribución (peso del capital), de ${f2(A.delta)} a ${f2(B.delta)}.`);
+  if (B.forma === 'leon') p.push('Con Leontief δ no interviene: la producción depende solo de mín(K, L).');
+  else {
+    p.push(`La RMST<sup>K</sup><sub>L</sub> en P pasa de ${fR(a.rmst)} a ${fR(b.rmst)}: depende de δ a través del cociente ${TI(String.raw`\frac{1-\delta}{\delta}`)}, que pasa de ${f3((1 - A.delta) / A.delta)} a ${f3((1 - B.delta) / B.delta)}. ${up
+      ? `El capital pesa más en la producción: su PMag sube respecto al del trabajo y basta con renunciar a menos K para compensar una unidad de L. Las isocuantas se aplanan.`
+      : `El trabajo pesa más en la producción: su PMag sube respecto al del capital y hay que renunciar a más K por cada unidad de L. Las isocuantas se empinan.`}`);
+    if (Math.abs(B.K - B.L) > 0.02) p.push(`X en P ${sube(a.X, b.X)} de ${f2(a.X)} a ${f2(b.X)} porque ${(up === (B.K > B.L)) ? 'ahora pesa más el factor que P usa en mayor cantidad' : 'ahora pesa más el factor que P usa en menor cantidad'} (${B.K > B.L ? 'K > L' : 'K < L'}).`);
+    if (B.forma !== 'lin') p.push('En el gráfico inferior la recta se desplaza en horizontal sin cambiar de pendiente: δ mueve el nivel de la RMST, pero no la ES.');
+  }
+  return { titulo: `δ: ${f2(A.delta)} → ${f2(B.delta)}`, p, cambia };
+}
+function explicarV(A, B) {
+  const a = mL(A), b = mL(B), p = [], cambia = new Set(['v', 'rend', 'X', 'iso']);
+  const tipo = (v) => (v > 1.005 ? 'crecientes' : v < 0.995 ? 'decrecientes' : 'constantes');
+  p.push(`Has cambiado v, el grado de homogeneidad, de ${f2(A.v)} a ${f2(B.v)}. En una función homogénea coincide con la elasticidad de escala e (en el §2. 2. 2 el grado se llama t).`);
+  p.push(`Los rendimientos a escala pasan de ${tipo(A.v)} a ${tipo(B.v)}: al multiplicar K y L por λ, X se multiplica por λ<sup>v</sup>; con λ = 2, por ${f3(Math.pow(2, B.v))} en lugar de ${f3(Math.pow(2, A.v))}.`);
+  p.push(`La RMST<sup>K</sup><sub>L</sub> en P no cambia (${fR(b.rmst)}) porque v multiplica todos los PMag por la misma proporción: la forma de las isocuantas y las isoclinas se mantiene, y solo cambia el nivel de output que corresponde a cada una.`);
+  p.push(`X en P pasa de ${f2(a.X)} a ${f2(b.X)}. Las isocuantas X₀ a 4X₀ se ${B.v > A.v ? 'juntan' : 'separan'}: sobre la diagonal, la isocuanta jX₀ está en ${TI(String.raw`K = L = 2\,j^{1/v}`)}, así que la de 4X₀ pasa de K = L = ${f2(2 * Math.pow(4, 1 / A.v))} a ${f2(2 * Math.pow(4, 1 / B.v))}. ${B.v > A.v ? 'Con rendimientos más altos, hace falta menos aumento de factores para cada nuevo nivel de output.' : 'Con rendimientos más bajos, hace falta más aumento de factores para cada nuevo nivel de output.'}`);
+  return { titulo: `v: ${f2(A.v)} → ${f2(B.v)}`, p, cambia };
+}
+function explicarForma(A, B) {
+  const a = mL(A), b = mL(B), p = [], cambia = new Set(['forma', 'sigma', 'iso', 'RMST', 'X', 'ln']);
+  p.push(`Has cambiado la forma funcional de ${NOMBRE[A.forma]} a ${NOMBRE[B.forma]}.`);
+  const desc = {
+    leon: `Con Leontief la ES es 0: el output solo aumenta si los dos factores aumentan en la proporción fija. Las isocuantas forman un ángulo recto y el factor que sobra tiene PMag = 0. ${frasesRMSTLeontief(B)}`,
+    cd: `Con Cobb-Douglas la ES es 1 en todos los puntos: un 1 % más de K/L sube la RMST un 1 %. Las isocuantas no tocan los ejes y todo el plano es región económica de producción, porque los PMag son siempre positivos. La RMST<sup>K</sup><sub>L</sub> en P es ${fR(b.rmst)}.`,
+    lin: `Con la función lineal la ES es ∞: los factores son sustitutos perfectos y no hace falta usar los dos. La isocuanta es una recta y la RMST<sup>K</sup><sub>L</sub> es la misma en todos sus puntos: (1−δ)/δ = ${fR(b.rmst)}.`,
+    ces: `La CES tiene una ES constante, aquí σ = ${fS(b.s)}, entre los casos extremos. ${b.s < 1 ? 'Con σ < 1 las isocuantas tienen asíntotas' : 'Con σ > 1 las isocuantas cortan los ejes'}. La RMST<sup>K</sup><sub>L</sub> en P es ${fR(b.rmst)}.`,
+  }[B.forma];
+  p.push(desc);
+  p.push(`X en P pasa de ${f2(a.X)} a ${f2(b.X)}${Math.abs(B.K - B.L) < 0.02 ? ': como en P K = L, todas las formas dan el mismo output' : B.forma === 'leon' ? ': con Leontief solo cuenta el factor escaso, así que la producción es la menor de todas las formas' : B.forma === 'lin' ? ': con sustitutos perfectos el factor abundante compensa por completo al escaso, así que la producción es la mayor de todas las formas' : ''}.`);
+  return { titulo: `Forma: ${NOMBRE[A.forma].split(' ')[0]} → ${NOMBRE[B.forma].split(' ')[0]}`, p, cambia };
+}
+function inicialLargo() {
+  const m = mL(LP);
+  return { titulo: 'Punto de partida', cambia: new Set(), p: [
+    `La tecnología es ${NOMBRE[LP.forma]} con δ = ${f2(LP.delta)} y v = ${f2(LP.v)}. El método de producción P = (${f2(LP.L)}; ${f2(LP.K)}) produce X = ${f2(m.X)}.`,
+    `En P, K/L = ${f3(m.kl)} y la ${TI(String.raw`\mathrm{RMST}^K_L = \frac{\mathrm{PMag}_L}{\mathrm{PMag}_K}`)} = ${fR(m.rmst)}: para producir lo mismo con una unidad más de L se puede renunciar a ${fR(m.rmst)} unidades de K.`,
+    'Arrastra P o mueve σ, δ o v: aquí aparecerá qué ha cambiado y por qué.'] };
+}
+function pintarConceptosLargo() {
+  const m = mL(LP);
+  pintarConceptos('con-largo', [
+    { k: 'iso', n: 'Isocuanta', d: 'Lugar geométrico de las combinaciones de inputs que dan un mismo nivel de output. Cuanto más lejos del origen, más output. No se cortan y ordenan la producción de forma cardinal.', v: `la de P produce X = ${f2(m.X)}`, ref: '3A11 §1. 2. 1' },
+    { k: 'P', n: 'Método de producción P', d: 'Un punto del plano: una combinación concreta de inputs para obtener un output. La función de producción recoge solo los métodos más eficientes.', v: `(L; K) = (${f2(LP.L)}; ${f2(LP.K)})`, ref: '3A11 §1. 2' },
+    { k: 'X', n: 'Output X', d: 'Nivel de producción que da la función de producción en P.', f: String.raw`X = \gamma\left[\delta K^{-\rho} + (1-\delta)L^{-\rho}\right]^{-v/\rho}`, v: f2(m.X), ref: '3A11 §1. 2. 2. 4' },
+    { k: 'RMST', n: 'RMST<sup>K</sup><sub>L</sub>', d: 'Tasa a la que se puede sustituir capital por trabajo manteniendo el output: cuánto K se puede retirar por una unidad más de L. Es la pendiente de la isocuanta (la recta roja), en valor absoluto.', f: String.raw`\mathrm{RMST}^K_L = -\frac{dK}{dL} = \frac{\mathrm{PMag}_L}{\mathrm{PMag}_K}`, v: fR(m.rmst), ref: '3A11 §1. 2. 1. 1' },
+    { k: 'kl', n: 'Intensidad factorial K/L', d: 'Proporción en que se combinan los factores en P. Es la pendiente del rayo desde el origen hasta P.', v: f3(m.kl), ref: '3A11 §1. 2. 1. 1' },
+    { k: 'sigma', n: 'Elasticidad de sustitución (ES = σ)', d: 'Medida del grado de sustituibilidad entre inputs que no depende de las unidades: variación porcentual de K/L ante una variación porcentual de la RMST.', f: String.raw`\mathrm{ES} = \sigma = \dfrac{\dfrac{d(K/L)}{K/L}}{\dfrac{d(\mathrm{RMST})}{\mathrm{RMST}}}`, v: fS(m.s), ref: '3A11 §1. 2. 1. 1' },
+    { k: 'rho', n: 'Parámetro ρ de la CES', d: 'Fija la ES de la CES. Con ρ > 0 (σ < 1) las isocuantas tienen asíntotas; con −1 < ρ < 0 (σ > 1) cortan los ejes.', f: String.raw`\sigma = \frac{1}{1+\rho},\qquad \rho \ge -1`, v: LP.forma === 'ces' ? f2(m.rho) : LP.forma === 'cd' ? '0 (límite)' : LP.forma === 'lin' ? '−1' : '∞ (límite)', ref: '3A11 §1. 2. 2. 4' },
+    { k: 'delta', n: 'Parámetro δ', d: 'Peso del capital en la CES (Σδ<sub>i</sub> = 1). Mueve el nivel de la RMST, pero no la ES. El tema no le da nombre; el habitual es «parámetro de distribución».', v: LP.forma === 'leon' ? 'no interviene' : f2(LP.delta), ref: '3A11 §1. 2. 2. 4' },
+    { k: 'v', n: 'Grado de homogeneidad v', d: 'Exponente de la CES (en el §2. 2. 2 se llama t). Si todos los inputs se multiplican por λ, el output se multiplica por λ<sup>v</sup>.', f: String.raw`f(\lambda K, \lambda L) = \lambda^{v} f(K, L)`, v: f2(LP.v), ref: '3A11 §1. 2. 2. 4 y §2. 2. 2' },
+    { k: 'rend', n: 'Rendimientos y elasticidad de escala e', d: 'Relación entre la variación de la producción y una variación equiproporcional de todos los factores. e = 1: constantes; e > 1: crecientes; e < 1: decrecientes.', f: String.raw`e = \frac{dX/X}{d\lambda/\lambda} = v`, v: `e = ${f2(LP.v)}; con λ = 2, X × ${f3(Math.pow(2, LP.v))}`, ref: '3A11 §2. 2. 1' },
+    { k: 'isoclina', n: 'Isoclina', d: 'Línea que une los puntos con la misma RMST. En una función homotética, como esta, son rayos desde el origen (la línea verde discontinua).', v: `K/L = ${f3(m.kl)}`, ref: '3A11 §1. 2. 1. 3' },
+    { k: 'forma', n: 'Formas típicas', d: 'Leontief: ES = 0, isocuantas en ángulo recto. Cobb-Douglas: ES = 1. Lineal: ES = ∞, isocuantas rectas. CES: ES constante cualquiera.', v: NOMBRE[LP.forma], ref: '3A11 §1. 2. 2' },
+    { k: 'ln', n: 'Estimación de la ES', d: 'Si se representa ln(K/L) frente a ln RMST, la pendiente es σ: es la b₁ de la regresión por MCO que menciona el tema.', f: String.raw`\ln\frac{K}{L} = b_0 + b_1\ln\mathrm{RMST}`, v: `b₁ = σ = ${fS(m.s)}`, ref: '3A11 §1. 2. 1. 1' },
+  ], ULT.largo);
+}
+
+/* ============================================================ pestañas */
+const tabs = { corto: document.getElementById('tab-corto'), largo: document.getElementById('tab-largo') };
+function abrir(k) {
+  for (const [n, b] of Object.entries(tabs)) { b.setAttribute('aria-selected', String(n === k)); document.getElementById('v-' + n).hidden = n !== k; }
+  if (k === 'corto') dibujarCorto(); else dibujarLargo();
+}
+tabs.corto.addEventListener('click', () => abrir('corto'));
+tabs.largo.addEventListener('click', () => abrir('largo'));
+dibujarCorto(); dibujarLargo();
+mostrarPorque('corto', inicialCorto()); mostrarPorque('largo', inicialLargo());
+abrir(location.hash === '#largo' ? 'largo' : 'corto');
+window.addEventListener('hashchange', () => abrir(location.hash === '#largo' ? 'largo' : 'corto'));
+</script>
+
+</body>
+</html>

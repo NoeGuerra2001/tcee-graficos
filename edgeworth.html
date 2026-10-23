@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+/* Parámetros: ?tema=claro|oscuro (fuerza el tema), ?compacto=1 (oculta la cabecera, para insertar en Obsidian) */
+(function () { try {
+  var q = new URLSearchParams(location.search), t = q.get('tema');
+  if (t === 'oscuro' || t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  if (t === 'claro' || t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  if (q.get('compacto')) document.documentElement.classList.add('compacto');
+} catch (e) {} })();
+</script>
+<style>
+html, body { margin: 0; }
+body { font-family: system-ui, sans-serif; font-size: 14px; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.compacto header { display: none !important; }
+.compacto body { padding-block: 8px 24px !important; }
+</style>
+<title>Caja de Edgeworth</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script>
+window.MathJax = {
+  tex: { packages: { '[+]': ['html'] } },
+  svg: { fontCache: 'local' },
+  options: { enableAssistiveMml: false },
+  startup: { typeset: false, ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => { try { document.head.appendChild(MathJax.svgStylesheet()); } catch (e) {} window.__mjListo = true; if (window.montar) window.montar(document.body); }); } },
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.min.js"></script>
+<style>
+/* Layout: gráfico a la izquierda como lámina de pizarra; lectura y mandos a la derecha. En móvil, todo en una columna. */
+:root {
+  --bg: #fbfaf7; --fg: #1d2230; --muted: #5f6676; --line: #d9dbe2; --panel: #f1f2f5;
+  --azul: #2E5C8A; --naranja: #D9671E; --verde: #548235; --rojo: #C00000; --gris: #7F7F7F; --punto: #1F3864;
+  --lente: rgba(84,130,53,.14); --cambia: rgba(192,0,0,.06);
+  --f-math: "STIX Two Text", "STIXGeneral", "Cambria Math", "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --lente: rgba(140,197,106,.16); --cambia: rgba(255,107,102,.08); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --lente: rgba(140,197,106,.16); --cambia: rgba(255,107,102,.08); color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+header { display: flex; flex-direction: column; gap: 4px; }
+.eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-math); font-weight: 600; font-size: 32px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.intro { color: var(--muted); max-width: 68ch; margin: 0; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.presets button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--fg); cursor: pointer; }
+.presets button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.presets button:focus-visible, .tcee-botones button:focus-visible, input:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.mirar { font-size: 13.5px; max-width: 80ch; margin: 0; padding-left: 12px; border-left: 2px solid var(--line); }
+
+/* ---- bloque edgeworth ---- */
+.tcee-eb { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+@media (min-width: 960px) { .tcee-eb { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } }
+.tcee-titulo { display: none; }
+.tcee-svg { width: 100%; max-width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+.tcee-svg text { fill: var(--fg); }
+.tcee-math { font-family: var(--f-math); font-style: italic; font-size: 15px; }
+.tcee-origen { font-style: normal; font-weight: 600; }
+.tcee-etq-pto { font-size: 18px; }
+.tcee-svg text.tcee-fantasma { fill: var(--gris); font-size: 13px; }
+.tcee-caja { fill: none; stroke: var(--fg); stroke-width: 1.4; }
+.tcee-guia { stroke: var(--gris); stroke-width: .9; stroke-dasharray: 4 4; }
+.tcee-mapa { fill: none; stroke-width: .9; opacity: .4; }
+.tcee-ic { fill: none; stroke-width: 2.4; }
+.tcee-ic2 { fill: none; stroke-width: 1.5; stroke-dasharray: 7 4; opacity: .85; }
+.tcee-contrato { fill: none; stroke-width: 1.7; stroke-dasharray: 2 3; }
+.tcee-nucleo { fill: none; stroke-width: 4.5; }
+.tcee-precios { fill: none; stroke-width: 1.6; }
+.tcee-lente { fill: var(--lente); stroke: none; }
+.tcee-pto { stroke: var(--bg); stroke-width: 1.5; }
+.tcee-alfa { cursor: grab; }
+.tcee-alfa:active { cursor: grabbing; }
+.tcee-pto-fantasma { fill: none; stroke: var(--gris); stroke-width: 1.4; }
+
+.tcee-panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.tcee-lectura { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.tcee-lectura div { line-height: 1.45; }
+.tcee-formula { font-family: var(--f-math); font-style: italic; font-size: 16px; }
+.tcee-destacado { color: var(--rojo); font-weight: 600; }
+.tcee-controles { display: flex; flex-direction: column; gap: 4px; }
+.tcee-fila { display: grid; grid-template-columns: minmax(9em, 12em) minmax(0, 1fr) 3.4em; align-items: center; gap: 8px; }
+.tcee-fila input[type=range] { width: 100%; accent-color: var(--azul); }
+.tcee-val { text-align: right; font-variant-numeric: tabular-nums; }
+.tcee-checks { display: grid; grid-template-columns: 1fr; gap: 2px; margin-top: 8px; }
+@media (min-width: 560px) { .tcee-checks { grid-template-columns: 1fr 1fr; } }
+.tcee-checks label { cursor: pointer; }
+.tcee-checks input { accent-color: var(--verde); }
+.tcee-botones { margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.tcee-botones button { font: inherit; padding: 5px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; }
+.tcee-ayuda { color: var(--muted); font-size: 12.5px; }
+.porque { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.porque .eti, .sec-eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.porque h3 { font-family: var(--f-math); font-size: 19px; font-weight: 600; margin: 0; }
+.porque p { margin: 0; }
+.porque summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.porque .prev { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.ctl-ayuda { margin: -2px 0 6px; font-size: 12.5px; color: var(--muted); }
+.sec { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.sec h2 { font-family: var(--f-math); font-size: 22px; font-weight: 600; margin: 0; }
+.conceptos { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.concepto { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.concepto.cambia { border-color: var(--rojo); background: var(--cambia); }
+.concepto .cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.concepto h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.concepto p { margin: 0; font-size: 13px; }
+.concepto .formula { font-family: var(--f-math); font-style: italic; font-size: 15px; overflow-x: auto; }
+.concepto .valor { font-variant-numeric: tabular-nums; }
+.concepto .ref { color: var(--muted); font-size: 11.5px; }
+.chip-cambia { font-size: 11px; color: var(--rojo); border: 1px solid currentColor; border-radius: 999px; padding: 0 7px; white-space: nowrap; }
+.formas { display: flex; flex-direction: column; gap: 3px; }
+.formas .lbl { font-family: var(--f-body); font-style: normal; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.formas .ec { font-family: var(--f-math); font-style: italic; font-size: 16px; overflow-x: auto; }
+.tex { display: inline-block; max-width: 100%; vertical-align: middle; }
+.tex[data-d="1"] { display: block; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.tex:not([data-ok]) { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; }
+.tex mjx-container { margin: 0 !important; }
+.tex[data-d="1"] mjx-container { text-align: left !important; }
+.tex g.mv { color: var(--azul); fill: var(--azul); stroke: var(--azul); }
+.formas .tex[data-d="1"] { font-size: 112%; }
+.mod { color: var(--azul); font-weight: 600; border-bottom: 1px dotted currentColor; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 2px 22px; font-variant-numeric: tabular-nums; }
+.kv div { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
+.kv b { font-weight: 500; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--muted); }
+.leyenda span::before { content: ""; display: inline-block; width: 18px; height: 0; border-top: 2.5px solid var(--c); vertical-align: middle; margin-right: 6px; }
+.leyenda .d::before { border-top-style: dashed; }
+.leyenda .p::before { border-top-style: dotted; }
+.nota { font-size: 12.5px; color: var(--muted); max-width: 80ch; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TCEE · Parte A) · 3A21 §3. 1. 1 · Enfoque de Edgeworth</div>
+    <h1>Caja de Edgeworth</h1>
+    <p class="intro">Economía de intercambio 2×2 con preferencias Cobb-Douglas. Arrastra la dotación α, cambia las preferencias y mira qué pasa con el área entre las curvas de indiferencia originales, la curva de contrato, el núcleo y el EGC. Cada cambio se explica en el recuadro «Qué ha cambiado y por qué».</p>
+  </header>
+  <div class="presets" id="presets" role="group" aria-label="Configuraciones"></div>
+  <p class="mirar" id="mirar"></p>
+  <div class="leyenda">
+    <span style="--c: var(--azul)">Agente 1 (I₁)</span>
+    <span style="--c: var(--naranja)">Agente 2 (I₂)</span>
+    <span class="d" style="--c: var(--azul)">Curvas por ε</span>
+    <span class="p" style="--c: var(--verde)">Curva de contrato</span>
+    <span style="--c: var(--verde)">Núcleo C–C′</span>
+    <span style="--c: var(--rojo)">Recta α–ε (ratio de precios p*)</span>
+  </div>
+  <div id="app"></div>
+  <p class="nota" id="nota-notacion">Notación del 3A21: orígenes O₁ y O₂, dotación α = (x̄₁, ȳ₁; x̄₂, ȳ₂), punto de intercambio ε = (x₁*, y₁*), ratio de precios <span class="tex">p^* = \frac{\bar y_1 - y_1^*}{x_1^* - \bar x_1}</span> y EGC para el equilibrio general competitivo. <span class="tex">\mathrm{RMS} = -\frac{dy}{dx} = \frac{\mathrm{UMag}_x}{\mathrm{UMag}_y}</span> (3A8). Las preferencias Cobb-Douglas con a₁ y a₂ son notación propia: el tema solo exige preferencias neoclásicas.</p>
+</div>
+<script>
+
+/*
+ * TCEE Gráficos — plugin de Obsidian (JS plano, sin compilación).
+ *
+ * Bloque ```edgeworth``` — caja de Edgeworth de intercambio, economía 2x2.
+ * Notación del 3A21: agentes 1 y 2, bienes x e y, orígenes O1 (abajo-izq.) y
+ * O2 (arriba-dcha.), dotación α = (x̄1, ȳ1; x̄2, ȳ2), equilibrio ε = (x1*, y1*),
+ * p* = px/py = (ȳ1 − y1*)/(x1* − x̄1).
+ *
+ * Preferencias Cobb-Douglas:  U1 = x1^a1 · y1^(1−a1),  U2 = x2^a2 · y2^(1−a2).
+ *
+ * Parámetros del bloque (todos opcionales):
+ *   x: 10            dotación total de x  (x̄)
+ *   y: 10            dotación total de y  (ȳ)
+ *   a1: 0.6          exponente de x en U1
+ *   a2: 0.35         exponente de x en U2
+ *   dotacion: 2, 8   (x̄1, ȳ1) del agente 1; el agente 2 recibe el resto
+ *   mostrar: mapa, lente, contrato, nucleo, walras, negociacion
+ *   titulo: texto libre
+ */
+
+const PAL = {
+  rojo: 'var(--rojo)', azul: 'var(--azul)', naranja: 'var(--naranja)',
+  verde: 'var(--verde)', gris: 'var(--gris)', azulOsc: 'var(--punto)',
+};
+const NS = 'http://www.w3.org/2000/svg';
+const OPCIONES = [
+  ['mapa', 'Mapa de indiferencia'],
+  ['lente', 'Área entre curvas de indiferencia originales'],
+  ['contrato', 'Curva de contrato'],
+  ['nucleo', 'Núcleo (C–C′)'],
+  ['walras', 'EGC y ratio de precios p*'],
+  ['negociacion', 'Negociación: mover ε por el núcleo'],
+];
+
+/* ------------------------------------------------------------ utilidades */
+
+const fmt = (v, d = 2) =>
+  Number.isFinite(v)
+    ? v.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d })
+    : '—';
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+/* ------------------------------------------------ ecuaciones con MathJax (SVG) */
+const TEXC = new Map();
+const escH = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const TX = (tex) => `<span class="tex" data-d="1">${escH(tex)}</span>`;
+const TI = (tex) => `<span class="tex">${escH(tex)}</span>`;
+const fT = (v, d = 2) => fmt(v, d).replace(/,/g, '{,}');
+const MV = (t) => String.raw`\class{mv}{${t}}`;
+function montar(root) {
+  if (!window.__mjListo || !root) return;
+  root.querySelectorAll('span.tex:not([data-ok])').forEach((s) => {
+    const tex = s.textContent, d = s.dataset.d === '1', key = (d ? 'D' : 'I') + tex;
+    try {
+      let n = TEXC.get(key);
+      if (!n) { n = MathJax.tex2svg(tex, { display: d }); TEXC.set(key, n); if (TEXC.size > 600) TEXC.delete(TEXC.keys().next().value); }
+      s.replaceChildren(n.cloneNode(true)); s.dataset.ok = '1'; s.setAttribute('aria-label', tex);
+    } catch (e) { /* se queda el texto plano */ }
+  });
+}
+window.montar = montar;
+
+function parseParams(src) {
+  const p = {};
+  for (const linea of src.split('\n')) {
+    const m = linea.match(/^\s*([A-Za-zÁÉÍÓÚáéíóúñ0-9_]+)\s*:\s*(.*?)\s*$/);
+    if (m) p[m[1].toLowerCase()] = m[2];
+  }
+  return p;
+}
+const num = (s, def) => {
+  if (s === undefined || s === '') return def;
+  const v = parseFloat(String(s).replace(',', '.'));
+  return Number.isFinite(v) ? v : def;
+};
+
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if ((k === 'stroke' || k === 'fill') && String(v).startsWith('var(')) e.style.setProperty(k, v);
+    else e.setAttribute(k, v);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function html(tag, attrs = {}, parent, text) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text !== undefined) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+/* Etiqueta matemática: "x̄_1^*" → x̄ con subíndice 1 y superíndice *. */
+function mathText(parent, x, y, txt, attrs = {}) {
+  const t = el('text', Object.assign({ x, y, class: 'tcee-math' }, attrs), parent);
+  const re = /([_^])(\{[^}]*\}|.)/g;
+  let last = 0, m;
+  const push = (s, shift) => {
+    if (!s) return;
+    const ts = el('tspan', {}, t);
+    if (shift) {
+      ts.setAttribute('baseline-shift', shift);
+      ts.setAttribute('font-size', '72%');
+    }
+    ts.textContent = s;
+  };
+  while ((m = re.exec(txt))) {
+    push(txt.slice(last, m.index));
+    const body = m[2].startsWith('{') ? m[2].slice(1, -1) : m[2];
+    push(body, m[1] === '_' ? 'sub' : 'super');
+    last = re.lastIndex;
+  }
+  push(txt.slice(last));
+  return t;
+}
+
+/* ---------------------------------------------------------------- modelo */
+
+function modelo(s) {
+  const { X, Y, a1, a2, x1, y1 } = s;
+  const k1 = a1 / (1 - a1), k2 = a2 / (1 - a2);
+  const U1 = (x, y) => Math.pow(x, a1) * Math.pow(y, 1 - a1);
+  const U2 = (x, y) => Math.pow(X - x, a2) * Math.pow(Y - y, 1 - a2);
+  // curvas de indiferencia en coordenadas del agente 1
+  const I1 = (u, x) => Math.pow(u / Math.pow(x, a1), 1 / (1 - a1));
+  const I2 = (u, x) => Y - Math.pow(u / Math.pow(X - x, a2), 1 / (1 - a2));
+  // RMS = UMg_x / UMg_y
+  const RMS1 = (x, y) => k1 * y / x;
+  const RMS2 = (x, y) => k2 * (Y - y) / (X - x);
+  // curva de contrato: RMS1 = RMS2
+  const cc = (x) => (k2 * x * Y) / (k1 * (X - x) + k2 * x);
+
+  // equilibrio walrasiano (py = 1)
+  const x2 = X - x1, y2 = Y - y1;
+  const p = (a1 * y1 + a2 * y2) / ((1 - a1) * x1 + (1 - a2) * x2);
+  const m1 = p * x1 + y1;
+  const eps = { x: a1 * m1 / p, y: (1 - a1) * m1, p };
+
+  // extremos del núcleo sobre la curva de contrato
+  const u1a = U1(x1, y1), u2a = U2(x1, y1);
+  const biseccion = (f) => {
+    let lo = 1e-9 * X, hi = X * (1 - 1e-9);
+    const flo = f(lo);
+    for (let i = 0; i < 80; i++) {
+      const mid = (lo + hi) / 2;
+      if (Math.sign(f(mid)) === Math.sign(flo)) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  };
+  const xC = biseccion((x) => U1(x, cc(x)) - u1a);   // 1 igual, 2 mejora
+  const xCp = biseccion((x) => U2(x, cc(x)) - u2a);  // 2 igual, 1 mejora
+  const C = { x: xC, y: cc(xC) }, Cp = { x: xCp, y: cc(xCp) };
+
+  return { k1, k2, U1, U2, I1, I2, RMS1, RMS2, cc, eps, C, Cp, u1a, u2a, x2, y2 };
+}
+
+/* ------------------------------------------------------------- render */
+
+function renderEdgeworth(src, contenedor) {
+  const P = parseParams(src);
+  const X = Math.max(0.1, num(P.x, 10));
+  const Y = Math.max(0.1, num(P.y, 10));
+  const dot = (P.dotacion || '').split(/[;,]\s*|\s+/).filter(Boolean).map((v) => num(v, NaN));
+  const inicial = {
+    X, Y,
+    a1: clamp(num(P.a1, 0.6), 0.05, 0.95),
+    a2: clamp(num(P.a2, 0.35), 0.05, 0.95),
+    x1: clamp(Number.isFinite(dot[0]) ? dot[0] : 0.2 * X, 0.02 * X, 0.98 * X),
+    y1: clamp(Number.isFinite(dot[1]) ? dot[1] : 0.8 * Y, 0.02 * Y, 0.98 * Y),
+  };
+  const mostrarIni = new Set(
+    (P.mostrar || 'lente, contrato, nucleo, walras').split(/[,;]/).map((s) =>
+      s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')).filter(Boolean)
+  );
+
+  const s = Object.assign({}, inicial, { mostrar: new Set(mostrarIni), tNeg: 0.5 });
+
+  const raiz = html('div', { class: 'tcee-eb' }, contenedor);
+  if (P.titulo) html('div', { class: 'tcee-titulo' }, raiz, P.titulo);
+
+  /* geometría */
+  const ML = 70, MR = 70, MT = 48, MB = 58;
+  const esc = Math.min(470 / X, 360 / Y);
+  const BW = X * esc, BH = Y * esc;
+  const VW = BW + ML + MR, VH = BH + MT + MB;
+  const sx = (x) => ML + x * esc;
+  const sy = (y) => MT + BH - y * esc;
+
+  const svg = el('svg', { viewBox: `0 0 ${VW} ${VH}`, class: 'tcee-svg', role: 'img' }, raiz);
+  el('title', {}, svg).textContent = 'Caja de Edgeworth interactiva';
+  const defs = el('defs', {}, svg);
+  const clip = el('clipPath', { id: 'tcee-clip-' + Math.random().toString(36).slice(2) }, defs);
+  el('rect', { x: sx(0), y: sy(Y), width: BW, height: BH }, clip);
+  const clipUrl = `url(#${clip.getAttribute('id')})`;
+
+  const gFondo = el('g', {}, svg);
+  const gCurvas = el('g', { 'clip-path': clipUrl }, svg);
+  const gGuias = el('g', {}, svg);
+  const gNucleo = el('g', {}, svg);
+  const gPuntos = el('g', {}, svg);
+
+  /* panel */
+  const panel = html('div', { class: 'tcee-panel' }, raiz);
+  const porqueBox = html('div', { class: 'porque', 'aria-live': 'polite' }, panel);
+  const lectura = html('div', { class: 'tcee-lectura' }, panel);
+  const secCon = html('div', { class: 'sec' }, contenedor);
+  html('div', { class: 'sec-eti' }, secCon, 'Conceptos que intervienen');
+  html('h2', {}, secCon, 'Qué es cada cosa');
+  const conBox = html('div', { class: 'conceptos' }, secCon);
+  let snap = null, hist = [], ult = new Set();
+  const empezar = () => { if (!snap) snap = copia(s); };
+  const mostrarPorque = (ex) => {
+    hist.unshift(ex); hist = hist.slice(0, 6); ult = ex.cambia || new Set();
+    const [act, ...prev] = hist;
+    porqueBox.innerHTML = `<div class="eti">Qué ha cambiado y por qué</div><h3>${act.titulo}</h3>` + act.p.map((t) => `<p>${t}</p>`).join('') +
+      (prev.length ? `<details><summary>Cambios anteriores (${prev.length})</summary>` + prev.map((h) => `<div class="prev"><b>${h.titulo}</b>${h.p.map((t) => `<p>${t}</p>`).join('')}</div>`).join('') + '</details>' : '');
+    montar(porqueBox);
+    pintarConceptosEdg(conBox, s, X, Y, ult);
+  };
+  const cerrar = () => { if (!snap) return; const ex = explicarEdg(snap, copia(s), X, Y); snap = null; if (ex) mostrarPorque(ex); };
+  const controles = html('div', { class: 'tcee-controles' }, panel);
+
+  const sliders = {};
+  const mkSlider = (clave, etiqueta, min, max, step, ayuda) => {
+    const fila = html('label', { class: 'tcee-fila' }, controles);
+    html('span', { class: 'tcee-etq' }, fila, etiqueta);
+    const inp = html('input', { type: 'range', min, max, step, id: 'sl-' + clave }, fila);
+    const val = html('span', { class: 'tcee-val' }, fila);
+    inp.addEventListener('input', () => { empezar(); s[clave] = parseFloat(inp.value); dibujar(); });
+    inp.addEventListener('change', cerrar);
+    sliders[clave] = { inp, val };
+    html('p', { class: 'ctl-ayuda' }, controles, ayuda);
+  };
+  mkSlider('a1', 'a₁ (peso de x en U₁)', 0.05, 0.95, 0.01, 'Cuánto valora el agente 1 el bien x: inclina sus curvas de indiferencia, mueve la curva de contrato y cambia p*.');
+  mkSlider('a2', 'a₂ (peso de x en U₂)', 0.05, 0.95, 0.01, 'Lo mismo para el agente 2.');
+  mkSlider('x1', 'x̄₁ (dotación de x del agente 1)', 0.02 * X, 0.98 * X, X / 500, 'Mueve α en horizontal. El agente 2 recibe x̄₂ = x̄ − x̄₁.');
+  mkSlider('y1', 'ȳ₁ (dotación de y del agente 1)', 0.02 * Y, 0.98 * Y, Y / 500, 'Mueve α en vertical. El agente 2 recibe ȳ₂ = ȳ − ȳ₁. También puedes arrastrar α.');
+
+  const checks = html('div', { class: 'tcee-checks' }, controles);
+  for (const [clave, etiqueta] of OPCIONES) {
+    const l = html('label', {}, checks);
+    const c = html('input', { type: 'checkbox' }, l);
+    c.checked = s.mostrar.has(clave);
+    c.addEventListener('change', () => {
+      empezar();
+      if (c.checked) s.mostrar.add(clave); else s.mostrar.delete(clave);
+      dibujar(); cerrar();
+    });
+    l.appendChild(document.createTextNode(' ' + etiqueta));
+  }
+  const botones = html('div', { class: 'tcee-botones' }, controles);
+  const reset = html('button', {}, botones, 'Restablecer');
+  reset.addEventListener('click', () => {
+    Object.assign(s, inicial, { mostrar: new Set(mostrarIni), tNeg: 0.5 });
+    checks.querySelectorAll('input').forEach((c, i) => { c.checked = s.mostrar.has(OPCIONES[i][0]); });
+    snap = null; dibujar(); mostrarPorque(inicialEdg(s, X, Y));
+  });
+  html('span', { class: 'tcee-ayuda' }, botones, 'Arrastra α (y ε en modo negociación).');
+
+  /* trazado de curvas, cortando fuera de la caja */
+  const N = 500;
+  function pathCurva(f, x0 = 0, x1 = X) {
+    let d = '', dentro = false;
+    for (let i = 0; i <= N; i++) {
+      const x = x0 + (x1 - x0) * (i / N);
+      if (x <= 0 || x >= X) { dentro = false; continue; }
+      const y = f(x);
+      if (!Number.isFinite(y) || y < -0.05 * Y || y > 1.05 * Y) { dentro = false; continue; }
+      d += (dentro ? 'L' : 'M') + sx(x).toFixed(2) + ',' + sy(y).toFixed(2);
+      dentro = true;
+    }
+    return d;
+  }
+
+  /* arrastre: el estado vive en el <svg>, porque cada redibujo sustituye los círculos */
+  let arrastre = null;
+  function aCoordenadas(evt) {
+    const pt = svg.createSVGPoint();
+    pt.x = evt.clientX; pt.y = evt.clientY;
+    const q = pt.matrixTransform(svg.getScreenCTM().inverse());
+    return { x: (q.x - ML) / esc, y: (MT + BH - q.y) / esc };
+  }
+  function arrastrable(nodo, mover) {
+    nodo.style.cursor = 'grab';
+    nodo.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      empezar();
+      arrastre = mover;
+      try { svg.setPointerCapture(e.pointerId); } catch (_) { /* sin captura */ }
+    });
+  }
+  svg.addEventListener('pointermove', (e) => {
+    if (!arrastre) return;
+    arrastre(aCoordenadas(e));
+    dibujar();
+  });
+  const soltar = (e) => {
+    const habia = !!arrastre;
+    arrastre = null;
+    try { svg.releasePointerCapture(e.pointerId); } catch (_) { /* nada */ }
+    if (habia) cerrar();
+  };
+  svg.addEventListener('pointerup', soltar);
+  svg.addEventListener('pointercancel', soltar);
+
+  /* marco fijo de la caja */
+  el('rect', { x: sx(0), y: sy(Y), width: BW, height: BH, class: 'tcee-caja' }, gFondo);
+  mathText(gFondo, sx(0) - 8, sy(0) + 22, 'O_1', { 'text-anchor': 'end', class: 'tcee-math tcee-origen' });
+  mathText(gFondo, sx(X) + 8, sy(Y) - 10, 'O_2', { class: 'tcee-math tcee-origen' });
+  mathText(gFondo, sx(0) + 26, sy(0) + 40, 'x_1 →', {});
+  mathText(gFondo, sx(0) - 34, sy(0) - 18, 'y_1', { 'text-anchor': 'middle' });
+  mathText(gFondo, sx(0) - 34, sy(0) - 36, '↑', { 'text-anchor': 'middle' });
+  mathText(gFondo, sx(X) - 26, sy(Y) - 26, '← x_2', { 'text-anchor': 'end' });
+  mathText(gFondo, sx(X) + 34, sy(Y) + 26, 'y_2', { 'text-anchor': 'middle' });
+  mathText(gFondo, sx(X) + 34, sy(Y) + 44, '↓', { 'text-anchor': 'middle' });
+  mathText(gFondo, sx(X), sy(0) + 22, 'x̄', { 'text-anchor': 'middle' });
+  mathText(gFondo, sx(0) - 10, sy(Y) + 5, 'ȳ', { 'text-anchor': 'end' });
+
+  /* ------------------------------------------------------------ dibujo */
+  function dibujar() {
+    for (const g of [gCurvas, gGuias, gNucleo, gPuntos]) while (g.firstChild) g.removeChild(g.firstChild);
+    s.x1 = clamp(s.x1, 0.02 * X, 0.98 * X);
+    s.y1 = clamp(s.y1, 0.02 * Y, 0.98 * Y);
+    const M = modelo(s);
+    const ver = (k) => s.mostrar.has(k);
+
+    for (const [k, o] of Object.entries(sliders)) {
+      o.inp.value = s[k];
+      o.val.textContent = fmt(s[k]);
+    }
+
+    // mapa de indiferencia: curvas tangentes dos a dos sobre la curva de contrato
+    if (ver('mapa')) {
+      for (const f of [0.15, 0.3, 0.45, 0.6, 0.75, 0.9]) {
+        const x = f * X, y = M.cc(x);
+        el('path', { d: pathCurva((t) => M.I1(M.U1(x, y), t)), class: 'tcee-mapa', stroke: PAL.azul }, gCurvas);
+        el('path', { d: pathCurva((t) => M.I2(M.U2(x, y), t)), class: 'tcee-mapa', stroke: PAL.naranja }, gCurvas);
+      }
+    }
+
+    // lente de mejoras paretianas
+    if (ver('lente')) {
+      const abajo = [], arriba = [];
+      for (let i = 1; i < N; i++) {
+        const x = (i / N) * X;
+        const lo = M.I1(M.u1a, x), hi = M.I2(M.u2a, x);
+        if (Number.isFinite(lo) && Number.isFinite(hi) && lo <= hi) {
+          abajo.push([x, clamp(lo, 0, Y)]); arriba.push([x, clamp(hi, 0, Y)]);
+        }
+      }
+      if (abajo.length > 1) {
+        const pts = abajo.concat(arriba.reverse())
+          .map(([x, y], i) => (i ? 'L' : 'M') + sx(x).toFixed(2) + ',' + sy(y).toFixed(2)).join('') + 'Z';
+        el('path', { d: pts, class: 'tcee-lente' }, gCurvas);
+      }
+    }
+
+    // curva de contrato
+    if (ver('contrato')) {
+      el('path', { d: pathCurva(M.cc), class: 'tcee-contrato', stroke: PAL.verde }, gCurvas);
+    }
+    // núcleo
+    if (ver('nucleo')) {
+      el('path', { d: pathCurva(M.cc, M.C.x, M.Cp.x), class: 'tcee-nucleo', stroke: PAL.verde }, gCurvas);
+    }
+
+    // curvas por α
+    el('path', { d: pathCurva((t) => M.I1(M.u1a, t)), class: 'tcee-ic', stroke: PAL.azul }, gCurvas);
+    el('path', { d: pathCurva((t) => M.I2(M.u2a, t)), class: 'tcee-ic', stroke: PAL.naranja }, gCurvas);
+    etiquetaCurva(M, (t) => M.I1(M.u1a, t), 'I_1^0', PAL.azul, true);
+    etiquetaCurva(M, (t) => M.I2(M.u2a, t), 'I_2^0', PAL.naranja, false);
+
+    // equilibrio walrasiano o punto negociado
+    let eps = null, razon = null, walrasiano = true;
+    if (ver('negociacion')) {
+      const t = clamp(s.tNeg, 0, 1);
+      const x = M.C.x + t * (M.Cp.x - M.C.x);
+      eps = { x, y: M.cc(x) };
+      razon = (s.y1 - eps.y) / (eps.x - s.x1);
+      walrasiano = false;
+    } else if (ver('walras')) {
+      eps = M.eps; razon = M.eps.p;
+    }
+
+    if (eps) {
+      // recta α–ε prolongada hasta los bordes de la caja
+      const pend = Number.isFinite(razon) ? razon : 1e9;
+      const ylin = (x) => s.y1 - pend * (x - s.x1);
+      el('path', { d: pathCurva(ylin), class: 'tcee-precios', stroke: PAL.rojo }, gCurvas);
+      // curvas por ε (tangentes entre sí)
+      if (ver('walras') || ver('negociacion')) {
+        el('path', { d: pathCurva((t) => M.I1(M.U1(eps.x, eps.y), t)), class: 'tcee-ic2', stroke: PAL.azul }, gCurvas);
+        el('path', { d: pathCurva((t) => M.I2(M.U2(eps.x, eps.y), t)), class: 'tcee-ic2', stroke: PAL.naranja }, gCurvas);
+      }
+      guias(eps.x, eps.y, 'x_1^*', 'y_1^*');
+      if (!walrasiano && ver('walras')) {
+        el('circle', { cx: sx(M.eps.x), cy: sy(M.eps.y), r: 4, class: 'tcee-pto-fantasma' }, gPuntos);
+        mathText(gPuntos, sx(M.eps.x) - 8, sy(M.eps.y) - 9, 'EGC', { class: 'tcee-math tcee-fantasma', 'text-anchor': 'end' });
+      }
+      const pe = el('circle', { cx: sx(eps.x), cy: sy(eps.y), r: 6, class: 'tcee-pto', fill: PAL.rojo }, gPuntos);
+      mathText(gPuntos, sx(eps.x) + 12, sy(eps.y) + 22, walrasiano ? 'ε = EGC' : 'ε', { class: 'tcee-math tcee-etq-pto' });
+      if (!walrasiano) {
+        // arrastre de ε restringido al núcleo
+        const muestras = [];
+        for (let i = 0; i <= 200; i++) {
+          const x = M.C.x + (i / 200) * (M.Cp.x - M.C.x);
+          muestras.push([i / 200, x, M.cc(x)]);
+        }
+        arrastrable(pe, (q) => {
+          let mejor = 0, dmin = Infinity;
+          for (const [t, x, y] of muestras) {
+            const d = ((x - q.x) * esc) ** 2 + ((y - q.y) * esc) ** 2;
+            if (d < dmin) { dmin = d; mejor = t; }
+          }
+          s.tNeg = mejor;
+        });
+      }
+    }
+
+    // C y C′
+    if (ver('nucleo')) {
+      for (const [P2, nombre, dx] of [[M.C, 'C', -16], [M.Cp, 'C′', 9]]) {
+        el('circle', { cx: sx(P2.x), cy: sy(P2.y), r: 4.5, class: 'tcee-pto', fill: PAL.verde }, gNucleo);
+        mathText(gNucleo, sx(P2.x) + dx, sy(P2.y) - 8, nombre, { class: 'tcee-math tcee-etq-pto' });
+      }
+    }
+
+    // α
+    guias(s.x1, s.y1, 'x̄_1', 'ȳ_1', 'x̄_2', 'ȳ_2');
+    const pa = el('circle', { cx: sx(s.x1), cy: sy(s.y1), r: 7, class: 'tcee-pto tcee-alfa', fill: PAL.azulOsc }, gPuntos);
+    mathText(gPuntos, sx(s.x1) - 10, sy(s.y1) - 10, 'α', { 'text-anchor': 'end', class: 'tcee-math tcee-etq-pto' });
+    arrastrable(pa, (q) => { s.x1 = q.x; s.y1 = q.y; });
+
+    escribirLectura(M, eps, razon, walrasiano);
+  }
+
+  function etiquetaCurva(M, f, txt, color, izquierda) {
+    // sitúa la etiqueta en el extremo visible de la curva más alejado de α
+    const xs = [];
+    for (let i = 1; i < 200; i++) {
+      const x = (i / 200) * X, y = f(x);
+      if (Number.isFinite(y) && y > 0.03 * Y && y < 0.97 * Y) xs.push([x, y]);
+    }
+    if (!xs.length) return;
+    const [x, y] = izquierda ? xs[xs.length - 1] : xs[Math.floor(xs.length * 0.08)];
+    mathText(gGuias, sx(x) + 6, sy(y) + (izquierda ? -4 : 20), txt,
+      { style: 'fill:' + color, 'text-anchor': 'start', class: 'tcee-math tcee-etq-curva' });
+  }
+
+  function guias(x, y, ex, ey, ex2, ey2) {
+    el('line', { x1: sx(x), y1: sy(y), x2: sx(x), y2: sy(0), class: 'tcee-guia' }, gGuias);
+    el('line', { x1: sx(x), y1: sy(y), x2: sx(0), y2: sy(y), class: 'tcee-guia' }, gGuias);
+    mathText(gGuias, sx(x), sy(0) + 20, ex, { 'text-anchor': 'middle' });
+    mathText(gGuias, sx(0) - 8, sy(y) + 5, ey, { 'text-anchor': 'end' });
+    if (ex2) {
+      el('line', { x1: sx(x), y1: sy(y), x2: sx(x), y2: sy(Y), class: 'tcee-guia' }, gGuias);
+      el('line', { x1: sx(x), y1: sy(y), x2: sx(X), y2: sy(y), class: 'tcee-guia' }, gGuias);
+      mathText(gGuias, sx(x), sy(Y) - 8, ex2, { 'text-anchor': 'middle' });
+      mathText(gGuias, sx(X) + 8, sy(y) + 5, ey2, { 'text-anchor': 'start' });
+    }
+  }
+
+  function escribirLectura(M, eps, razon, walrasiano) {
+    const r1 = M.RMS1(s.x1, s.y1), r2 = M.RMS2(s.x1, s.y1);
+    const A1 = MV('a_1'), A2 = MV('a_2'), XB = MV(String.raw`\bar x_1`), YB = MV(String.raw`\bar y_1`);
+    let kv = `<div><span>α: (x̄₁; ȳ₁)</span><b>(${fmt(s.x1)}; ${fmt(s.y1)})</b></div><div><span>(x̄₂; ȳ₂)</span><b>(${fmt(X - s.x1)}; ${fmt(Y - s.y1)})</b></div>` +
+      `<div><span>RMS<sub>1</sub> en α</span><b>${fmt(r1, 3)}</b></div><div><span>RMS<sub>2</sub> en α</span><b>${fmt(r2, 3)}</b></div>` +
+      `<div><span>C</span><b>(${fmt(M.C.x)}; ${fmt(M.C.y)})</b></div><div><span>C′</span><b>(${fmt(M.Cp.x)}; ${fmt(M.Cp.y)})</b></div>` +
+      `<div><span>EGC: (x₁*; y₁*)</span><b>(${fmt(M.eps.x)}; ${fmt(M.eps.y)})</b></div><div><span>p* = pₓ/p<sub>y</sub></span><b>${fmt(M.eps.p, 3)}</b></div>`;
+    if (eps && !walrasiano) kv += `<div><span>ε negociado</span><b>(${fmt(eps.x)}; ${fmt(eps.y)})</b></div><div><span>ratio implícita en ε</span><b>${fmt(razon, 3)}</b></div>`;
+    lectura.innerHTML = `
+      <div class="formas">
+        <span class="lbl">Forma general · en color, lo que puedes mover</span>
+        ${TX(String.raw`U_1 = x_1^{${A1}}\,y_1^{1-${A1}},\qquad U_2 = x_2^{${A2}}\,y_2^{1-${A2}}`)}
+        ${TX(String.raw`\alpha = \left(${XB},\ ${YB};\ \bar x - ${XB},\ \bar y - ${YB}\right)`)}
+        ${TX(String.raw`\mathrm{RMS}_i = \frac{\mathrm{UMag}_x}{\mathrm{UMag}_y} = \frac{a_i}{1-a_i}\cdot\frac{y_i}{x_i}`)}
+        ${TX(String.raw`p^* = \frac{${A1}\,${YB} + ${A2}\,\bar y_2}{(1-${A1})\,${XB} + (1-${A2})\,\bar x_2}`)}
+        <span class="lbl" style="margin-top:6px">Con tus valores</span>
+        ${TX(String.raw`U_1 = x_1^{${fT(s.a1)}}\,y_1^{${fT(1 - s.a1)}},\qquad U_2 = x_2^{${fT(s.a2)}}\,y_2^{${fT(1 - s.a2)}}`)}
+        ${TX(String.raw`\mathrm{RMS}_1(\alpha) = \frac{${fT(s.a1)}}{${fT(1 - s.a1)}}\cdot\frac{${fT(s.y1)}}{${fT(s.x1)}} = ${fT(r1, 3)}`)}
+        ${TX(String.raw`\mathrm{RMS}_2(\alpha) = \frac{${fT(s.a2)}}{${fT(1 - s.a2)}}\cdot\frac{${fT(Y - s.y1)}}{${fT(X - s.x1)}} = ${fT(r2, 3)}`)}
+        ${TX(String.raw`p^* = \frac{${fT(s.a1)}\cdot ${fT(s.y1)} + ${fT(s.a2)}\cdot ${fT(Y - s.y1)}}{${fT(1 - s.a1)}\cdot ${fT(s.x1)} + ${fT(1 - s.a2)}\cdot ${fT(X - s.x1)}} = ${fT(M.eps.p, 3)}`)}
+      </div>
+      <div class="kv">${kv}</div>`;
+    montar(lectura);
+    if (!hist.length) mostrarPorque(inicialEdg(s, X, Y)); else pintarConceptosEdg(conBox, s, X, Y, ult);
+  }
+
+  dibujar();
+}
+
+/* ===================================================== EXPLICACIONES Y CONCEPTOS */
+const f2 = (v) => fmt(v, 2), f3 = (v) => fmt(v, 3);
+const sube = (a, b) => (b > a ? 'sube' : 'baja');
+const UMx = 'UMag<sub>x</sub>', UMy = 'UMag<sub>y</sub>';
+const R1 = 'RMS<sub>1</sub>', R2 = 'RMS<sub>2</sub>';
+const par = (x, y) => `(${f2(x)}; ${f2(y)})`;
+const copia = (st) => Object.assign({}, st, { mostrar: new Set(st.mostrar) });
+
+function datos(st) {
+  const M = modelo(st);
+  const r1 = M.RMS1(st.x1, st.y1), r2 = M.RMS2(st.x1, st.y1);
+  let neg = null;
+  if (st.mostrar.has('negociacion')) {
+    const x = M.C.x + clamp(st.tNeg, 0, 1) * (M.Cp.x - M.C.x), y = M.cc(x);
+    neg = { x, y, razon: (st.y1 - y) / (x - st.x1), rms: M.RMS1(x, y) };
+  }
+  return { M, r1, r2, neg };
+}
+function frasesRMS(r1, r2) {
+  if (Math.abs(r1 - r2) < 1e-3 * Math.max(r1, r2))
+    return `${R1} = ${R2} = ${f3(r1)}: α ya está en la curva de contrato. Las dos curvas de indiferencia son tangentes en α, así que no hay intercambio que mejore a uno sin empeorar al otro.`;
+  if (r1 < r2)
+    return `${R1} = ${f3(r1)} < ${R2} = ${f3(r2)}: el agente 2 está dispuesto a dar más y por cada unidad de x de lo que el agente 1 exige. Ambos ganan si el agente 1 cede x a cambio de y.`;
+  return `${R1} = ${f3(r1)} > ${R2} = ${f3(r2)}: el agente 1 está dispuesto a dar más y por cada unidad de x de lo que el agente 2 exige. Ambos ganan si el agente 2 cede x a cambio de y.`;
+}
+const DEF_OPC = {
+  mapa: 'el mapa de indiferencia: varias curvas de cada agente, elegidas para que cada curva azul sea tangente a una naranja justo sobre la curva de contrato. Así se ve por qué la curva de contrato es el lugar de las tangencias.',
+  lente: 'el área entre las curvas de indiferencia originales: las asignaciones que dejan a los dos agentes al menos igual que en α y a alguno mejor. Son las mejoras de Pareto respecto de α. No es el núcleo: el núcleo es solo el tramo de la curva de contrato que queda dentro de esta área.',
+  contrato: 'la curva de contrato: todos los puntos donde RMS₁ = RMS₂, es decir, todas las asignaciones Pareto eficientes. No depende de α, solo de las preferencias y de la dotación total.',
+  nucleo: 'el núcleo: el tramo de la curva de contrato entre C (el agente 1 queda igual que en α) y C′ (el agente 2 queda igual). Son las asignaciones eficientes que ningún agente bloquea, porque ninguno está peor que en α.',
+  walras: 'el EGC y la ratio de precios p*: la recta que sale de α con pendiente −p* y es tangente a las dos curvas de indiferencia en el mismo punto. Ahí cada agente maximiza su utilidad a los precios p* y los dos mercados se vacían.',
+  negociacion: 'el modo negociación: ε deja de ser el EGC y puedes moverlo por el núcleo. Cada posición representa un reparto distinto del poder de negociación; el EGC queda marcado en gris para comparar.',
+};
+function explicarEdg(A, B, X, Y) {
+  for (const k of Object.keys(DEF_OPC)) if (A.mostrar.has(k) !== B.mostrar.has(k)) {
+    const on = B.mostrar.has(k);
+    return { titulo: `${on ? 'Activas' : 'Desactivas'} «${OPCIONES.find((o) => o[0] === k)[1]}»`, cambia: new Set([k]),
+      p: [on ? `Has mostrado ${DEF_OPC[k]}` : `Has ocultado ${DEF_OPC[k]}`] };
+  }
+  if (Math.abs(A.a1 - B.a1) > 1e-9 || Math.abs(A.a2 - B.a2) > 1e-9) return explicarPref(A, B, X, Y);
+  if (Math.abs(A.x1 - B.x1) > 1e-9 || Math.abs(A.y1 - B.y1) > 1e-9) return explicarDotacion(A, B, X, Y);
+  if (Math.abs(A.tNeg - B.tNeg) > 1e-9) return explicarNeg(A, B);
+  return null;
+}
+function explicarDotacion(A, B, X, Y) {
+  const a = datos(A), b = datos(B), p = [], cambia = new Set(['alfa', 'ic', 'rms', 'lente', 'nucleo', 'walras', 'egc']);
+  p.push(`Has movido la dotación inicial α de (x̄₁; ȳ₁) = ${par(A.x1, A.y1)} a ${par(B.x1, B.y1)}. El agente 2 recibe el resto de la dotación total: (x̄₂; ȳ₂) = ${par(X - B.x1, Y - B.y1)}.`);
+  p.push('En la nueva α: ' + frasesRMS(b.r1, b.r2));
+  p.push(`Las curvas de indiferencia que pasan por α (I₁⁰ e I₂⁰) se han desplazado con ella. Con ellas cambian el área entre ambas y el núcleo, que ahora va de C = ${par(b.M.C.x, b.M.C.y)} a C′ = ${par(b.M.Cp.x, b.M.Cp.y)}. La curva de contrato no se mueve: solo depende de las preferencias y de la dotación total, no de cómo se reparta.`);
+  const pA = a.M.eps.p, dm1 = pA * (B.x1 - A.x1) + (B.y1 - A.y1);
+  if (Math.abs(dm1) < 0.005 * (pA * X + Y) / 2) {
+    p.push(`Has movido α casi a lo largo de la recta de precios anterior: a p* = ${f3(pA)}, la renta de cada agente no cambia, así que demandan lo mismo y el EGC apenas se mueve (${par(a.M.eps.x, a.M.eps.y)} → ${par(b.M.eps.x, b.M.eps.y)}). Cualquier dotación sobre esa recta lleva al mismo EGC.`);
+  } else if (Math.abs(B.a1 - B.a2) < 1e-6) {
+    p.push(`p* no cambia (${f3(b.M.eps.p)}): como los dos agentes dedican la misma fracción de su renta a x (a₁ = a₂), redistribuir renta entre ellos no altera la demanda total de x. El EGC sí se mueve, de ${par(a.M.eps.x, a.M.eps.y)} a ${par(b.M.eps.x, b.M.eps.y)}, porque el agente 1 tiene otra renta.`);
+  } else {
+    const masX = (B.a1 - B.a2) * dm1 > 0;
+    p.push(`La ratio de precios ${TI(String.raw`p^* = p_x/p_y`)} pasa de ${f3(pA)} a ${f3(b.M.eps.p)}. A los precios anteriores, la renta del agente 1 ${dm1 > 0 ? 'aumenta' : 'disminuye'} en ${f2(Math.abs(dm1))} unidades de y, y la del agente 2 ${dm1 > 0 ? 'disminuye' : 'aumenta'} lo mismo. El agente 1 gasta en x una fracción a₁ = ${f2(B.a1)} de su renta y el agente 2 una fracción a₂ = ${f2(B.a2)}, así que esa redistribución ${masX ? 'aumenta' : 'reduce'} la demanda total de x. A los precios antiguos habría exceso de ${masX ? 'demanda' : 'oferta'} de x, y su precio relativo tiene que ${masX ? 'subir' : 'bajar'} para vaciar el mercado.`);
+    p.push(`El EGC pasa de (x₁*; y₁*) = ${par(a.M.eps.x, a.M.eps.y)} a ${par(b.M.eps.x, b.M.eps.y)}. Sigue dentro del núcleo, como exige el Primer Teorema del Bienestar.`);
+  }
+  return { titulo: `α: ${par(A.x1, A.y1)} → ${par(B.x1, B.y1)}`, p, cambia };
+}
+function explicarPref(A, B, X, Y) {
+  const i = Math.abs(A.a1 - B.a1) > 1e-9 ? 1 : 2;
+  const ai = i === 1 ? 'a1' : 'a2', aA = A[ai], aB = B[ai], up = aB > aA;
+  const a = datos(A), b = datos(B), p = [], cambia = new Set(['pref', 'rms', 'ic', 'contrato', 'nucleo', 'lente', 'walras', 'egc']);
+  p.push(`Has ${up ? 'aumentado' : 'reducido'} a${i === 1 ? '₁' : '₂'}, el peso del bien x en la utilidad del agente ${i}, de ${f2(aA)} a ${f2(aB)}. Con Cobb-Douglas es también la fracción de su renta que gasta en x.`);
+  const rA = i === 1 ? a.r1 : a.r2, rB = i === 1 ? b.r1 : b.r2;
+  p.push(`Su RMS en α pasa de ${f3(rA)} a ${f3(rB)}. Con Cobb-Douglas, ${TI(String.raw`\mathrm{RMS}_${i} = \frac{\mathrm{UMag}_x}{\mathrm{UMag}_y} = \frac{a_${i}}{1-a_${i}}\cdot\frac{y_${i}}{x_${i}}`)}, así que ahora valora ${up ? 'más' : 'menos'} el bien x respecto al y y sus curvas de indiferencia se ${up ? 'empinan' : 'aplanan'}. ` + frasesRMS(b.r1, b.r2));
+  const xm = X / 2, cA = a.M.cc(xm), cB = b.M.cc(xm);
+  p.push(`La curva de contrato se desplaza, porque es el lugar donde ${R1} = ${R2} y una de las dos RMS ha cambiado. Para x₁ = ${f2(xm)}, la tangencia pasa de y₁ = ${f2(cA)} a y₁ = ${f2(cB)}. El núcleo pasa a ir de C = ${par(b.M.C.x, b.M.C.y)} a C′ = ${par(b.M.Cp.x, b.M.Cp.y)}.`);
+  const mi = i === 1 ? a.M.eps.p * A.x1 + A.y1 : a.M.eps.p * (X - A.x1) + (Y - A.y1);
+  p.push(`p* pasa de ${f3(a.M.eps.p)} a ${f3(b.M.eps.p)}. A los precios anteriores, el agente ${i} tiene una renta de ${f2(mi)} unidades de y y ahora dedica a x una fracción ${up ? 'mayor' : 'menor'}, así que la demanda de x ${up ? 'aumenta' : 'disminuye'} en ${f2(Math.abs(aB - aA) * mi / a.M.eps.p)} unidades. Para eliminar ese exceso de ${up ? 'demanda' : 'oferta'}, el precio relativo de x tiene que ${up ? 'subir' : 'bajar'}. El EGC pasa de ${par(a.M.eps.x, a.M.eps.y)} a ${par(b.M.eps.x, b.M.eps.y)}.`);
+  return { titulo: `a${i === 1 ? '₁' : '₂'}: ${f2(aA)} → ${f2(aB)}`, p, cambia };
+}
+function explicarNeg(A, B) {
+  const a = datos(A), b = datos(B), p = [], cambia = new Set(['eps', 'ratio']);
+  const hacia1 = B.tNeg > A.tNeg;
+  p.push(`Has movido el punto negociado ε de ${par(a.neg.x, a.neg.y)} a ${par(b.neg.x, b.neg.y)}, hacia ${hacia1 ? 'C′' : 'C'}. En C el agente 1 queda igual que en α y en C′ es el agente 2 quien queda igual, así que ${hacia1 ? 'el agente 1 se lleva ahora una parte mayor de la ganancia del intercambio' : 'el agente 2 se lleva ahora una parte mayor de la ganancia del intercambio'}. Según Edgeworth, el punto exacto lo decide el poder de negociación de cada parte.`);
+  p.push(`La ratio de precios implícita ${TI(String.raw`\frac{\bar y_1 - y_1^*}{x_1^* - \bar x_1}`)} pasa de ${f3(a.neg.razon)} a ${f3(b.neg.razon)}: es la relación a la que se han intercambiado los bienes entre α y ε.`);
+  const casi = Math.abs(b.neg.rms - b.neg.razon) < 0.01 * b.neg.rms;
+  p.push(casi
+    ? `En ε la RMS común (${f3(b.neg.rms)}) coincide con esa ratio: ε es el EGC. Es el único punto del núcleo que puede sostenerse con un precio uniforme, porque a esa ratio los dos agentes elegirían ε por sí mismos.`
+    : `En ε la RMS común es ${f3(b.neg.rms)}, distinta de la ratio ${f3(b.neg.razon)}. ε es eficiente, porque está en la curva de contrato, pero no es un equilibrio competitivo: a esa ratio de precios, ninguno de los dos elegiría ε. Al replicar la economía con muchos agentes de cada tipo, alguna coalición lo bloquea (Debreu–Scarf).`);
+  return { titulo: `ε: ${par(a.neg.x, a.neg.y)} → ${par(b.neg.x, b.neg.y)}`, p, cambia };
+}
+function inicialEdg(st, X, Y) {
+  const d = datos(st);
+  return { titulo: 'Punto de partida', cambia: new Set(), p: [
+    `La dotación inicial α reparte la dotación total (x̄; ȳ) = ${par(X, Y)}: el agente 1 tiene ${par(st.x1, st.y1)} y el agente 2 ${par(X - st.x1, Y - st.y1)}.`,
+    'En α: ' + frasesRMS(d.r1, d.r2),
+    `El EGC está en (x₁*; y₁*) = ${par(d.M.eps.x, d.M.eps.y)} con p* = ${f3(d.M.eps.p)}, dentro del núcleo C–C′.`,
+    'Mueve α, las preferencias o las capas del gráfico: aquí aparecerá qué ha cambiado y por qué.'] };
+}
+function pintarConceptosEdg(caja, st, X, Y, cambia) {
+  const d = datos(st), M = d.M;
+  const L = [
+    { k: 'caja', n: 'Caja de Edgeworth', d: 'El lado horizontal mide la dotación total del bien x y el vertical la del bien y. Cada punto es una asignación completa: lo que consume el agente 1 se mide desde O₁ y lo que consume el agente 2 desde O₂.', f: String.raw`x_1 + x_2 = \bar x,\qquad y_1 + y_2 = \bar y`, v: `(x̄; ȳ) = ${par(X, Y)}`, ref: '3A21 §3. 1. 1' },
+    { k: 'alfa', n: 'Dotación inicial α', d: 'Reparto de partida de los recursos, sin intercambio. Desde ella negocian los agentes.', f: String.raw`\alpha = (\bar x_1, \bar y_1;\ \bar x_2, \bar y_2)`, v: `${par(st.x1, st.y1)} y ${par(X - st.x1, Y - st.y1)}`, ref: '3A21 §3. 1. 1' },
+    { k: 'pref', n: 'Preferencias (a₁, a₂)', f: String.raw`U_i = x_i^{a_i}\,y_i^{1-a_i}`, d: 'Preferencias Cobb-Douglas. a<sub>i</sub> es el peso de x y la fracción de renta que el agente gasta en x. Es notación propia de este gráfico: el tema solo exige preferencias neoclásicas.', v: `a₁ = ${f2(st.a1)}, a₂ = ${f2(st.a2)}`, ref: '3A21 §3. 1. 1 (supuestos)' },
+    { k: 'ic', n: 'Curvas de indiferencia I₁⁰ e I₂⁰', d: 'Las que pasan por α. Cada agente solo acepta asignaciones situadas en su curva o por encima de ella (alejándose de su origen).', v: `U₁ = ${f3(M.U1(st.x1, st.y1))}, U₂ = ${f3(M.U2(st.x1, st.y1))}`, ref: '3A21 §3. 1. 1' },
+    { k: 'rms', n: 'Relación Marginal de Sustitución (RMS)', d: 'Pendiente, en valor absoluto, de la curva de indiferencia: cuánto y está dispuesto a entregar el agente por una unidad más de x sin perder utilidad.', f: String.raw`\mathrm{RMS} = -\frac{dy}{dx} = \frac{\mathrm{UMag}_x}{\mathrm{UMag}_y}`, v: `en α: ${R1} = ${f3(d.r1)}, ${R2} = ${f3(d.r2)}`, ref: '3A8 §1. 2. 3' },
+    { k: 'lente', n: 'Área entre curvas de indiferencia originales', d: 'Asignaciones que dejan a los dos agentes al menos como en α y a alguno mejor: las mejoras de Pareto. No es el núcleo; el núcleo es solo su intersección con la curva de contrato.', ref: '3A21 §3. 1. 1' },
+    { k: 'contrato', n: 'Curva de contrato', d: 'Une todos los puntos de tangencia entre curvas de indiferencia de los dos agentes. Recoge los acuerdos de intercambio Pareto eficientes. No depende de α.', f: String.raw`\mathrm{RMS}_1 = \mathrm{RMS}_2`, ref: '3A21 §3. 1. 1' },
+    { k: 'nucleo', n: 'Núcleo (C–C′)', d: 'Asignaciones eficientes que ningún agente bloquea: ninguno queda peor que en α. Con dos agentes es el tramo de la curva de contrato entre C (el agente 1 queda igual y el agente 2 mejora) y C′ (el agente 2 queda igual y el agente 1 mejora).', v: `C = ${par(M.C.x, M.C.y)}, C′ = ${par(M.Cp.x, M.Cp.y)}`, ref: '3A21 §3. 1. 1 y §3. 1. 2' },
+    { k: 'walras', n: 'Ratio de precios p*', d: 'Pendiente de la recta que une α con el punto de intercambio: cuántas unidades de y se pagan por una de x.', f: String.raw`p^* = \frac{\bar y_1 - y_1^*}{x_1^* - \bar x_1}`, v: f3(M.eps.p), ref: '3A21 §3. 1. 1' },
+    { k: 'egc', n: 'Equilibrio general competitivo (EGC)', d: 'Asignación en la que, a los precios p*, cada agente maximiza su utilidad y los mercados se vacían. Está en el núcleo (Primer Teorema del Bienestar).', f: String.raw`\mathrm{RMS}_1 = \mathrm{RMS}_2 = p^*`, v: `(x₁*; y₁*) = ${par(M.eps.x, M.eps.y)}`, ref: '3A21 §1. 3 y §2. 1. 1' },
+    { k: 'eps', n: 'Punto negociado ε', d: 'Resultado de la negociación directa entre los agentes, en el enfoque de Edgeworth. Puede ser cualquier punto del núcleo según el poder de negociación de cada parte.', v: d.neg ? par(d.neg.x, d.neg.y) : 'coincide con el EGC (modo negociación apagado)', ref: '3A21 §3. 1. 1' },
+    { k: 'ratio', n: 'Enfoque del núcleo (Debreu–Scarf)', d: 'Si se replica la economía con muchos agentes de cada tipo, las coaliciones bloquean cada vez más asignaciones y el núcleo se reduce hasta el EGC.', v: d.neg ? `ratio implícita en ε = ${f3(d.neg.razon)} frente a RMS = ${f3(d.neg.rms)}` : undefined, ref: '3A21 §3. 1. 2' },
+  ];
+  caja.innerHTML = L.map((x) => `
+    <article class="concepto${cambia.has(x.k) ? ' cambia' : ''}">
+      <div class="cab"><h4>${x.n}</h4>${cambia.has(x.k) ? '<span class="chip-cambia">ha cambiado</span>' : ''}</div>
+      <p class="def">${x.d}</p>
+      ${x.f ? `<div class="formula">${TX(x.f)}</div>` : ''}
+      ${x.v !== undefined ? `<p class="valor">Ahora: <b>${x.v}</b></p>` : ''}
+      <p class="ref">${x.ref}</p>
+    </article>`).join('');
+  montar(caja);
+}
+
+const PRESETS = [
+  { id: 'walras', label: '3A21: EGC',
+    mirar: 'La recta de la ratio de precios p* sale de α y es tangente a las dos curvas de indiferencia en ε = EGC. Allí RMS₁ = RMS₂ = p*, y el EGC cae dentro del núcleo. Arrastra α por esa misma recta: el EGC no se mueve.',
+    src: 'a1: 0.6\na2: 0.35\ndotacion: 2, 8\nmostrar: lente, contrato, nucleo, walras' },
+  { id: 'neg', label: 'Negociación dentro del núcleo',
+    mirar: 'Arrastra ε a lo largo del núcleo. Todos sus puntos son eficientes, pero solo en el EGC la ratio de intercambio coincide con la RMS común: es el único que sostiene un precio uniforme.',
+    src: 'a1: 0.6\na2: 0.35\ndotacion: 2, 8\nmostrar: mapa, lente, nucleo, walras, negociacion' },
+  { id: 'sim', label: 'Preferencias iguales',
+    mirar: 'Con a₁ = a₂ la curva de contrato es la diagonal de la caja. Mueve uno de los dos pesos y la curva se arquea, separándose de la diagonal.',
+    src: 'a1: 0.5\na2: 0.5\ndotacion: 8, 2\nmostrar: mapa, lente, contrato, nucleo, walras' },
+  { id: 'eff', label: 'Dotación ya eficiente',
+    mirar: 'α está sobre la curva de contrato: RMS₁ = RMS₂, el área entre las curvas de indiferencia originales desaparece y el núcleo se reduce a α. No hay intercambio. Saca α de la curva y reaparece todo.',
+    src: 'a1: 0.6\na2: 0.35\ndotacion: 6.4364, 3.9333\nmostrar: mapa, contrato, nucleo, walras' },
+];
+const app = document.getElementById('app');
+const pres = document.getElementById('presets');
+const mirar = document.getElementById('mirar');
+function cargar(p) {
+  app.innerHTML = '';
+  renderEdgeworth(p.src, app);
+  mirar.textContent = p.mirar;
+  pres.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === p.id)));
+}
+for (const p of PRESETS) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.id = 'preset-' + p.id; b.dataset.id = p.id; b.textContent = p.label;
+  b.addEventListener('click', () => cargar(p));
+  pres.appendChild(b);
+}
+const desdeHash = () => cargar(PRESETS.find((p) => p.id === location.hash.slice(1)) || PRESETS[0]);
+desdeHash();
+window.addEventListener('hashchange', desdeHash);
+</script>
+
+</body>
+</html>
