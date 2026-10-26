@@ -477,7 +477,7 @@ function dibujarTrabajo() {
   oferta.push([sL(LF), sW(XW + 1)]);
   lineaPts(oferta, { class: 'cur', stroke: 'var(--verde)' }, gc);
   tx(gT, sL(19) + 4, sW(Math.min(3.05, (neo ? 1 : m.p) * PMgL(19, s.A))) - 4, 'L^D', { style: 'fill:var(--rojo)' });
-  el('text', { x: sL(26) + 4, y: sW(Math.min(3.05, (neo ? 1 : m.p) * PMgL(26, s.A))) + 16, class: 'r', style: 'fill:var(--rojo);font-size:10.5px' }, gT).textContent = neo ? 'w/p = PMagL' : (moved ? 'w = p₁·PMagL' : 'w = p₀·PMagL');
+  el('text', { x: sL(XL), y: sW((neo ? 1 : m.p) * PMgL(84, s.A)) + 18, class: 'r', 'text-anchor': 'end', style: 'fill:var(--rojo);font-size:10.5px' }, gT).textContent = neo ? 'w/p = PMagL' : (moved ? 'w = p₁·PMagL' : 'w = p₀·PMagL');
   if (!neo && moved) el('text', { x: sL(47), y: sW(r0.p * PMgL(47, s.A)) - 8, class: 'r', style: 'fill:var(--rojo);font-size:10.5px;opacity:.75' }, gT).textContent = 'w = p₀·PMagL';
   tx(gT, sL(LF) + 6, QY - HW + 14, 'L^S', { style: 'fill:var(--verde)' });
   el('line', { x1: sL(LF), y1: QY, x2: sL(LF), y2: sY(m.YF), class: 'guia', style: 'stroke:var(--naranja)' }, gT);
