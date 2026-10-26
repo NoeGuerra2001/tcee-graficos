@@ -167,11 +167,11 @@ sub, sup { font-size: 72%; }
         <svg class="lamina" id="svg-trabajo" role="img" aria-label="Mercado de trabajo, función de producción y oferta y demanda agregadas"></svg>
         <div class="controles">
           <div class="chips" id="modo-trabajo" role="group" aria-label="Modelo"></div>
-          <div class="fila"><label>D̄ (demanda agregada nominal)</label><input id="tb-D" data-k="D" type="range" min="0.6" max="1.4" step="0.01" value="1"><span class="val" id="tb-D-v"></span></div>
+          <div class="fila"><label>D̄ (demanda agregada nominal)</label><input id="tb-D" data-k="D" type="range" min="0.25" max="1.4" step="0.01" value="1"><span class="val" id="tb-D-v"></span></div>
           <p class="ctl-ayuda">Gasto nominal total, relativo al de partida. Es la posición de la Y<sup>D</sup> = D̄/p: un shock de demanda la desplaza y cambia p.</p>
           <div class="fila"><label>A (productividad)</label><input id="tb-A" data-k="A" type="range" min="7" max="13" step="0.1" value="10"><span class="val" id="tb-A-v"></span></div>
           <p class="ctl-ayuda">Tecnología o capital: escala la función de producción y la PMag<sub>L</sub>. Es lo que mueven las políticas de oferta.</p>
-          <label class="check"><input id="tb-rig" type="checkbox" checked><span>Salario nominal rígido a la baja (w̄ = w<sub>0</sub>)</span></label>
+          <label class="check"><input id="tb-rig" type="checkbox" checked><span>Salario nominal rígido a la baja en el salario vigente (w̄ = w<sub>0</sub>). Sin marcar, solo queda el suelo w<sub>min</sub></span></label>
         </div>
       </div>
       <div class="panel">
@@ -493,11 +493,11 @@ function dibujarTrabajo() {
     const ya = QY + 6;
     el('path', { d: `M${sL(m.L)},${ya}q0,8 8,8L${sL(m.Ls) - 8},${ya + 8}q8,0 8,-8`, fill: 'none', stroke: 'var(--rojo)', 'stroke-width': 1.2 }, gT);
     el('text', { x: (sL(m.L) + sL(m.Ls)) / 2, y: ya + 22, class: 'r', 'text-anchor': 'middle', style: 'fill:var(--rojo);font-size:10.5px' }, gT).textContent = 'DESEMPLEO INVOLUNTARIO';
-    tx(gT, sL(m.Ls) + 4, QY - 6, 'L_0', { style: 'font-size:13px' });
+    tx(gT, sL(m.Ls) + 4, QY - 6, m.wmin ? 'L_{min}' : 'L_0', { style: 'font-size:13px' });
     tx(gT, sL(m.L) - 4, QY - 6, 'L_1', { 'text-anchor': 'end', style: 'font-size:13px' });
   } else tx(gT, sL(m.L) + 4, QY - 6, neo ? 'L^*' : (moved ? 'L_1' : 'L_0'), { style: 'font-size:13px' });
   el('circle', { cx: sL(m.L), cy: sW(wq), r: 6, class: 'pto', fill: 'var(--punto)' }, gT);
-  tx(gT, QX - 6, sW(wq) + 5, neo ? '(w/p)^*' : (m.rigido ? 'w_0 = w_1' : (moved ? 'w_1' : 'w_0')), { 'text-anchor': 'end', style: 'font-size:13px' });
+  tx(gT, QX - 6, sW(wq) + 5, neo ? '(w/p)^*' : (m.rigido ? 'w_0 = w_1' : m.wmin ? 'w_1 = w_{min}' : (moved ? 'w_1' : 'w_0')), { 'text-anchor': 'end', style: 'font-size:13px' });
 
   /* ---------- cuadrante IV: función de producción (Y hacia abajo) */
   lineaPts(Ls.map((L) => [sL(L), sY(fL(L, s.A))]), { class: 'cur', stroke: 'var(--azul)' }, gc);
@@ -531,7 +531,7 @@ function dibujarTrabajo() {
   const pH = 1.9, hY = s.D * D00 / pH;
   const h = el('circle', { cx: sP(pH), cy: sY(hY), r: 7.5, fill: 'var(--bg)', stroke: 'var(--naranja)', 'stroke-width': 2.5 }, gT);
   const hz = el('circle', { cx: sP(pH), cy: sY(hY), r: 16, fill: 'transparent' }, gT);
-  for (const n of [h, hz]) arrastrable(svgT, n, (q) => { const Y = clamp((q.y - QY) / HY * XY, 1, XY); TB.D = clamp(Math.round(Y * pH / D00 * 100) / 100, 0.6, 1.4); }, ST.empezar);
+  for (const n of [h, hz]) arrastrable(svgT, n, (q) => { const Y = clamp((q.y - QY) / HY * XY, 1, XY); TB.D = clamp(Math.round(Y * pH / D00 * 100) / 100, 0.25, 1.4); }, ST.empezar);
   /* rótulo del modelo en el cuadrante vacío */
   el('text', { x: QX - WP + 4, y: QY - HW + 8, class: 'r', style: 'fill:var(--muted)' }, gT).textContent = neo ? 'MODELO NEOCLÁSICO' : 'MODELO KEYNESIANO';
   el('text', { x: QX - WP + 4, y: QY - HW + 24, class: 'r', style: 'fill:var(--muted);font-size:10.5px' }, gT).textContent = neo ? 'Dicotomía: D̄ solo mueve p y w' : (s.rig ? 'Salario nominal rígido a la baja' : 'Salario nominal flexible');
@@ -599,6 +599,10 @@ function explicarTrabajo(A, B) {
         cambia.add('rigidez'); cambia.add('paro');
         p.push(`El salario nominal tendría que bajar para vaciar el mercado, pero es rígido a la baja: se queda en w<sub>0</sub> = w<sub>1</sub> = ${f2(b.w)}. El ajuste se hace vía cantidades: las empresas contratan hasta que p·PMag<sub>L</sub> = w. ${reales()}`);
         p.push(`A ese salario querrían trabajar L<sub>0</sub> = ${f1(b.Ls)} personas y solo se contratan L<sub>1</sub> = ${f1(b.L)}: ${f1(b.paro)} unidades de desempleo involuntario. El salario real sube de ${f2(a.real)} a ${f2(b.real)}, porque baja p con w fijo.`);
+      } else if (b.wmin && b.paro > 0.05) {
+        cambia.add('paro'); cambia.add('LS');
+        p.push(`Sin rigidez en w<sub>0</sub>, el salario nominal baja, pero solo hasta el salario mínimo w<sub>min</sub> = ${f2(b.w)}: la L<sup>D</sup> corta ahora la oferta en su tramo horizontal. ${reales()}`);
+        p.push(`A w<sub>min</sub> querrían trabajar L<sub>min</sub> = ${f1(b.Ls)} personas y solo se contratan ${f1(b.L)}: ${f1(b.paro)} unidades de desempleo involuntario. Es el otro origen del desempleo involuntario en el tema: el suelo institucional del salario (salario mínimo, resistencia social), no la rigidez en el salario vigente.`);
       } else if (!baja) {
         cambia.add('ilusion');
         p.push(`Con recursos ociosos y ilusión monetaria, los trabajadores aceptan más empleo a un salario nominal algo mayor (de ${f2(a.w)} a ${f2(b.w)}), aunque el real baja de ${f2(a.real)} a ${f2(b.real)}: los salarios suben menos que proporcionalmente a los precios. ${reales()}`);
@@ -622,7 +626,7 @@ function explicarTrabajo(A, B) {
   }
   if (A.rig !== B.rig) {
     cambia.add('rigidez');
-    p.push(B.rig ? `Activas la rigidez a la baja: el salario nominal no puede caer por debajo del de partida, w̄ = w<sub>0</sub> = ${f2(WB)}. ${reales()}` : `Quitas la rigidez: el salario nominal baja hasta vaciar el mercado. ${reales()}`);
+    p.push(B.rig ? `Activas la rigidez a la baja: el salario nominal no puede caer por debajo del de partida, w̄ = w<sub>0</sub> = ${f2(WB)}. ${reales()}` : `Quitas la rigidez en w<sub>0</sub>: el salario nominal baja por el tramo creciente de la oferta, y solo se detiene en el suelo w<sub>min</sub>. ${reales()}${b.paro > 0.05 ? ` La L<sup>D</sup> corta en el tramo horizontal: hay ${f1(b.paro)} unidades de desempleo involuntario.` : ' Mientras la L<sup>D</sup> corte en el tramo creciente, no hay desempleo involuntario: quien no trabaja es porque a ese salario no quiere.'}`);
     if (!B.rig) { cambia.add('flex'); p.push('Keynes advertía que esa flexibilidad no garantiza el pleno empleo: la caída de salarios afecta también a la demanda efectiva, por la distribución de la renta, el valor real de las deudas y las expectativas de deflación (§1. 2. 2. 4). Este gráfico, con D̄ dada, no lo recoge.'); }
     return { titulo: B.rig ? 'Salario rígido a la baja' : 'Salario flexible', p, cambia };
   }
