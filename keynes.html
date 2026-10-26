@@ -138,6 +138,11 @@ sub, sup { font-size: 72%; }
 </style>
 <style>
 .check { display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer; }
+:root { --morado: #7B4FA0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --morado: #B99AE0; } }
+:root[data-theme="dark"] { --morado: #B99AE0; }
+.chips button:disabled, input:disabled { opacity: .4; cursor: not-allowed; }
+.figs .controles .chips { margin: 2px 0 4px; }
 </style>
 
 </head>
@@ -156,25 +161,23 @@ sub, sup { font-size: 72%; }
 
   <!-- ================================================================ TRABAJO -->
   <section id="v-trabajo" role="tabpanel" class="vista-wrap">
-    <p class="mirar">Baja el nivel de precios p para simular un shock de demanda negativo. Con el modelo keynesiano y salario nominal rígido a la baja, el ajuste es vía cantidades y aparece desempleo involuntario; con el neoclásico, el salario nominal cae en la misma proporción y el empleo no cambia.</p>
+    <p class="mirar">El gráfico de cuatro cuadrantes del tema: mercado de trabajo arriba a la derecha, función de producción Y = f(L) abajo a la derecha y oferta y demanda agregadas frente al nivel de precios p abajo a la izquierda. Baja D̄ para simular un shock de demanda negativo y compara los dos modelos: en el neoclásico solo bajan p y w; en el keynesiano, con salario nominal rígido, caen el empleo y la producción.</p>
     <div class="vista" style="margin-top:12px">
       <div class="figs">
-        <svg class="lamina" id="svg-trabajo" role="img" aria-label="Mercado de trabajo"></svg>
-        <div class="chips" id="modo-trabajo" role="group" aria-label="Modelo"></div>
+        <svg class="lamina" id="svg-trabajo" role="img" aria-label="Mercado de trabajo, función de producción y oferta y demanda agregadas"></svg>
         <div class="controles">
-          <div class="fila"><label>p (nivel de precios)</label><input id="tb-p" data-k="p" type="range" min="0.6" max="1.4" step="0.01" value="1"><span class="val" id="tb-p-v"></span></div>
-          <p class="ctl-ayuda">Un shock de demanda mueve p. Desplaza la L<sup>D</sup>, porque las empresas contratan hasta que w = p·PMag<sub>L</sub>.</p>
+          <div class="chips" id="modo-trabajo" role="group" aria-label="Modelo"></div>
+          <div class="fila"><label>D̄ (demanda agregada nominal)</label><input id="tb-D" data-k="D" type="range" min="0.6" max="1.4" step="0.01" value="1"><span class="val" id="tb-D-v"></span></div>
+          <p class="ctl-ayuda">Gasto nominal total, relativo al de partida. Es la posición de la Y<sup>D</sup> = D̄/p: un shock de demanda la desplaza y cambia p.</p>
           <div class="fila"><label>A (productividad)</label><input id="tb-A" data-k="A" type="range" min="7" max="13" step="0.1" value="10"><span class="val" id="tb-A-v"></span></div>
-          <p class="ctl-ayuda">Tecnología o capital: escala la PMag<sub>L</sub>. Es lo que mueven las políticas de oferta del modelo neoclásico.</p>
-          <div class="fila"><label>w<sub>min</sub> (salario mínimo)</label><input id="tb-wmin" data-k="wmin" type="range" min="0.6" max="1.6" step="0.01" value="1"><span class="val" id="tb-wmin-v"></span></div>
-          <p class="ctl-ayuda">Altura del primer tramo, horizontal, de la oferta keynesiana.</p>
-          <label class="check"><input id="tb-rig" type="checkbox" checked> Salario nominal rígido a la baja (w̄ fijado con p = 1)</label>
+          <p class="ctl-ayuda">Tecnología o capital: escala la función de producción y la PMag<sub>L</sub>. Es lo que mueven las políticas de oferta.</p>
+          <label class="check"><input id="tb-rig" type="checkbox" checked><span>Salario nominal rígido a la baja (w̄ = w<sub>0</sub>)</span></label>
         </div>
       </div>
       <div class="panel">
         <div class="porque" id="porque-trabajo" aria-live="polite"></div>
         <div class="lectura" id="lec-trabajo"></div>
-        <p class="nota">Simplificaciones de este gráfico: PMag<sub>L</sub> = A/√L (función de producción X = 2A√L con capital fijo) y oferta keynesiana con tres tramos y L<sub>min</sub> = 20, L<sub>PE</sub> = 70. La oferta neoclásica tiene la misma forma, pero en salario real w/p.</p>
+        <p class="nota">Simplificaciones: Y = f(L) = 2A√L, así que PMag<sub>L</sub> = A/√L; Y<sup>D</sup> = D̄/p, con elasticidad unitaria al nivel de precios. La oferta keynesiana tiene los tres tramos del §1. 2. 2. 2 (w<sub>min</sub> = 1, L<sub>min</sub> = 20, L<sub>F</sub> = 70); la neoclásica es creciente en w/p y pasa por el mismo punto de partida, para que los dos modelos arranquen en E<sub>0</sub>.</p>
       </div>
     </div>
     <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-trabajo"></div></div>
@@ -182,7 +185,7 @@ sub, sup { font-size: 72%; }
 
   <!-- ================================================================ BIENES -->
   <section id="v-bienes" role="tabpanel" class="vista-wrap" hidden>
-    <p class="mirar">Cambia un componente autónomo (C̄, I₀, G o r) y sube «Rondas del multiplicador» para ver cómo la renta llega a su nuevo equilibrio ronda a ronda. Arrastra el punto Y del eje horizontal para ver la acumulación o desacumulación de existencias fuera del equilibrio.</p>
+    <p class="mirar">Cambia un componente autónomo (C̄, I₀, G₀ o r) y sube «Rondas del multiplicador» para ver cómo la renta llega a su nuevo equilibrio ronda a ronda. Arrastra el punto Y del eje horizontal para ver la acumulación o desacumulación de existencias fuera del equilibrio.</p>
     <div class="vista" style="margin-top:12px">
       <div class="figs">
         <svg class="lamina" id="svg-bienes" role="img" aria-label="Cruz keynesiana"></svg>
@@ -194,7 +197,7 @@ sub, sup { font-size: 72%; }
           <div class="fila"><label>I₀ (animal spirits)</label><input id="bi-I0" data-k="I0" type="range" min="0" max="80" step="1" value="40"><span class="val" id="bi-I0-v"></span></div>
           <div class="fila"><label>b (sensibilidad de I a r)</label><input id="bi-b" data-k="b" type="range" min="0" max="5" step="0.1" value="2"><span class="val" id="bi-b-v"></span></div>
           <div class="fila"><label>r (tipo de interés, %)</label><input id="bi-r" data-k="r" type="range" min="0" max="12" step="0.1" value="5"><span class="val" id="bi-r-v"></span></div>
-          <div class="fila"><label>G (gasto público)</label><input id="bi-G" data-k="G" type="range" min="0" max="100" step="1" value="40"><span class="val" id="bi-G-v"></span></div>
+          <div class="fila"><label>G₀ (gasto público)</label><input id="bi-G" data-k="G" type="range" min="0" max="100" step="1" value="40"><span class="val" id="bi-G-v"></span></div>
           <div class="fila"><label>Rondas del multiplicador</label><input id="bi-n" data-k="n" type="range" min="0" max="15" step="1" value="0"><span class="val" id="bi-n-v"></span></div>
           <p class="ctl-ayuda">En Keynes, r se determina en el mercado de dinero, no aquí: en este gráfico es un dato. Las rondas se aplican al último cambio de gasto autónomo.</p>
         </div>
@@ -209,24 +212,24 @@ sub, sup { font-size: 72%; }
 
   <!-- ================================================================ DINERO -->
   <section id="v-dinero" role="tabpanel" class="vista-wrap" hidden>
-    <p class="mirar">Sube la oferta monetaria y mira la cadena de transmisión keynesiana: más dinero, menor tipo de interés, más inversión y más renta. Baja el tipo hasta el suelo de la trampa de la liquidez y comprueba que la política monetaria deja de funcionar.</p>
+    <p class="mirar">El «Gráfico 1» del tema: a la izquierda el mercado de bonos-dinero fija el tipo de interés; a la derecha, a ese tipo, la inversión no tiene por qué igualar al ahorro. Sube la oferta monetaria para ver la cadena de transmisión keynesiana y bájala hasta la trampa de la liquidez.</p>
     <div class="vista" style="margin-top:12px">
       <div class="figs">
-        <svg class="lamina" id="svg-dinero" role="img" aria-label="Mercado de dinero"></svg>
+        <svg class="lamina" id="svg-dinero" role="img" aria-label="Mercado de dinero e inversión y ahorro"></svg>
         <div class="controles">
-          <div class="fila"><label>M<sup>S</sup> (oferta monetaria real)</label><input id="di-M" data-k="M" type="range" min="20" max="220" step="1" value="85"><span class="val" id="di-M-v"></span></div>
+          <div class="fila"><label>M<sup>S</sup> (oferta monetaria)</label><input id="di-M" data-k="M" type="range" min="20" max="220" step="1" value="85"><span class="val" id="di-M-v"></span></div>
           <p class="ctl-ayuda">Exógena: la fija la autoridad monetaria. Es la recta vertical.</p>
           <div class="fila"><label>Y (renta)</label><input id="di-Y" data-k="Y" type="range" min="100" max="400" step="1" value="250"><span class="val" id="di-Y-v"></span></div>
           <div class="fila"><label>k (sensibilidad a Y)</label><input id="di-k" data-k="k" type="range" min="0.2" max="0.8" step="0.01" value="0.5"><span class="val" id="di-k-v"></span></div>
           <div class="fila"><label>h (sensibilidad a r)</label><input id="di-h" data-k="h" type="range" min="0" max="25" step="0.1" value="8"><span class="val" id="di-h-v"></span></div>
           <div class="fila"><label>r<sub>min</sub> (suelo de la trampa)</label><input id="di-rt" data-k="rt" type="range" min="0" max="4" step="0.1" value="1"><span class="val" id="di-rt-v"></span></div>
-          <p class="ctl-ayuda">k y h son los parámetros de M<sup>D</sup> = k·Y − h·r. Con h = 0, la demanda es vertical, como en el modelo neoclásico; por debajo de r<sub>min</sub>, horizontal: es la trampa de la liquidez.</p>
+          <p class="ctl-ayuda">k y h son los parámetros de M<sup>D</sup> = k·Y − h·r. Con h = 0 la demanda es vertical, como en el modelo neoclásico; por debajo de r<sub>min</sub>, horizontal: la trampa de la liquidez. La inversión del panel derecho usa I₀, b, G, C̄, c y t de la pestaña de bienes.</p>
         </div>
       </div>
       <div class="panel">
         <div class="porque" id="porque-dinero" aria-live="polite"></div>
         <div class="lectura" id="lec-dinero"></div>
-        <p class="nota">La cadena de transmisión usa b, c y t de la pestaña de bienes. Es un efecto parcial: no incluye cómo la renta mayor vuelve a subir la demanda de dinero, que es lo que cierra la IS-LM del 3A5.</p>
+        <p class="nota">El panel derecho incluye el sector público: el mercado de bienes se equilibra cuando I + G = S + T. El ahorro depende de la renta, no del tipo de interés, por eso es una recta vertical. Si a r* no se igualan, lo que se ajusta es la renta; ese ajuste, que a su vez cambia la demanda de dinero, es el IS-LM del 3A5.</p>
       </div>
     </div>
     <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-dinero"></div></div>
@@ -384,184 +387,269 @@ function refrescarValores(prefijo, estado, dec) {
   });
 }
 
-/* ===================================================================== TRABAJO (§1. 2) */
-const LMIN = 20, LPE = 70, SS = 0.8;
-const TB = { modo: 'key', p: 1, A: 10, wmin: 1, rig: true };
-const PMgL = (L, s) => s.A / Math.sqrt(L);
-const wD = (L, s) => s.p * PMgL(L, s);
-const gS = (L, s) => (L <= LMIN ? s.wmin : L >= LPE ? Infinity : s.wmin + SS * (L - LMIN) / (LPE - L));
-const wS = (L, s) => (s.modo === 'neo' ? s.p * gS(L, s) : gS(L, s));
-function ofertaA(w, s) { /* L ofrecido al salario nominal w (extremo derecho del tramo) */
-  const wr = s.modo === 'neo' ? w / s.p : w;
-  if (wr < s.wmin - 1e-12) return 0;
-  const d = wr - s.wmin; if (d < 1e-12) return LMIN;
-  return (d * LPE + SS * LMIN) / (d + SS);
+let kListo = false;
+/* ===================================================================== TRABAJO (§1. 2): cuatro cuadrantes */
+const LMIN = 20, LF = 70, SS = 0.8, WMIN = 1;
+const TB = { modo: 'key', D: 1, A: 10, rig: true };
+const fL = (L, A) => 2 * A * Math.sqrt(Math.max(0, L));          /* Y = f(L) */
+const PMgL = (L, A) => A / Math.sqrt(L);
+/* oferta keynesiana (salario nominal): tres tramos */
+const gK = (L) => (L <= LMIN ? WMIN : L >= LF ? Infinity : WMIN + SS * (L - LMIN) / (LF - L));
+const gKinv = (w) => { if (w < WMIN - 1e-12) return 0; const d = w - WMIN; if (d < 1e-12) return LMIN; return (d * LF + SS * LMIN) / (d + SS); };
+/* cruce de L^D (w = p·A/√L) con la oferta keynesiana */
+function cruceK(p, A) {
+  if (p * A / Math.sqrt(LF) >= gK(LF - 1e-6)) return { L: LF, w: p * A / Math.sqrt(LF) };
+  let lo = 0.01, hi = LF - 1e-9;
+  for (let i = 0; i < 100; i++) { const m = (lo + hi) / 2; if (p * A / Math.sqrt(m) > gK(m)) lo = m; else hi = m; }
+  const L = (lo + hi) / 2; return { L, w: p * A / Math.sqrt(L) };
 }
-const LdeW = (w, s) => Math.pow(s.p * s.A / w, 2);
-function cruce(s) {
-  let lo = 0.05, hi = LPE - 1e-7;
-  for (let i = 0; i < 90; i++) { const m = (lo + hi) / 2; if (wD(m, s) > wS(m, s)) lo = m; else hi = m; }
-  const L = (lo + hi) / 2; return { L, w: wD(L, s) };
+const E0K = cruceK(1, 10);                     /* punto de partida común: p0 = 1, A = 10 */
+const WB = E0K.w, L0 = E0K.L, Y00 = fL(L0, 10), D00 = Y00;
+/* oferta neoclásica (salario real) que pasa por el mismo punto */
+const G0N = 0.6, G1N = (WB - G0N) * (LF - L0) / L0;
+const gN = (L) => (L >= LF ? Infinity : G0N + G1N * L / (LF - L));
+function cruceN(A) { let lo = 0.01, hi = LF - 1e-9; for (let i = 0; i < 100; i++) { const m = (lo + hi) / 2; if (PMgL(m, A) > gN(m)) lo = m; else hi = m; } const L = (lo + hi) / 2; return { L, wr: PMgL(L, A) }; }
+/* empleo keynesiano a un nivel de precios p */
+function empleoK(p, s) {
+  const c = cruceK(p, s.A);
+  if (c.w < WB - 1e-9 && s.rig) { const L = Math.min(LF, Math.pow(p * s.A / WB, 2)); return { L, w: WB, Ls: gKinv(WB), rigido: true }; }
+  if (c.L < LMIN - 1e-6) return { L: c.L, w: WMIN, Ls: LMIN, wmin: true };
+  return { L: c.L, w: c.w, Ls: c.L };
 }
-const wBarra = (s) => cruce(Object.assign({}, s, { modo: 'key', p: 1 })).w;
-function eqTB(s) {
-  const c = cruce(s), wb = wBarra(s);
-  if (s.modo === 'key' && s.rig && c.w < wb - 1e-9) {
-    const L = LdeW(wb, s), Ls = ofertaA(wb, s);
-    return { w: wb, L, Ls, paro: Math.max(0, Ls - L), rigido: true, wb };
+const YSk = (p, s) => fL(empleoK(p, s).L, s.A);
+function mTB(s) {
+  const D = s.D * D00;
+  if (s.modo === 'neo') {
+    const c = cruceN(s.A), Y = fL(c.L, s.A), p = D / Y;
+    return { p, L: c.L, Ls: c.L, w: c.wr * p, real: c.wr, Y, paro: 0, YF: fL(LF, s.A) };
   }
-  if (s.modo === 'key' && c.L < LMIN - 1e-6) return { w: c.w, L: c.L, Ls: LMIN, paro: LMIN - c.L, rigido: false, wmin: true, wb };
-  return { w: c.w, L: c.L, Ls: c.L, paro: 0, rigido: false, wb };
+  let lo = 0.02, hi = 8;
+  for (let i = 0; i < 100; i++) { const m = (lo + hi) / 2; if (YSk(m, s) < D / m) lo = m; else hi = m; }
+  const p = (lo + hi) / 2, e = empleoK(p, s), Y = fL(e.L, s.A);
+  return { p, L: e.L, Ls: e.Ls, w: e.w, real: e.w / p, Y, paro: Math.max(0, e.Ls - e.L), rigido: !!e.rigido, wmin: !!e.wmin, YF: fL(LF, s.A) };
 }
-const Xprod = (L, s) => 2 * s.A * Math.sqrt(L);
-const mTB = (s) => { const e = eqTB(s); return Object.assign(e, { real: e.w / s.p, X: Xprod(e.L, s), L0: eqTB(Object.assign({}, s, { p: 1 })).L }); };
+const refTB = (s) => Object.assign({}, s, { D: 1 });
 
-const svgT = document.getElementById('svg-trabajo'); svgT.setAttribute('viewBox', '0 0 620 486');
-const PTB = panel(svgT, 60, 26, 520, 380, [0, 90], [0, 3.6]);
+/* geometría de los cuatro cuadrantes */
+const svgT = document.getElementById('svg-trabajo'); svgT.setAttribute('viewBox', '0 0 700 640');
+const QX = 330, QY = 318, WL = 320, HW = 270, HY = 270, WP = 290;
+const XL = 90, XW = 3.2, XY = 240, XP = 2.4;
+const sL = (L) => QX + L / XL * WL, sW = (w) => QY - w / XW * HW, sY = (Y) => QY + Y / XY * HY, sP = (p) => QX - p / XP * WP;
+const iP = (px) => (QX - px) / WP * XP;
 const gT = el('g', {}, svgT);
+const CIDT = 'cq' + Math.random().toString(36).slice(2);
+const cpT = el('clipPath', { id: CIDT }, svgT); el('rect', { x: QX - WP - 4, y: QY - HW - 4, width: WP + WL + 8, height: HW + HY + 8 }, cpT);
 const ST = sesion('trabajo', TB, explicarTrabajo, () => dibujarTrabajo());
 conectarDeslizadores('tb', TB, ST, dibujarTrabajo);
 document.getElementById('tb-rig').addEventListener('change', (e) => { ST.empezar(); TB.rig = e.target.checked; dibujarTrabajo(); ST.cerrar(); });
 const MODOS = [['key', 'Keynesiano (§1. 2. 2)'], ['neo', 'Neoclásico (§1. 2. 1)']];
 for (const [k, t] of MODOS) {
   const b = document.createElement('button'); b.type = 'button'; b.dataset.k = k; b.textContent = t;
-  b.addEventListener('click', () => { ST.empezar(); TB.modo = k; dibujarTrabajo(); ST.cerrar(); });
+  b.addEventListener('click', () => { if (TB.modo === k) return; ST.empezar(); TB.modo = k; dibujarTrabajo(); ST.cerrar(); });
   document.getElementById('modo-trabajo').appendChild(b);
 }
+habilitarArrastre(svgT, dibujarTrabajo, ST.cerrar);
 
+function lineaPts(pts, attrs, parent) { return el('path', Object.assign({ d: path(pts) }, attrs), parent); }
 function dibujarTrabajo() {
   limpiar(gT);
-  const s = TB, m = mTB(s), P = PTB;
-  ejes(gT, P, 'L', 'w', [0, 20, 40, 60, 80], [0, 1, 2, 3]);
-  const gc = el('g', { 'clip-path': P.clip }, gT);
-  const ref = Object.assign({}, s, { p: 1 });
-  if (Math.abs(s.p - 1) > 1e-9) {
-    el('path', { d: P.curva((L) => wD(L, ref), 0.3, 90), class: 'rayo', stroke: 'var(--rojo)' }, gc);
-    if (s.modo === 'neo') el('path', { d: P.curva((L) => wS(L, ref), 0, LPE - 0.01, 600), class: 'rayo', stroke: 'var(--verde)' }, gc);
-  }
-  el('path', { d: P.curva((L) => wD(L, s), 0.3, 90), class: 'cur', stroke: 'var(--rojo)' }, gc);
-  el('path', { d: P.curva((L) => wS(L, s), 0, LPE - 0.01, 600), class: 'cur', stroke: 'var(--verde)' }, gc);
-  el('line', { x1: P.sx(LPE), y1: P.sy(wS(LPE - 0.01, s)), x2: P.sx(LPE), y2: P.y0 - 4, class: 'cur', stroke: 'var(--verde)' }, gc);
-  // etiquetas
-  tx(gT, P.sx(8) + 4, P.sy(Math.min(3.45, wD(8, s))) - 6, 'L^D', { style: 'fill:var(--rojo)' });
-  tx(gT, P.sx(LPE) + 6, P.y0 + 14, 'L^S', { style: 'fill:var(--verde)' });
-  tx(gT, P.sx(LPE), P.y0 + P.h + 46, 'L_{PE}', { 'text-anchor': 'middle', style: 'font-size:13px' });
-  if (s.modo === 'key') {
-    tx(gT, P.x0 + 4, P.sy(s.wmin) - 6, 'w_{min}', { style: 'font-size:13px;fill:var(--verde)' });
-    el('line', { x1: P.sx(LMIN), y1: P.sy(s.wmin), x2: P.sx(LMIN), y2: P.y0 + P.h, class: 'guia' }, gT);
-    tx(gT, P.sx(LMIN), P.y0 + P.h + 46, 'L_{min}', { 'text-anchor': 'middle', style: 'font-size:13px' });
-  }
-  // salario rígido y desempleo involuntario
-  if (m.rigido || m.wmin) {
-    el('line', { x1: P.x0, y1: P.sy(m.w), x2: P.sx(m.Ls), y2: P.sy(m.w), class: 'guia', style: 'stroke:var(--fg);stroke-dasharray:none;stroke-width:1.2' }, gT);
-    tx(gT, P.x0 - 6, P.sy(m.w) + 5, m.rigido ? 'w_0 = w_1' : 'w_{min}', { 'text-anchor': 'end', style: 'font-size:13px' });
-    el('rect', { x: P.sx(m.L), y: P.y0 + P.h - 10, width: Math.max(0, P.sx(m.Ls) - P.sx(m.L)), height: 10, fill: 'var(--z1)', stroke: 'var(--rojo)' }, gT);
-    el('text', { x: (P.sx(m.L) + P.sx(m.Ls)) / 2, y: P.y0 + P.h - 16, class: 'r', 'text-anchor': 'middle', style: 'fill:var(--rojo)' }, gT).textContent = 'DESEMPLEO INVOLUNTARIO';
-    el('circle', { cx: P.sx(m.Ls), cy: P.sy(m.w), r: 4.5, class: 'pto', fill: 'var(--verde)' }, gT);
-    el('line', { x1: P.sx(m.Ls), y1: P.sy(m.w), x2: P.sx(m.Ls), y2: P.y0 + P.h, class: 'guia' }, gT);
-    tx(gT, P.sx(m.Ls), P.y0 + P.h + 32, 'L_0', { 'text-anchor': 'middle', style: 'font-size:13px' });
-  }
-  el('line', { x1: P.sx(m.L), y1: P.sy(m.w), x2: P.sx(m.L), y2: P.y0 + P.h, class: 'guia' }, gT);
-  if (!m.rigido && !m.wmin) el('line', { x1: P.x0, y1: P.sy(m.w), x2: P.sx(m.L), y2: P.sy(m.w), class: 'guia' }, gT);
-  el('circle', { cx: P.sx(m.L), cy: P.sy(m.w), r: 6.5, class: 'pto', fill: 'var(--punto)' }, gT);
-  tx(gT, P.sx(m.L), P.y0 + P.h + 32, (m.rigido || m.wmin) ? 'L_1' : 'L^*', { 'text-anchor': 'middle', style: 'font-size:13px' });
-  if (Math.abs(s.p - 1) > 1e-9) tx(gT, P.sx(4), P.sy(Math.min(3.4, wD(4, ref))) - 4, 'L^D(p=1)', { style: 'fill:var(--rojo);font-size:12px;opacity:.75' });
+  const s = TB, m = mTB(s), r0 = mTB(refTB(s)), neo = s.modo === 'neo', moved = Math.abs(s.D - 1) > 1e-9;
+  /* ejes: L a la derecha, w arriba, Y abajo, p a la izquierda */
+  const ax = (x1, y1, x2, y2) => el('line', { x1, y1, x2, y2, class: 'eje' }, gT);
+  ax(QX - WP - 6, QY, QX + WL + 6, QY); ax(QX, QY - HW - 6, QX, QY + HY + 6);
+  el('path', { d: `M${QX + WL + 6},${QY - 4}l7,4l-7,4z`, fill: 'var(--fg)' }, gT);
+  el('path', { d: `M${QX - WP - 6},${QY - 4}l-7,4l7,4z`, fill: 'var(--fg)' }, gT);
+  el('path', { d: `M${QX - 4},${QY - HW - 6}l4,-7l4,7z`, fill: 'var(--fg)' }, gT);
+  el('path', { d: `M${QX - 4},${QY + HY + 6}l4,7l4,-7z`, fill: 'var(--fg)' }, gT);
+  tx(gT, QX + WL + 12, QY + 22, 'L', { 'text-anchor': 'end' });
+  tx(gT, QX - WP - 10, QY - 8, 'p', { 'text-anchor': 'start' });
+  tx(gT, QX + 10, QY - HW, neo ? 'w/p' : 'w', {});
+  tx(gT, QX + 10, QY + HY + 4, 'Y', {});
+  const gc = el('g', { 'clip-path': `url(#${CIDT})` }, gT);
+  const mk = (q) => q; void mk;
 
-  // lectura
-  const Lm = MV('L'), pm = MV('p'), Am = MV('A'), wm = MV('w_{min}');
-  const gen = s.modo === 'key'
-    ? String.raw`L^S:\ w = \begin{cases} ${wm} & L \le L_{min} \\ ${wm} + s\,\dfrac{L - L_{min}}{L_{PE} - L} & L_{min} < L < L_{PE} \\ \text{vertical} & L = L_{PE} \end{cases}`
-    : String.raw`L^S:\ \frac{w}{${pm}} = g(L)\quad\Rightarrow\quad w = ${pm}\cdot g(L)`;
+  /* ---------- cuadrante I: mercado de trabajo */
+  const Ls = Array.from({ length: 300 }, (_, i) => 0.5 + (XL - 0.5) * i / 299);
+  const LD = (p, A) => Ls.map((L) => [sL(L), sW(neo ? PMgL(L, A) : p * PMgL(L, A))]);
+  if (!neo && moved) lineaPts(LD(r0.p, s.A), { class: 'rayo', stroke: 'var(--rojo)' }, gc);
+  lineaPts(LD(m.p, s.A), { class: 'cur', stroke: 'var(--rojo)' }, gc);
+  const oferta = Ls.filter((L) => L < LF - 0.05).map((L) => [sL(L), sW(neo ? gN(L) : gK(L))]);
+  oferta.push([sL(LF), sW(XW + 1)]);
+  lineaPts(oferta, { class: 'cur', stroke: 'var(--verde)' }, gc);
+  tx(gT, sL(19) + 4, sW(Math.min(3.05, (neo ? 1 : m.p) * PMgL(19, s.A))) - 4, 'L^D', { style: 'fill:var(--rojo)' });
+  el('text', { x: sL(26) + 4, y: sW(Math.min(3.05, (neo ? 1 : m.p) * PMgL(26, s.A))) + 16, class: 'r', style: 'fill:var(--rojo);font-size:10.5px' }, gT).textContent = neo ? 'w/p = PMagL' : (moved ? 'w = p₁·PMagL' : 'w = p₀·PMagL');
+  if (!neo && moved) el('text', { x: sL(47), y: sW(r0.p * PMgL(47, s.A)) - 8, class: 'r', style: 'fill:var(--rojo);font-size:10.5px;opacity:.75' }, gT).textContent = 'w = p₀·PMagL';
+  tx(gT, sL(LF) + 6, QY - HW + 14, 'L^S', { style: 'fill:var(--verde)' });
+  el('line', { x1: sL(LF), y1: QY, x2: sL(LF), y2: sY(m.YF), class: 'guia', style: 'stroke:var(--naranja)' }, gT);
+  tx(gT, sL(LF) + 4, QY + 16, 'L_F', { style: 'font-size:13px;fill:var(--naranja)' });
+  if (!neo) { tx(gT, QX + 4, sW(WMIN) - 5, 'w_{min}', { style: 'font-size:12px;fill:var(--verde)' }); }
+  const wq = neo ? m.real : m.w;
+  // salario y empleo
+  el('line', { x1: QX, y1: sW(wq), x2: sL(Math.max(m.L, m.Ls)), y2: sW(wq), class: 'guia' }, gT);
+  el('line', { x1: sL(m.L), y1: sW(wq), x2: sL(m.L), y2: sY(m.Y), class: 'guia' }, gT);
+  if (m.paro > 0.05) {
+    el('line', { x1: sL(m.Ls), y1: sW(wq), x2: sL(m.Ls), y2: QY, class: 'guia' }, gT);
+    el('circle', { cx: sL(m.Ls), cy: sW(wq), r: 4.5, class: 'pto', fill: 'var(--verde)' }, gT);
+    const ya = QY + 6;
+    el('path', { d: `M${sL(m.L)},${ya}q0,8 8,8L${sL(m.Ls) - 8},${ya + 8}q8,0 8,-8`, fill: 'none', stroke: 'var(--rojo)', 'stroke-width': 1.2 }, gT);
+    el('text', { x: (sL(m.L) + sL(m.Ls)) / 2, y: ya + 22, class: 'r', 'text-anchor': 'middle', style: 'fill:var(--rojo);font-size:10.5px' }, gT).textContent = 'DESEMPLEO INVOLUNTARIO';
+    tx(gT, sL(m.Ls) + 4, QY - 6, 'L_0', { style: 'font-size:13px' });
+    tx(gT, sL(m.L) - 4, QY - 6, 'L_1', { 'text-anchor': 'end', style: 'font-size:13px' });
+  } else tx(gT, sL(m.L) + 4, QY - 6, neo ? 'L^*' : (moved ? 'L_1' : 'L_0'), { style: 'font-size:13px' });
+  el('circle', { cx: sL(m.L), cy: sW(wq), r: 6, class: 'pto', fill: 'var(--punto)' }, gT);
+  tx(gT, QX - 6, sW(wq) + 5, neo ? '(w/p)^*' : (m.rigido ? 'w_0 = w_1' : (moved ? 'w_1' : 'w_0')), { 'text-anchor': 'end', style: 'font-size:13px' });
+
+  /* ---------- cuadrante IV: función de producción (Y hacia abajo) */
+  lineaPts(Ls.map((L) => [sL(L), sY(fL(L, s.A))]), { class: 'cur', stroke: 'var(--azul)' }, gc);
+  tx(gT, sL(XL) - 2, sY(fL(XL, s.A)) + 20, 'Y = f(L)', { 'text-anchor': 'end', style: 'fill:var(--azul)' });
+  el('line', { x1: sL(m.L), y1: sY(m.Y), x2: QX, y2: sY(m.Y), class: 'guia' }, gT);
+  el('circle', { cx: sL(m.L), cy: sY(m.Y), r: 4.5, class: 'pto', fill: 'var(--azul)' }, gT);
+  el('line', { x1: sL(LF), y1: sY(m.YF), x2: sP(XP), y2: sY(m.YF), class: 'guia', style: 'stroke:var(--naranja)' }, gT);
+  tx(gT, QX + 6, sY(m.YF) + 16, 'Y_F', { style: 'font-size:13px;fill:var(--naranja)' });
+
+  /* ---------- cuadrante III: oferta y demanda agregadas frente a p */
+  const ps = Array.from({ length: 260 }, (_, i) => 0.03 + (XP - 0.03) * i / 259);
+  const YDc = (D) => ps.map((p) => [sP(p), sY(Math.min(XY + 20, D * D00 / p))]);
+  if (moved) lineaPts(YDc(1), { class: 'rayo', stroke: 'var(--naranja)' }, gc);
+  lineaPts(YDc(s.D), { class: 'cur', stroke: 'var(--naranja)' }, gc);
+  if (neo) lineaPts([[sP(XP), sY(m.Y)], [QX, sY(m.Y)]], { class: 'cur', stroke: 'var(--morado)' }, gc);
+  else lineaPts(ps.map((p) => [sP(p), sY(YSk(p, s))]), { class: 'cur', stroke: 'var(--morado)' }, gc);
+  tx(gT, sP(XP) + 4, sY(neo ? m.Y : YSk(XP, s)) - 8, 'Y^S', { style: 'fill:var(--morado)' });
+  tx(gT, sP(2.3), sY(s.D * D00 / 2.3) - 10, 'Y^D', { style: 'fill:var(--naranja)' });
+  el('line', { x1: sP(m.p), y1: QY, x2: sP(m.p), y2: sY(m.Y), class: 'guia' }, gT);
+  el('line', { x1: sP(m.p), y1: sY(m.Y), x2: QX, y2: sY(m.Y), class: 'guia' }, gT);
+  el('circle', { cx: sP(m.p), cy: sY(m.Y), r: 6, class: 'pto', fill: 'var(--punto)' }, gT);
+  tx(gT, QX - 6, sY(m.Y) - 5, neo ? 'Y^*' : (moved ? 'Y_1' : 'Y_0'), { 'text-anchor': 'end', style: 'font-size:13px' });
+  if (moved) {
+    el('line', { x1: sP(r0.p), y1: QY, x2: sP(r0.p), y2: sY(r0.Y), class: 'guia', style: 'opacity:.6' }, gT);
+    el('circle', { cx: sP(r0.p), cy: sY(r0.Y), r: 4, fill: 'none', stroke: 'var(--gris)', 'stroke-width': 1.4 }, gT);
+    if (!neo && Math.abs(r0.Y - m.Y) > 2) { el('line', { x1: sP(r0.p), y1: sY(r0.Y), x2: QX, y2: sY(r0.Y), class: 'guia', style: 'opacity:.6' }, gT); { const cerca = Math.abs(sY(r0.Y) - sY(m.Y)) < 16; tx(gT, QX - 6 - (cerca ? 26 : 0), sY(r0.Y) + (r0.Y > m.Y ? 14 : -5), 'Y_0', { 'text-anchor': 'end', style: 'font-size:12px;fill:var(--muted)' }); } }
+    tx(gT, sP(r0.p), QY - 8, 'p_0', { 'text-anchor': 'middle', style: 'font-size:13px;fill:var(--muted)' });
+    tx(gT, sP(m.p), QY - 8 - (Math.abs(sP(m.p) - sP(r0.p)) < 22 ? 16 : 0), 'p_1', { 'text-anchor': 'middle', style: 'font-size:13px' });
+  } else tx(gT, sP(m.p), QY - 8, neo ? 'p^*' : 'p_0', { 'text-anchor': 'middle', style: 'font-size:13px' });
+  // asa arrastrable sobre la Y^D
+  const pH = 1.9, hY = s.D * D00 / pH;
+  const h = el('circle', { cx: sP(pH), cy: sY(hY), r: 7.5, fill: 'var(--bg)', stroke: 'var(--naranja)', 'stroke-width': 2.5 }, gT);
+  const hz = el('circle', { cx: sP(pH), cy: sY(hY), r: 16, fill: 'transparent' }, gT);
+  for (const n of [h, hz]) arrastrable(svgT, n, (q) => { const Y = clamp((q.y - QY) / HY * XY, 1, XY); TB.D = clamp(Math.round(Y * pH / D00 * 100) / 100, 0.6, 1.4); }, ST.empezar);
+  /* rótulo del modelo en el cuadrante vacío */
+  el('text', { x: QX - WP + 4, y: QY - HW + 8, class: 'r', style: 'fill:var(--muted)' }, gT).textContent = neo ? 'MODELO NEOCLÁSICO' : 'MODELO KEYNESIANO';
+  el('text', { x: QX - WP + 4, y: QY - HW + 24, class: 'r', style: 'fill:var(--muted);font-size:10.5px' }, gT).textContent = neo ? 'Dicotomía: D̄ solo mueve p y w' : (s.rig ? 'Salario nominal rígido a la baja' : 'Salario nominal flexible');
+
+  /* ---------- lectura */
+  const Dm = MV(String.raw`\bar D`), Am = MV('A');
   const lec = document.getElementById('lec-trabajo');
+  const formas = neo ? [
+    String.raw`L^D:\ \frac{w}{p} = \mathrm{PMag}_L = \frac{${Am}}{\sqrt{L}},\qquad L^S:\ \frac{w}{p} = g(L)`,
+    String.raw`Y = f(L) = 2\,${Am}\sqrt{L},\qquad Y^S = Y^* = f(L^*)`,
+    String.raw`Y^D = \frac{${Dm}}{p}\ \ \Rightarrow\ \ p^* = \frac{${Dm}}{Y^*}`,
+  ] : [
+    String.raw`L^D:\ w = p\cdot\mathrm{PMag}_L = p\,\frac{${Am}}{\sqrt{L}},\qquad L^S:\ w = g_K(L)`,
+    String.raw`g_K(L) = \begin{cases} w_{min} & L \le L_{min} \\ w_{min} + s\,\dfrac{L - L_{min}}{L_F - L} & L_{min} < L < L_F \\ \text{vertical} & L = L_F \end{cases}`,
+    ...(s.rig ? [String.raw`\text{rigidez a la baja:}\ \ w \ge \bar w = w_0`] : []),
+    String.raw`Y^S(p) = f\bigl(L(p)\bigr) = 2\,${Am}\sqrt{L(p)},\qquad Y^D = \frac{${Dm}}{p}`,
+  ];
+  const val = neo
+    ? String.raw`p^* = \frac{${fT(s.D * D00, 1)}}{${fT(m.Y, 1)}} = ${fT(m.p)},\quad w = p^*\cdot\left(\tfrac{w}{p}\right)^* = ${fT(m.p)}\cdot ${fT(m.real)} = ${fT(m.w)}`
+    : String.raw`Y^S(p) = Y^D(p):\ \ p = ${fT(m.p)},\ \ L = ${fT(m.L, 1)},\ \ Y = ${fT(m.Y, 1)} = \frac{${fT(s.D * D00, 1)}}{${fT(m.p)}}`;
   lec.innerHTML = `
     <div class="formas">
       <span class="lbl">Forma general · en color, lo que puedes mover</span>
-      ${TX(String.raw`L^D:\ w = ${pm}\cdot \mathrm{PMag}_L = ${pm}\cdot\frac{${Am}}{\sqrt{${Lm}}}`)}
-      ${TX(gen)}
+      ${formas.map((f) => TX(f)).join('')}
       <span class="lbl" style="margin-top:6px">Con tus valores</span>
-      ${TX(String.raw`w = ${fT(s.p)}\cdot\frac{${fT(s.A, 1)}}{\sqrt{${fT(m.L, 1)}}} = ${fT(m.w)},\qquad \frac{w}{p} = ${fT(m.real)}`)}
+      ${TX(val)}
     </div>
     <div class="kv">
-      <div><span>Modelo</span><b>${s.modo === 'key' ? 'Keynesiano' : 'Neoclásico'}</b></div><div><span>p</span><b>${f2(s.p)}</b></div>
+      <div><span>Modelo</span><b>${neo ? 'Neoclásico' : 'Keynesiano'}</b></div><div><span>Nivel de precios p</span><b>${f2(m.p)}</b></div>
       <div><span>w (nominal)</span><b>${f2(m.w)}</b></div><div><span>w/p (real)</span><b>${f2(m.real)}</b></div>
-      <div><span>Empleo L</span><b>${f1(m.L)}</b></div><div><span>Oferta a ese w</span><b>${f1(m.Ls)}</b></div>
-      <div><span>Desempleo involuntario</span><b>${f1(m.paro)}</b></div><div><span>Producción X = 2A√L</span><b>${f1(m.X)}</b></div>
+      <div><span>Empleo L</span><b>${f1(m.L)}</b></div><div><span>Oferta de trabajo a ese w</span><b>${f1(m.Ls)}</b></div>
+      <div><span>Desempleo involuntario</span><b>${f1(m.paro)}</b></div><div><span>Producción Y</span><b>${f1(m.Y)} <span class="ayuda">(Y<sub>F</sub> = ${f1(m.YF)})</span></b></div>
     </div>`;
   montar(lec);
-  refrescarValores('tb', TB, { p: 2, A: 1, wmin: 2 });
+  refrescarValores('tb', TB, { D: 2, A: 1 });
   document.querySelectorAll('#modo-trabajo button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === TB.modo)));
-  document.getElementById('tb-wmin').disabled = TB.modo === 'neo';
-  document.getElementById('tb-rig').disabled = TB.modo === 'neo';
+  document.getElementById('tb-rig').disabled = neo;
   PINTAR.trabajo();
 }
 
 function explicarTrabajo(A, B) {
   const a = mTB(A), b = mTB(B), p = [], cambia = new Set(['eq']);
-  const empleo = () => (Math.abs(b.L - a.L) < 0.05 ? `El empleo y la producción no cambian: L = ${f1(b.L)}, X = ${f1(b.X)}.` : `El empleo pasa de L = ${f1(a.L)} a L = ${f1(b.L)} y la producción de X = ${f1(a.X)} a X = ${f1(b.X)}.`);
+  const neo = B.modo === 'neo';
+  const reales = () => (Math.abs(b.L - a.L) < 0.05 ? `El empleo y la producción no cambian: L = ${f1(b.L)}, Y = ${f1(b.Y)}.` : `El empleo pasa de L = ${f1(a.L)} a ${f1(b.L)} y la producción de Y = ${f1(a.Y)} a ${f1(b.Y)}.`);
   if (A.modo !== B.modo) {
-    cambia.add('modelo');
-    p.push(B.modo === 'key'
-      ? 'Pasas al modelo keynesiano. La demanda de trabajo es la misma (Keynes acepta la condición w = p·PMag<sub>L</sub>), pero la oferta cambia: los trabajadores miran el salario nominal (ilusión monetaria), hay recursos ociosos y el salario es rígido a la baja.'
-      : 'Pasas al modelo neoclásico. La oferta depende del salario real w/p y el salario nominal es flexible, así que el mercado se vacía siempre al nivel de pleno empleo.');
-    p.push(empleo() + (b.paro > 0 ? ` A ese salario hay ${f1(b.paro)} unidades de desempleo involuntario.` : ' No hay desempleo involuntario.'));
-    return { titulo: `Modelo: ${A.modo === 'key' ? 'keynesiano' : 'neoclásico'} → ${B.modo === 'key' ? 'keynesiano' : 'neoclásico'}`, p, cambia };
+    cambia.add('modelo'); cambia.add('YS');
+    p.push(neo
+      ? 'Pasas al modelo neoclásico. Los trabajadores maximizan utilidad y ofrecen trabajo según el salario real, y el salario nominal es flexible: el mercado de trabajo se vacía siempre y fija L* e Y* sin mirar a la demanda. Por eso la oferta agregada Y<sup>S</sup> es horizontal en el cuadrante de abajo a la izquierda (vertical en los ejes habituales).'
+      : 'Pasas al modelo keynesiano. La demanda de trabajo es la misma (Keynes acepta w = p·PMag<sub>L</sub>), pero la oferta cambia: ilusión monetaria, recursos ociosos y salario nominal rígido a la baja. Con ello la oferta agregada Y<sup>S</sup> es creciente en p hasta Y<sub>F</sub>.');
+    p.push(`${reales()} El nivel de precios pasa de ${f2(a.p)} a ${f2(b.p)}.${b.paro > 0.05 ? ` Hay ${f1(b.paro)} unidades de desempleo involuntario.` : ''}`);
+    return { titulo: `Modelo: ${A.modo === 'key' ? 'keynesiano' : 'neoclásico'} → ${neo ? 'neoclásico' : 'keynesiano'}`, p, cambia };
   }
-  if (Math.abs(A.p - B.p) > 1e-9) {
-    cambia.add('p'); cambia.add('LD'); cambia.add('real');
-    const baja = B.p < A.p;
-    p.push(`Has ${baja ? 'bajado' : 'subido'} el nivel de precios de p = ${f2(A.p)} a p = ${f2(B.p)}${baja ? ', como tras un shock de demanda negativo' : ''}. El valor de la productividad marginal, p·PMag<sub>L</sub>, ${baja ? 'cae' : 'sube'}, así que la L<sup>D</sup> se desplaza hacia ${baja ? 'abajo' : 'arriba'}: a cada salario nominal las empresas quieren ${baja ? 'menos' : 'más'} trabajadores.`);
-    if (B.modo === 'neo') {
-      cambia.add('dicotomia');
-      p.push(`En el modelo neoclásico la oferta también depende de w/p, así que se desplaza en la misma proporción. El salario nominal pasa de ${f2(a.w)} a ${f2(b.w)} (×${f2(B.p / A.p)}) y el real se queda en ${f2(b.real)}. ${empleo()} Es la dicotomía clásica: el nivel de precios no afecta a las variables reales.`);
-    } else if (b.rigido || (b.wmin && b.paro > 0)) {
-      cambia.add('rigidez'); cambia.add('paro');
-      p.push(`Para vaciar el mercado, el salario nominal tendría que bajar, pero es rígido a la baja: se queda en w = ${f2(b.w)}. El ajuste se hace vía cantidades: las empresas contratan solo hasta que p·PMag<sub>L</sub> = w. ${empleo()}`);
-      p.push(`A ese salario querrían trabajar ${f1(b.Ls)} personas, pero solo se contratan ${f1(b.L)}: hay ${f1(b.paro)} unidades de desempleo involuntario. El salario real sube de ${f2(a.real)} a ${f2(b.real)} porque baja p con w fijo, y eso es lo que destruye empleo.`);
-    } else if (baja) {
-      p.push(`Sin rigidez, el salario nominal baja de ${f2(a.w)} a ${f2(b.w)}. Pero los trabajadores, con ilusión monetaria, miran el salario nominal: a un w menor ofrecen menos trabajo, aunque el real ${sube(a.real, b.real)} de ${f2(a.real)} a ${f2(b.real)}. ${empleo()} La salida de empleo es voluntaria a ese salario, por eso no aparece desempleo involuntario.`);
-      cambia.add('ilusion');
+  if (Math.abs(A.D - B.D) > 1e-9) {
+    cambia.add('YD'); cambia.add('p');
+    const baja = B.D < A.D;
+    p.push(`Has ${baja ? 'reducido' : 'aumentado'} la demanda agregada nominal: D̄ pasa de ${f2(A.D)} a ${f2(B.D)}${baja ? ', un shock de demanda negativo' : ''}. La Y<sup>D</sup> se desplaza ${baja ? 'hacia el origen' : 'hacia fuera'} y el nivel de precios pasa de p = ${f2(a.p)} a p = ${f2(b.p)}.`);
+    if (neo) {
+      cambia.add('dicotomia'); cambia.add('pe');
+      p.push(`En el neoclásico la oferta agregada no depende de p: Y<sup>S</sup> = Y* = ${f1(b.Y)}. Todo el shock va a precios, que cambian en la misma proporción que D̄ (×${f2(B.D / A.D)}). El salario nominal también: w pasa de ${f2(a.w)} a ${f2(b.w)}, y el real se queda en (w/p)* = ${f2(b.real)}. ${reales()}`);
+      p.push('Es la dicotomía clásica: el subsistema real (trabajo y producción) no depende del nivel de precios. Por eso, para los neoclásicos, las políticas de demanda son ineficaces.');
     } else {
-      p.push(`Como los trabajadores sufren ilusión monetaria, aceptan más empleo a un salario nominal algo mayor (de ${f2(a.w)} a ${f2(b.w)}), aunque el salario real ${sube(a.real, b.real)} de ${f2(a.real)} a ${f2(b.real)}. ${empleo()} No hay dicotomía clásica: un aumento de precios eleva la producción mientras haya recursos ociosos.`);
-      if (b.L > LPE - 1.5) p.push('Estás ya junto al tramo vertical, en pleno empleo: a partir de aquí más p solo sube el salario nominal.');
-      cambia.add('ilusion');
+      cambia.add('LD');
+      p.push(`Al ${baja ? 'bajar' : 'subir'} p, el valor de la productividad marginal p·PMag<sub>L</sub> ${baja ? 'cae' : 'sube'} y la L<sup>D</sup> (en salario nominal) se desplaza hacia ${baja ? 'abajo' : 'arriba'}.`);
+      if (b.rigido) {
+        cambia.add('rigidez'); cambia.add('paro');
+        p.push(`El salario nominal tendría que bajar para vaciar el mercado, pero es rígido a la baja: se queda en w<sub>0</sub> = w<sub>1</sub> = ${f2(b.w)}. El ajuste se hace vía cantidades: las empresas contratan hasta que p·PMag<sub>L</sub> = w. ${reales()}`);
+        p.push(`A ese salario querrían trabajar L<sub>0</sub> = ${f1(b.Ls)} personas y solo se contratan L<sub>1</sub> = ${f1(b.L)}: ${f1(b.paro)} unidades de desempleo involuntario. El salario real sube de ${f2(a.real)} a ${f2(b.real)}, porque baja p con w fijo.`);
+      } else if (!baja) {
+        cambia.add('ilusion');
+        p.push(`Con recursos ociosos y ilusión monetaria, los trabajadores aceptan más empleo a un salario nominal algo mayor (de ${f2(a.w)} a ${f2(b.w)}), aunque el real baja de ${f2(a.real)} a ${f2(b.real)}: los salarios suben menos que proporcionalmente a los precios. ${reales()}`);
+        p.push(b.L > LF - 0.5 ? 'Has llegado al pleno empleo, L<sub>F</sub>: a partir de aquí más demanda solo sube precios y salarios, como en el neoclásico.' : 'No se cumple la dicotomía clásica: un aumento de la demanda eleva la producción mientras haya recursos ociosos.');
+      } else {
+        cambia.add('ilusion');
+        p.push(`Sin rigidez, el salario nominal baja de ${f2(a.w)} a ${f2(b.w)}. Los trabajadores, con ilusión monetaria, miran el salario nominal y ofrecen menos trabajo a un w menor. ${reales()} La salida de empleo es voluntaria a ese salario, por eso no aparece desempleo involuntario.`);
+      }
+      cambia.add('YS');
     }
-  } else if (Math.abs(A.A - B.A) > 1e-9) {
-    cambia.add('LD'); cambia.add('A');
-    p.push(`Has ${B.A > A.A ? 'aumentado' : 'reducido'} la productividad de A = ${f1(A.A)} a A = ${f1(B.A)}. Mejor tecnología o más capital elevan la PMag<sub>L</sub>, y la L<sup>D</sup> se desplaza hacia ${B.A > A.A ? 'arriba' : 'abajo'}. ${empleo()}`);
-    p.push(B.modo === 'neo' ? 'Es una política de oferta, las eficaces según el modelo neoclásico: cambia el empleo de pleno empleo, porque mueve una curva real.' : `En el modelo keynesiano el salario nominal de referencia w̄ también cambia, porque se fija con p = 1 y la nueva productividad. ${b.paro > 0 ? `Sigue habiendo ${f1(b.paro)} unidades de desempleo involuntario.` : 'No hay desempleo involuntario.'}`);
-  } else if (Math.abs(A.wmin - B.wmin) > 1e-9) {
-    cambia.add('LS');
-    p.push(`Has ${B.wmin > A.wmin ? 'subido' : 'bajado'} el salario mínimo de ${f2(A.wmin)} a ${f2(B.wmin)}. Es el primer tramo, horizontal, de la oferta keynesiana: por debajo de ese salario nadie trabaja, por resistencia social o por el salario mínimo legal. ${empleo()}`);
-    if (b.paro > 0 && b.wmin) p.push(`La L<sup>D</sup> corta la oferta en el tramo horizontal, así que el mínimo actúa como salario rígido: ${f1(b.paro)} unidades de desempleo involuntario.`);
-  } else if (A.rig !== B.rig) {
+    return { titulo: `D̄: ${f2(A.D)} → ${f2(B.D)}`, p, cambia };
+  }
+  if (Math.abs(A.A - B.A) > 1e-9) {
+    cambia.add('LD'); cambia.add('prod'); cambia.add('YS'); cambia.add('pe');
+    const up = B.A > A.A;
+    p.push(`Has ${up ? 'aumentado' : 'reducido'} la productividad de A = ${f1(A.A)} a A = ${f1(B.A)}. Con mejor tecnología o más capital, la función de producción Y = f(L) se ${up ? 'abre' : 'cierra'} y la PMag<sub>L</sub> ${up ? 'sube' : 'baja'}: la L<sup>D</sup> se desplaza hacia ${up ? 'arriba' : 'abajo'}. El pleno empleo pasa a producir Y<sub>F</sub> = ${f1(b.YF)}.`);
+    p.push(neo
+      ? `${reales()} Con más producción y la misma demanda nominal, p pasa de ${f2(a.p)} a ${f2(b.p)}. Es una política de oferta, la eficaz según el neoclásico, porque mueve una curva real.`
+      : `${reales()} El nivel de precios pasa de ${f2(a.p)} a ${f2(b.p)}. ${b.paro > 0.05 ? `Sigue habiendo ${f1(b.paro)} unidades de desempleo involuntario: sin demanda, la mejora de la oferta no se traduce en empleo.` : 'No hay desempleo involuntario.'}`);
+    return { titulo: `A: ${f1(A.A)} → ${f1(B.A)}`, p, cambia };
+  }
+  if (A.rig !== B.rig) {
     cambia.add('rigidez');
-    p.push(B.rig ? `Activas la rigidez a la baja: el salario nominal no puede caer por debajo del vigente antes del shock, w̄ = ${f2(b.wb)}. ${empleo()}` : `Quitas la rigidez: el salario nominal baja hasta vaciar el mercado. ${empleo()}`);
-    if (!B.rig) p.push('Keynes advertía que esa flexibilidad no garantiza el pleno empleo, porque la caída de salarios afecta también a la demanda efectiva (§1. 2. 2. 4): este gráfico parcial no lo recoge.');
-  } else return null;
-  return { titulo: tituloTB(A, B), p, cambia };
-}
-function tituloTB(A, B) {
-  for (const [k, n, d] of [['p', 'p', 2], ['A', 'A', 1], ['wmin', 'w<sub>min</sub>', 2]]) if (Math.abs(A[k] - B[k]) > 1e-9) return `${n}: ${fmt(A[k], d)} → ${fmt(B[k], d)}`;
-  return A.rig !== B.rig ? (B.rig ? 'Salario rígido a la baja' : 'Salario flexible') : 'Cambio';
+    p.push(B.rig ? `Activas la rigidez a la baja: el salario nominal no puede caer por debajo del de partida, w̄ = w<sub>0</sub> = ${f2(WB)}. ${reales()}` : `Quitas la rigidez: el salario nominal baja hasta vaciar el mercado. ${reales()}`);
+    if (!B.rig) { cambia.add('flex'); p.push('Keynes advertía que esa flexibilidad no garantiza el pleno empleo: la caída de salarios afecta también a la demanda efectiva, por la distribución de la renta, el valor real de las deudas y las expectativas de deflación (§1. 2. 2. 4). Este gráfico, con D̄ dada, no lo recoge.'); }
+    return { titulo: B.rig ? 'Salario rígido a la baja' : 'Salario flexible', p, cambia };
+  }
+  return null;
 }
 function inicialTB() {
   const m = mTB(TB);
   return { titulo: 'Punto de partida', cambia: new Set(), p: [
-    `Con p = ${f2(TB.p)}, las empresas contratan hasta que el salario nominal iguala el valor de la productividad marginal: w = p·PMag<sub>L</sub>. El mercado se vacía en L = ${f1(m.L)} con w = ${f2(m.w)}.`,
-    'Baja p para simular un shock de demanda negativo y compara los dos modelos con los botones de debajo del gráfico.'] };
+    `Los dos modelos parten del mismo punto E<sub>0</sub>: p<sub>0</sub> = ${f2(m.p)}, w<sub>0</sub> = ${f2(m.w)}, L<sub>0</sub> = ${f1(m.L)} e Y<sub>0</sub> = ${f1(m.Y)}. Las empresas contratan hasta que w = p·PMag<sub>L</sub>; la función de producción traduce ese empleo en producción, y la producción tiene que coincidir con la demanda Y<sup>D</sup> = D̄/p.`,
+    'Baja D̄ (o arrastra el punto hueco de la Y<sup>D</sup>) y cambia de modelo con los botones de debajo del gráfico.'] };
 }
 PINTAR.trabajo = () => {
-  const m = mTB(TB);
+  const m = mTB(TB), neo = TB.modo === 'neo';
   pintarConceptos('con-trabajo', [
-    { k: 'LD', n: 'Demanda de trabajo L<sup>D</sup>', d: 'La empresa maximizadora contrata hasta que el valor de la productividad marginal iguala el salario nominal. Pendiente negativa porque la PMag<sub>L</sub> es decreciente. Keynes acepta esta condición.', f: String.raw`w = p\cdot \mathrm{PMag}_L`, v: `PMag<sub>L</sub> = ${f3(PMgL(m.L, TB))} en L = ${f1(m.L)}`, ref: '3A4 §1. 2. 1. 2 y §1. 2. 2. 1' },
-    { k: 'LS', n: 'Oferta de trabajo keynesiana', d: 'Tres tramos: horizontal al salario mínimo (resistencia social, salario mínimo), creciente a medida que se agotan los recursos ociosos y vertical en el pleno empleo.', v: TB.modo === 'key' ? `w<sub>min</sub> = ${f2(TB.wmin)}, L<sub>PE</sub> = ${LPE}` : 'no aplica (modelo neoclásico)', ref: '3A4 §1. 2. 2. 2' },
-    { k: 'ilusion', n: 'Ilusión monetaria', d: 'Los trabajadores confunden variaciones nominales con reales: no se resisten a una caída del salario real por subida de precios, pero sí a una bajada del salario nominal.', ref: '3A4 §1. 2. 2. 2 y §1. 2. 2. 5' },
-    { k: 'rigidez', n: 'Rigidez salarial a la baja', d: 'El salario nominal no baja aunque haya exceso de oferta de trabajo. El ajuste se hace entonces vía cantidades: cae el empleo.', v: TB.modo === 'key' && TB.rig ? `w̄ = ${f2(m.wb)}` : 'desactivada', ref: '3A4 §1. 2. 2. 3' },
+    { k: 'LD', n: 'Demanda de trabajo L<sup>D</sup>', d: 'La empresa precio-aceptante contrata hasta que el valor de la productividad marginal iguala el salario nominal. Pendiente negativa porque la PMag<sub>L</sub> es decreciente. Keynes acepta esta condición.', f: String.raw`W = p\cdot \mathrm{PMag}_L\ \Leftrightarrow\ \frac{W}{p} = \mathrm{PMag}_L`, v: `PMag<sub>L</sub> = ${f3(PMgL(m.L, TB.A))} en L = ${f1(m.L)}`, ref: '3A4 §1. 2. 1. 2 y §1. 2. 2. 1' },
+    { k: 'LSn', n: 'Oferta de trabajo neoclásica', d: 'Agregación horizontal de los tramos crecientes de las ofertas individuales: cada trabajador iguala su RMS entre ocio y consumo al salario real. Depende del salario real.', f: String.raw`\frac{w}{p} = g(L)`, ref: '3A4 §1. 2. 1. 1' },
+    { k: 'LS', n: 'Oferta de trabajo keynesiana', d: 'Tres tramos: horizontal al salario mínimo, creciente a medida que se agotan los recursos ociosos y vertical en el pleno empleo. Depende del salario nominal.', v: `w<sub>min</sub> = ${f2(WMIN)}, L<sub>F</sub> = ${LF}`, ref: '3A4 §1. 2. 2. 2' },
+    { k: 'ilusion', n: 'Ilusión monetaria', d: 'Los trabajadores confunden variaciones nominales con reales y se guían por el salario nominal: aceptan una caída del salario real por subida de precios, pero se resisten a una bajada del nominal.', ref: '3A4 §1. 2. 2. 2 y §1. 2. 2. 5' },
+    { k: 'rigidez', n: 'Rigidez salarial a la baja', d: 'El salario nominal no baja aunque haya exceso de oferta de trabajo. El ajuste se hace entonces vía cantidades.', v: !neo && TB.rig ? `w̄ = ${f2(WB)}` : 'desactivada', ref: '3A4 §1. 2. 2. 2 y §1. 2. 2. 3' },
     { k: 'paro', n: 'Desempleo involuntario', d: 'Personas que querrían trabajar al salario vigente y no encuentran empleo. Resulta de la rigidez salarial y de una demanda de trabajo insuficiente, derivada de la insuficiente demanda de bienes.', f: String.raw`L_0 - L_1`, v: f1(m.paro), ref: '3A4 §1. 2. 2. 3' },
-    { k: 'real', n: 'Salario real w/p', d: 'Poder adquisitivo del salario. Con w rígido, una caída de p lo eleva y reduce el empleo; con w flexible, el neoclásico lo mantiene constante.', f: String.raw`\frac{w}{p}`, v: f2(m.real), ref: '3A4 §1. 2' },
-    { k: 'dicotomia', n: 'Dicotomía clásica', d: 'En el modelo neoclásico, empleo y producción se determinan en un subsistema real, independiente de la oferta monetaria y del nivel de precios. En el keynesiano no se cumple.', ref: '3A4 §1. 2. 1. 3 y §1. 2. 2. 3' },
-    { k: 'eq', n: 'Equilibrio del mercado', d: TB.modo === 'neo' ? 'Neoclásico: pleno empleo, estable gracias a la flexibilidad salarial; domina la oferta.' : 'Keynesiano: domina la demanda; el empleo lo fija la demanda de bienes, no el pleno empleo.', v: `L = ${f1(m.L)}, w = ${f2(m.w)}`, ref: TB.modo === 'neo' ? '3A4 §1. 2. 1. 3' : '3A4 §1. 2. 2. 3' },
-  ], ULT.trabajo || new Set());
+    { k: 'prod', n: 'Función de producción Y = f(L)', d: 'A corto plazo, con el capital fijo, la producción solo depende del empleo, con PMag<sub>L</sub> decreciente. Traslada el empleo del mercado de trabajo a producción.', f: String.raw`Y = f(L)`, v: `Y = ${f1(m.Y)}`, ref: '3A4 §1. 2. 1. 2' },
+    { k: 'YS', n: 'Oferta agregada Y<sup>S</sup>', d: neo ? 'Neoclásico: no depende de p, porque el empleo se fija en términos reales. Horizontal en este cuadrante (vertical en los ejes habituales): domina la oferta.' : 'Keynesiano: creciente en p mientras haya recursos ociosos, porque un p mayor reduce el salario real y las empresas contratan más; en el pleno empleo, Y = Y<sub>F</sub>.', f: String.raw`Y^S = f\bigl(L(p)\bigr)`, ref: '3A4 §1. 2. 1. 3 y §1. 2. 2. 3' },
+    { k: 'YD', n: 'Demanda agregada Y<sup>D</sup>', d: 'Producción que se demanda a cada nivel de precios. Un shock de demanda la desplaza.', f: String.raw`Y^D = \frac{\bar D}{p}`, v: `D̄ = ${f2(TB.D)}`, ref: '3A4 §1. 2. 2. 3' },
+    { k: 'dicotomia', n: 'Dicotomía clásica', d: 'En el neoclásico, empleo y producción se determinan en un subsistema real independiente de la oferta monetaria y del nivel de precios. En el keynesiano no se cumple mientras haya recursos ociosos.', ref: '3A4 §1. 2. 1. 3 y §1. 2. 2. 3' },
+    { k: 'pe', n: 'Política económica', d: neo ? 'Neoclásico: las políticas de demanda son ineficaces (solo suben precios y salarios nominales); las de oferta (tecnología, capital, población) sí mueven el empleo.' : 'Keynesiano: las políticas de demanda reducen el desempleo involuntario; la fiscal es más eficaz que la monetaria.', ref: neo ? '3A4 §1. 2. 1. 5' : '3A4 §1. 2. 2. 5' },
+    { k: 'eq', n: 'Equilibrio', d: neo ? 'Pleno empleo, estable por la flexibilidad salarial; domina la oferta.' : 'Domina la demanda: el empleo lo fija la demanda de bienes, no el pleno empleo.', v: `p = ${f2(m.p)}, L = ${f1(m.L)}, Y = ${f1(m.Y)}`, ref: neo ? '3A4 §1. 2. 1. 3' : '3A4 §1. 2. 2. 3' },
+  ].filter((x) => !(x.k === 'LSn' && !neo) && !(x.k === 'LS' && neo) && !(x.k === 'rigidez' && neo)), ULT.trabajo || new Set());
 };
 
 /* ===================================================================== BIENES (§1. 3. 2) */
@@ -595,7 +683,7 @@ function dibujarBienes() {
   const s = BI, m = mBI(s), P = PBI;
   ejes(gB, P, 'Y', 'DA', [0, 100, 200, 300, 400, 500], [0, 100, 200, 300, 400, 500]);
   const gc = el('g', { 'clip-path': P.clip }, gB);
-  el('line', { x1: P.sx(0), y1: P.sy(0), x2: P.sx(600), y2: P.sy(600), class: 'cur-fina', stroke: 'var(--fg)', style: 'opacity:.7' }, gc);
+  el('line', { x1: P.sx(0), y1: P.sy(0), x2: P.sx(600), y2: P.sy(600), class: 'cur-fina', style: 'stroke:var(--fg);opacity:.8' }, gc);
   tx(gB, P.sx(510), P.sy(528), '45°', { style: 'font-size:13px;font-style:normal' });
   if (prevBI) el('path', { d: P.curva((Y) => DAde(Y, prevBI), 0, 600, 2), class: 'rayo', stroke: 'var(--azul)' }, gc);
   el('path', { d: P.curva((Y) => DAde(Y, s), 0, 600, 2), class: 'cur', stroke: 'var(--azul)' }, gc);
@@ -621,7 +709,8 @@ function dibujarBienes() {
   if (prevBI) { const mo = mBI(prevBI); el('circle', { cx: P.sx(mo.Y0), cy: P.sy(mo.Y0), r: 4, fill: 'none', stroke: 'var(--gris)', 'stroke-width': 1.4 }, gB); }
 
   // lectura
-  const Cm = MV(String.raw`\bar C`), cm = MV('c'), tm = MV('t'), Im = MV('I_0'), bm = MV('b'), rm = MV('r'), Gm = MV('G');
+  const Cm = MV(String.raw`\bar C`), cm = MV('c'), tm = MV('t'), Im = MV('I_0'), bm = MV('b'), rm = MV('r'), Gm = MV('G_0');
+  const Apuro = s.Cb + s.I0 + s.G;
   const lec = document.getElementById('lec-bienes');
   let rondas = '';
   if (prevBI && s.n > 0) {
@@ -631,22 +720,24 @@ function dibujarBienes() {
   lec.innerHTML = `
     <div class="formas">
       <span class="lbl">Forma general · en color, lo que puedes mover</span>
-      ${TX(String.raw`DA = C + I + G = ${Cm} + ${cm}\,(1-${tm})\,Y + ${Im} - ${bm}\,${rm} + ${Gm}`)}
-      ${TX(String.raw`Y_0 = \frac{1}{1-${cm}(1-${tm})}\,A_0,\qquad A_0 = ${Cm} + ${Im} - ${bm}\,${rm} + ${Gm}`)}
+      ${TX(String.raw`Y = DA = C + I + G = ${Cm} + ${cm}\,Y(1-${tm}) + ${Im} - ${bm}\cdot ${rm} + ${Gm}`)}
+      ${TX(String.raw`Y_0 = \frac{1}{1-${cm}(1-${tm})}\,\bigl[A_0 - ${bm}\cdot ${rm}\bigr],\qquad A_0 = ${Cm} + ${Im} + ${Gm}`)}
       <span class="lbl" style="margin-top:6px">Con tus valores</span>
-      ${TX(String.raw`Y_0 = \frac{1}{1-${fT(s.c)}\,(1-${fT(s.t)})}\cdot ${fT(m.A0, 1)} = ${fT(m.k, 3)}\cdot ${fT(m.A0, 1)} = ${fT(m.Y0, 1)}`)}
+      ${TX(String.raw`Y_0 = \frac{1}{1-${fT(s.c)}\,(1-${fT(s.t)})}\cdot\bigl[${fT(Apuro, 0)} - ${fT(s.b, 1)}\cdot ${fT(s.r, 1)}\bigr] = ${fT(m.Y0, 1)}`)}
       ${rondas}
     </div>
     <div class="kv">
       <div><span>Y<sub>0</sub> (equilibrio)</span><b>${f1(m.Y0)}</b></div><div><span>Multiplicador</span><b>${f3(m.k)}</b></div>
       <div><span>C</span><b>${f1(m.C)}</b></div><div><span>I = I₀ − b·r</span><b>${f1(m.I)}</b></div>
       <div><span>T = t·Y</span><b>${f1(m.T)}</b></div><div><span>S = Y − T − C</span><b>${f1(m.S)}</b></div>
-      <div><span>Y planeada</span><b>${f1(Yp)}</b></div><div><span>Δ existencias</span><b>${f1(Yp - Dp)}</b></div>
+      <div><span>PropMedConsum C/Y</span><b>${f3(m.C / m.Y0)}</b></div><div><span>Producción en el punto naranja</span><b>${f1(Yp)}</b></div>
+      <div><span>Inversión planeada</span><b>${f1(m.I)}</b></div><div><span>Inversión efectiva (planeada + Δ existencias)</span><b>${f1(m.I + Yp - Dp)}</b></div>
     </div>`;
   montar(lec);
   refrescarValores('bi', BI, { Cb: 0, c: 2, t: 2, I0: 0, b: 1, r: 1, G: 0, n: 0 });
   document.getElementById('bi-n').disabled = !prevBI;
   PINTAR.bienes();
+  if (kListo) dibujarDinero();
 }
 
 function explicarBienes(A, B) {
@@ -655,20 +746,20 @@ function explicarBienes(A, B) {
   const pend = ['c', 't'].filter((k) => Math.abs(A[k] - B[k]) > 1e-9);
   if (auto.length || pend.length) { prevBI = Object.assign({}, A); BI.n = 0; }
   if (auto.length) {
-    const k = auto[0], nom = { Cb: 'el consumo autónomo C̄', I0: 'la inversión autónoma I₀ (animal spirits)', G: 'el gasto público G', r: 'el tipo de interés r', b: 'la sensibilidad de la inversión al tipo, b' }[k];
+    const k = auto[0], nom = { Cb: 'el consumo autónomo C̄', I0: 'la inversión autónoma I₀ (animal spirits)', G: 'el gasto público G₀', r: 'el tipo de interés r', b: 'la sensibilidad de la inversión al tipo, b' }[k];
     const dA = b.A0 - a.A0;
     cambia.add('A0'); cambia.add('mult');
     if (k === 'r' || k === 'b') { cambia.add('I'); p.push(`Has cambiado ${nom} de ${f1(A[k])} a ${f1(B[k])}. La inversión I = I₀ − b·r pasa de ${f1(a.I)} a ${f1(b.I)}: es el canal por el que el mercado de dinero llega al de bienes.${B.b < 0.5 ? ' Con b tan pequeña, como sostenía Keynes, el tipo de interés apenas mueve la inversión: domina el componente autónomo.' : ''}`); }
     else p.push(`Has ${B[k] > A[k] ? 'aumentado' : 'reducido'} ${nom} de ${f1(A[k])} a ${f1(B[k])}.`);
     if (k === 'Cb') cambia.add('C'); if (k === 'I0') cambia.add('I'); if (k === 'G') cambia.add('pf');
-    p.push(`El gasto autónomo A₀ ${sube(a.A0, b.A0)} en ${f1(Math.abs(dA))} y la DA se desplaza en paralelo. La renta de equilibrio pasa de Y₀ = ${f1(a.Y0)} a Y₀ = ${f1(b.Y0)}: cambia ${f1(Math.abs(b.Y0 - a.Y0))}, ${f3(b.k)} veces más que el impulso inicial.`);
+    p.push(`El gasto que no depende de la renta, A₀ − b·r, ${sube(a.A0, b.A0)} en ${f1(Math.abs(dA))} y la DA se desplaza en paralelo. La renta de equilibrio pasa de Y₀ = ${f1(a.Y0)} a Y₀ = ${f1(b.Y0)}: cambia ${f1(Math.abs(b.Y0 - a.Y0))}, ${f3(b.k)} veces más que el impulso inicial.`);
     p.push(`Es el multiplicador ${TI(String.raw`\frac{1}{1-c(1-t)} = ${fT(b.k, 3)}`)}. El primer cambio de gasto es renta para alguien; de cada unidad de renta, los hogares gastan c(1−t) = ${f2(B.c * (1 - B.t))} en consumo, que es nueva renta para otros, y así ronda tras ronda. Sube «Rondas del multiplicador» para verlo en el gráfico.`);
     if (k === 'Cb' && B.Cb < A.Cb) {
       cambia.add('paradoja');
       const dS = b.S - a.S;
       p.push(Math.abs(B.t) < 1e-9 && Math.abs(B.G) < 1e-9
-        ? `Paradoja del ahorro: los hogares han querido ahorrar más (menos C̄), pero el ahorro total no ha cambiado (S = ${f1(a.S)} → ${f1(b.S)}). En equilibrio S = I, y la inversión no ha variado; lo único que ha cambiado es la renta, que ha caído ${f1(a.Y0 - b.Y0)}.`
-        : `Paradoja del ahorro: los hogares han querido ahorrar más, pero la renta cae ${f1(a.Y0 - b.Y0)} y el ahorro total solo cambia ${f1(dS)} (de ${f1(a.S)} a ${f1(b.S)}). En equilibrio S + T = I + G: si I y G no cambian, el mayor deseo de ahorrar no se traduce en más ahorro, sino en menos renta.`);
+        ? `Paradoja del ahorro, en su versión de manual: los hogares han querido ahorrar más (menos C̄), pero el ahorro total no ha cambiado (S = ${f1(a.S)} → ${f1(b.S)}). En equilibrio S = I, y la inversión no ha variado; lo único que ha cambiado es la renta, que ha caído ${f1(a.Y0 - b.Y0)}.`
+        : `Paradoja del ahorro, en su versión de manual: los hogares han querido ahorrar más, pero la renta cae ${f1(a.Y0 - b.Y0)} y el ahorro total solo cambia ${f1(dS)} (de ${f1(a.S)} a ${f1(b.S)}). En equilibrio S + T = I + G: si I y G no cambian, el mayor deseo de ahorrar no se traduce en más ahorro, sino en menos renta.`);
     }
   } else if (pend.length) {
     const k = pend[0];
@@ -689,7 +780,7 @@ function explicarBienes(A, B) {
     p.push(`Tras ${B.n} ronda${B.n === 1 ? '' : 's'}, la renta ha variado ${f1(acum)} de los ${f1(b.Y0 - mo.Y0)} totales (${f1(100 * acum / (b.Y0 - mo.Y0))} %). Cada ronda añade c(1−t) = ${f2(q)} veces lo que añadió la anterior, así que los saltos de la escalera naranja son cada vez más pequeños y la suma converge al multiplicador.`);
   } else return null;
   const k = ['Cb', 'c', 't', 'I0', 'b', 'r', 'G', 'n'].find((x) => Math.abs(A[x] - B[x]) > 1e-9);
-  const nom = { Cb: 'C̄', c: 'c', t: 't', I0: 'I₀', b: 'b', r: 'r', G: 'G', n: 'Rondas' };
+  const nom = { Cb: 'C̄', c: 'c', t: 't', I0: 'I₀', b: 'b', r: 'r', G: 'G₀', n: 'Rondas' };
   return { titulo: k ? `${nom[k]}: ${fmt(A[k], k === 'c' || k === 't' ? 2 : k === 'n' ? 0 : 1)} → ${fmt(B[k], k === 'c' || k === 't' ? 2 : k === 'n' ? 0 : 1)}` : `Producción planeada: ${f1(B.Yp)}`, p, cambia };
 }
 function inicialBI(k) {
@@ -705,29 +796,35 @@ function inicialBI(k) {
 PINTAR.bienes = () => {
   const m = mBI(BI);
   pintarConceptos('con-bienes', [
-    { k: 'C', n: 'Consumo C', d: 'Depende del consumo autónomo C̄ y de la renta disponible. c es la PropMagConsum, entre 0 y 1 por la ley psicológica fundamental. Que c sea constante es un supuesto de la Síntesis, no de Keynes.', f: String.raw`C = \bar C + c\cdot Y\cdot(1-t)`, v: f1(m.C), ref: '3A4 §1. 3. 2. 1. 1' },
-    { k: 'I', n: 'Inversión I', d: 'Componente autónomo I₀ (animal spirits) más un componente que depende del tipo de interés a través de la eficiencia marginal del capital. Keynes pensaba que b era muy reducida.', f: String.raw`I = I_0 - b\cdot r`, v: f1(m.I), ref: '3A4 §1. 3. 2. 1. 3' },
-    { k: 'A0', n: 'Gasto autónomo A₀', d: 'La parte de la DA que no depende de la renta: su ordenada en el origen.', f: String.raw`A_0 = \bar C + I_0 - b\,r + G`, v: f1(m.A0), ref: '3A4 §1. 3. 2' },
+    { k: 'C', n: 'Consumo C', d: 'Depende del consumo autónomo C̄ y de la renta disponible Y<sup>d</sup> = Y − T. c es la PropMagConsum, entre 0 y 1 por la ley psicológica fundamental. Con C̄ > 0, la PropMedConsum C/Y baja al subir la renta. Que c sea constante es un supuesto de la Síntesis, no de Keynes.', f: String.raw`C = \bar C + c\cdot Y^d = \bar C + c\cdot Y\cdot(1-t)`, v: `${f1(m.C)} · C/Y = ${f3(m.C / m.Y0)}`, ref: '3A4 §1. 3. 2. 1. 1' },
+    { k: 'I', n: 'Inversión I', d: 'Componente autónomo I₀ (animal spirits) más un componente que depende del tipo de interés: se hacen los proyectos cuya eficiencia marginal del capital supera el tipo. El tema sostiene que para Keynes b es muy reducida (curva EMK muy vertical).', f: String.raw`I = I_0 - b\cdot r`, v: f1(m.I), ref: '3A4 §1. 3. 2. 1. 3' },
+    { k: 'A0', n: 'Gasto autónomo A₀', d: 'Consumo, inversión y gasto público autónomos. Junto con −b·r forma la ordenada en el origen de la DA.', f: String.raw`A_0 = \bar C + I_0 + G_0`, v: `${f1(BI.Cb + BI.I0 + BI.G)} (A₀ − b·r = ${f1(m.A0)})`, ref: '3A4 §1. 3. 2' },
     { k: 'eq', n: 'Cruz keynesiana', d: 'Equilibrio donde la DA corta la bisectriz de 45°: la producción iguala la demanda efectiva y la inversión efectiva a la planeada.', f: String.raw`Y = DA(Y)`, v: `Y₀ = ${f1(m.Y0)}`, ref: '3A4 §1. 3. 2. 2' },
-    { k: 'existencias', n: 'Existencias y ajuste vía cantidades', d: 'Fuera del equilibrio, la diferencia entre producción y demanda se acumula o desacumula en existencias no deseadas. Esa señal hace que las empresas ajusten la producción.', ref: '3A4 §1. 3. 2. 2' },
+    { k: 'existencias', n: 'Inversión planeada y efectiva', d: 'Fuera del equilibrio, la diferencia entre producción y demanda se acumula o desacumula en existencias no deseadas: la inversión efectiva (planeada más variación de existencias) se separa de la planeada. Esa señal hace que las empresas ajusten la producción.', ref: '3A4 §1. 3. 2. 2' },
     { k: 'mult', n: 'Multiplicador keynesiano', d: 'Cuánto cambia la renta por cada unidad de cambio en el gasto autónomo. Funciona porque cada aumento de renta genera consumo inducido, que a su vez es renta para otros.', f: String.raw`\frac{\partial Y}{\partial A_0} = \frac{1}{1-c(1-t)}`, v: f3(m.k), ref: '3A4 §1. 3. 2. 3' },
-    { k: 'paradoja', n: 'Paradoja del ahorro', d: 'Si los hogares intentan ahorrar más y la inversión no cambia, la renta cae hasta que el ahorro total vuelve a igualar la inversión: el intento de ahorrar más no aumenta el ahorro.', f: String.raw`S + T = I + G`, v: `S = ${f1(m.S)}`, ref: '3A4 §1. 3. 2. 1. 2' },
-    { k: 'pf', n: 'Política fiscal', d: 'Un aumento de G desplaza la DA hacia arriba y eleva la renta en G por el multiplicador: es la política eficaz para Keynes.', v: `G = ${f1(BI.G)}`, ref: '3A4 §1. 3. 2. 4' },
+    { k: 'paradoja', n: 'Paradoja del ahorro', d: 'En el tema: como la PropMedConsum baja con la renta, cuanto más rica la comunidad más ahorra y más difícil es que la inversión lo absorba, así que crece la brecha con la producción potencial. En la versión de manual: si los hogares intentan ahorrar más y la inversión no cambia, la renta cae y el ahorro total no aumenta.', f: String.raw`S + T = I + G`, v: `S = ${f1(m.S)}`, ref: '3A4 §1. 3. 2. 1. 2' },
+    { k: 'pf', n: 'Política fiscal', d: 'Un aumento de G₀ desplaza la DA hacia arriba y eleva la renta en G por el multiplicador: es la política eficaz para Keynes.', v: `G₀ = ${f1(BI.G)}`, ref: '3A4 §1. 3. 2. 4' },
     { k: 'T', n: 'Impuestos T = t·Y', d: 'Reducen la renta disponible y, con ella, el consumo inducido: bajan el multiplicador y actúan como estabilizador automático.', f: String.raw`T = t\cdot Y`, v: f1(m.T), ref: '3A4 §1. 3. 2. 1. 1' },
   ], ULT.bienes || new Set());
 };
 
-/* ===================================================================== DINERO (§1. 4. 2) */
+/* ===================================================================== DINERO (§1. 4. 2): «Gráfico 1» */
 const DI = { M: 85, Y: 250, k: 0.5, h: 8, rt: 1 };
 const rLibre = (s) => (s.k * s.Y - s.M) / s.h;
 function mDI(s) {
-  if (s.h < 1e-9) return { r: NaN, clasico: true, trampa: false, MD: s.k * s.Y };
+  const base = { MD: s.k * s.Y };
+  if (s.h < 1e-9) return Object.assign(base, { r: NaN, clasico: true, trampa: false });
   const rl = rLibre(s), trampa = rl < s.rt;
-  return { r: trampa ? s.rt : rl, rl, trampa, clasico: false, MD: s.k * s.Y };
+  return Object.assign(base, { r: trampa ? s.rt : rl, rl, trampa, clasico: false });
 }
-const MDde = (r, s) => s.k * s.Y - s.h * r; /* cantidad demandada a tipo r (tramo normal) */
-const svgD = document.getElementById('svg-dinero'); svgD.setAttribute('viewBox', '0 0 620 470');
-const PDI = panel(svgD, 60, 26, 520, 380, [0, 260], [0, 12]);
+const MDde = (r, s) => s.k * s.Y - s.h * r;
+/* mercado de bienes a ese tipo (parámetros de la pestaña de bienes) */
+const IGde = (r) => BI.I0 - BI.b * r + BI.G;                               /* I + G */
+const STde = (Y) => Y - BI.Cb - BI.c * (1 - BI.t) * Y;                     /* S + T = Y − C */
+const YISde = (r) => mult(BI) * (BI.Cb + BI.I0 + BI.G - BI.b * r);         /* renta que vacía bienes a r */
+const svgD = document.getElementById('svg-dinero'); svgD.setAttribute('viewBox', '0 0 820 470');
+const PDI = panel(svgD, 58, 30, 370, 370, [0, 260], [0, 12]);
+const PIS = panel(svgD, 500, 30, 280, 370, [0, 140], [0, 12]);
 const gD = el('g', {}, svgD);
 const SD = sesion('dinero', DI, explicarDinero, () => dibujarDinero());
 let prevDI = null;
@@ -735,53 +832,82 @@ conectarDeslizadores('di', DI, SD, dibujarDinero);
 
 function dibujarDinero() {
   limpiar(gD);
-  const s = DI, m = mDI(s), P = PDI;
-  ejes(gD, P, 'M/P', 'r', [0, 50, 100, 150, 200, 250], [0, 2, 4, 6, 8, 10, 12]);
-  const gc = el('g', { 'clip-path': P.clip }, gD);
-  // demanda: tramo normal hasta r_min y horizontal en la trampa
+  const s = DI, m = mDI(s), P = PDI, Q = PIS;
+  ejes(gD, P, 'M', 'r', [0, 50, 100, 150, 200, 250], [0, 2, 4, 6, 8, 10, 12]);
+  ejes(gD, Q, 'I + G, S + T', 'r', [0, 25, 50, 75, 100, 125], [0, 2, 4, 6, 8, 10, 12]);
+  el('text', { x: P.x0 + P.w / 2, y: 14, class: 'r', 'text-anchor': 'middle' }, gD).textContent = 'MERCADO DE BONOS-DINERO';
+  el('text', { x: Q.x0 + Q.w / 2, y: 14, class: 'r', 'text-anchor': 'middle' }, gD).textContent = 'INVERSIÓN Y AHORRO';
+  const gc = el('g', { 'clip-path': P.clip }, gD), gq = el('g', { 'clip-path': Q.clip }, gD);
+  /* ---- izquierda: M^D con trampa, M^S */
   if (s.h < 1e-9) {
     el('line', { x1: P.sx(s.k * s.Y), y1: P.y0, x2: P.sx(s.k * s.Y), y2: P.y0 + P.h, class: 'cur', stroke: 'var(--azul)' }, gc);
   } else {
     const Mtr = MDde(s.rt, s);
     el('path', { d: path([[P.sx(MDde(12.5, s)), P.sy(12.5)], [P.sx(Mtr), P.sy(s.rt)], [P.sx(260), P.sy(s.rt)]]), class: 'cur', stroke: 'var(--azul)' }, gc);
     el('rect', { x: P.sx(Mtr), y: P.sy(s.rt) - 6, width: Math.max(0, P.sx(260) - P.sx(Mtr)), height: 6, fill: 'var(--z3)' }, gc);
-    el('text', { x: P.sx(Math.min(240, Mtr + 8)), y: P.sy(s.rt) - 10, class: 'r', 'text-anchor': Mtr + 8 > 200 ? 'end' : 'start', style: 'fill:var(--muted)' }, gD).textContent = 'TRAMPA DE LA LIQUIDEZ';
+    el('text', { x: P.sx(Math.min(250, Math.max(Mtr + 8, 10))), y: P.sy(s.rt) - 10, class: 'r', 'text-anchor': Mtr + 8 > 160 ? 'end' : 'start', style: 'fill:var(--muted)' }, gD).textContent = 'TRAMPA DE LA LIQUIDEZ';
   }
-  tx(gD, P.sx(Math.max(8, Math.min(250, MDde(11, s)))) + 6, P.sy(11), 'M^D', { style: 'fill:var(--azul)' });
+  tx(gD, P.sx(Math.max(8, Math.min(240, MDde(11, s)))) + 6, P.sy(11), 'M^D', { style: 'fill:var(--azul)' });
   if (prevDI) el('line', { x1: P.sx(prevDI.M), y1: P.y0, x2: P.sx(prevDI.M), y2: P.y0 + P.h, class: 'rayo', stroke: 'var(--verde)' }, gc);
   el('line', { x1: P.sx(s.M), y1: P.y0, x2: P.sx(s.M), y2: P.y0 + P.h, class: 'cur', stroke: 'var(--verde)' }, gc);
   tx(gD, P.sx(s.M) + 6, P.y0 + 14, 'M^S', { style: 'fill:var(--verde)' });
+  /* ---- derecha: I + G frente a S + T a la renta Y */
+  const rs = Array.from({ length: 121 }, (_, i) => 12 * i / 120);
+  el('path', { d: path(rs.map((r) => [Q.sx(IGde(r)), Q.sy(r)])), class: 'cur', stroke: 'var(--rojo)' }, gq);
+  tx(gD, Q.sx(Math.min(135, IGde(10.5))) + 8, Q.sy(10.5), 'I + G', { style: 'fill:var(--rojo);font-size:14px' });
+  const ST0 = STde(s.Y);
+  el('line', { x1: Q.sx(ST0), y1: Q.y0, x2: Q.sx(ST0), y2: Q.y0 + Q.h, class: 'cur', stroke: 'var(--naranja)' }, gq);
+  tx(gD, Q.sx(ST0) - 6, Q.y0 + 14, 'S + T', { 'text-anchor': 'end', style: 'fill:var(--naranja);font-size:14px' });
   if (!m.clasico) {
-    el('line', { x1: P.x0, y1: P.sy(m.r), x2: P.sx(s.M), y2: P.sy(m.r), class: 'guia' }, gD);
+    el('line', { x1: P.x0, y1: P.sy(m.r), x2: Q.x0 + Q.w, y2: Q.sy(m.r), class: 'guia' }, gD);
     el('circle', { cx: P.sx(s.M), cy: P.sy(m.r), r: 6.5, class: 'pto', fill: 'var(--punto)' }, gD);
-    tx(gD, P.x0 - 6, P.sy(m.r) + 5, 'r^*', { 'text-anchor': 'end' });
+    tx(gD, P.x0 + 6, P.sy(m.r) - 6, 'r^*', {});
+    const ig = IGde(m.r), gap = ig - ST0;
+    el('circle', { cx: Q.sx(ig), cy: Q.sy(m.r), r: 5, class: 'pto', fill: 'var(--rojo)' }, gD);
+    el('circle', { cx: Q.sx(ST0), cy: Q.sy(m.r), r: 5, class: 'pto', fill: 'var(--naranja)' }, gD);
+    if (Math.abs(gap) > 1) {
+      const y = Q.sy(m.r) + 16;
+      el('line', { x1: Q.sx(Math.min(ig, ST0)), y1: y, x2: Q.sx(Math.max(ig, ST0)), y2: y, stroke: gap > 0 ? 'var(--verde)' : 'var(--rojo)', 'stroke-width': 3 }, gD);
+      el('text', { x: Q.sx(Math.max(ig, ST0)) + 6, y: y + 4, class: 'r', 'text-anchor': 'start', style: `fill:var(--${gap > 0 ? 'verde' : 'rojo'});font-size:10.5px` }, gD).textContent = gap > 0 ? 'Y SUBE' : 'Y BAJA';
+    }
   }
-  // lectura
+  /* ---- lectura */
   const Mm = MV('M^S'), Ym = MV('Y'), km = MV('k'), hm = MV('h'), rtm = MV('r_{min}');
   let cadena = '';
   if (prevDI && !m.clasico) {
     const mo = mDI(prevDI), dr = m.r - mo.r, dI = -BI.b * dr, dY = dI * mult(BI);
-    cadena = TX(String.raw`\Delta M^S = ${fT(s.M - prevDI.M, 0)}\ \Rightarrow\ \Delta r = ${fT(dr)}\ \Rightarrow\ \Delta I = -b\,\Delta r = ${fT(dI, 1)}\ \Rightarrow\ \Delta Y = \tfrac{\Delta I}{1-c(1-t)} = ${fT(dY, 1)}`);
+    cadena = TX(String.raw`\Delta M^S = ${fT(s.M - prevDI.M, 0)}\ \Rightarrow\ \Delta r = ${fT(dr)}\ \Rightarrow\ \Delta I = -b\,\Delta r = ${fT(dI, 1)}`) + TX(String.raw`\Rightarrow\ \Delta Y = \frac{\Delta I}{1-c(1-t)} = ${fT(dY, 1)}`);
   }
+  const Yis = m.clasico ? NaN : YISde(m.r);
   const lec = document.getElementById('lec-dinero');
   lec.innerHTML = `
     <div class="formas">
       <span class="lbl">Forma general · en color, lo que puedes mover</span>
       ${TX(String.raw`M^D = ${km}\cdot ${Ym} - ${hm}\cdot r,\qquad M^S\ \text{exógena}`)}
       ${TX(String.raw`r^* = \max\Bigl\{\frac{${km}\,${Ym} - ${Mm}}{${hm}},\ ${rtm}\Bigr\}`)}
+      ${TX(String.raw`I + G = I_0 - b\,r^* + G_0\qquad\text{frente a}\qquad S + T = ${Ym} - C(${Ym})`)}
       <span class="lbl" style="margin-top:6px">Con tus valores</span>
       ${m.clasico ? TX(String.raw`h = 0:\ M^D = k\,Y = ${fT(m.MD, 1)}\ \text{no depende de } r`) : TX(String.raw`r^* = \max\Bigl\{\frac{${fT(s.k)}\cdot ${fT(s.Y, 0)} - ${fT(s.M, 0)}}{${fT(s.h, 1)}},\ ${fT(s.rt, 1)}\Bigr\} = ${fT(m.r)}`)}
+      ${m.clasico ? '' : TX(String.raw`I + G = ${fT(IGde(m.r), 1)},\qquad S + T = ${fT(STde(s.Y), 1)}`)}
       ${cadena ? '<span class="lbl" style="margin-top:6px">Cadena de transmisión del último cambio de M<sup>S</sup></span>' + cadena : ''}
     </div>
     <div class="kv">
       <div><span>r* (tipo de equilibrio)</span><b>${m.clasico ? 'indeterminado' : f2(m.r)}</b></div><div><span>k·Y (transacción y precaución)</span><b>${f1(s.k * s.Y)}</b></div>
       <div><span>¿Trampa de la liquidez?</span><b>${m.trampa ? 'sí' : 'no'}</b></div><div><span>M<sup>S</sup></span><b>${f1(s.M)}</b></div>
+      <div><span>I + G a r*</span><b>${m.clasico ? '—' : f1(IGde(m.r))}</b></div><div><span>S + T a Y</span><b>${f1(STde(s.Y))}</b></div>
+      <div><span>Renta que vaciaría bienes a r*</span><b>${m.clasico ? '—' : f1(Yis)}</b></div><div><span>Renta actual Y</span><b>${f1(s.Y)}</b></div>
     </div>`;
   montar(lec);
   refrescarValores('di', DI, { M: 0, Y: 0, k: 2, h: 1, rt: 1 });
   PINTAR.dinero();
 }
 
+function frasesBienes(b, s) {
+  if (b.clasico) return '';
+  const ig = IGde(b.r), st = STde(s.Y), Yis = YISde(b.r);
+  if (Math.abs(ig - st) < 1) return `A ese tipo, I + G = ${f1(ig)} coincide con S + T = ${f1(st)}: el mercado de bienes también está en equilibrio con Y = ${f1(s.Y)}.`;
+  return `A r* = ${f2(b.r)}, I + G = ${f1(ig)} y S + T = ${f1(st)}: el tipo de interés no iguala ahorro e inversión, porque se ha fijado en el mercado de dinero. Lo que se ajusta es la renta: ${ig > st ? 'sube' : 'baja'} hacia ${f1(Yis)}, la que vacía el mercado de bienes a ese tipo.`;
+}
 function explicarDinero(A, B) {
   const a = mDI(A), b = mDI(B), p = [], cambia = new Set(['eq']);
   const k = ['M', 'Y', 'k', 'h', 'rt'].find((x) => Math.abs(A[x] - B[x]) > 1e-9);
@@ -791,44 +917,48 @@ function explicarDinero(A, B) {
     const up = B.M > A.M;
     p.push(`Has ${up ? 'aumentado' : 'reducido'} la oferta monetaria de ${f1(A.M)} a ${f1(B.M)}. La recta vertical M<sup>S</sup> se desplaza hacia la ${up ? 'derecha' : 'izquierda'}.`);
     if (b.clasico) p.push('Con h = 0 la demanda de dinero no depende de r: el mercado de dinero no determina el tipo de interés, como en la teoría cuantitativa.');
-    else if (a.trampa && b.trampa) { cambia.add('trampa'); p.push(`El tipo no se mueve de r<sub>min</sub> = ${f2(b.r)}: estás en la trampa de la liquidez. Nadie espera que el tipo baje más, así que todo el dinero adicional se atesora en lugar de comprar bonos. La política monetaria no reduce el tipo, no estimula la inversión y no mueve la renta.`); }
+    else if (a.trampa && b.trampa) { cambia.add('trampa'); p.push(`El tipo no se mueve de r<sub>min</sub> = ${f2(b.r)}: estás en la trampa de la liquidez. Todo el dinero adicional se atesora en lugar de comprar bonos. La política monetaria no reduce el tipo, no estimula la inversión y no mueve la renta.`); }
     else {
       const dr = b.r - a.r, dI = -BI.b * dr, dY = dI * mult(BI);
       p.push(`Para que el público quiera mantener ${up ? 'más' : 'menos'} dinero, el tipo de interés tiene que ${up ? 'bajar' : 'subir'}: r pasa de ${f2(a.r)} a ${f2(b.r)}. ${up ? 'Con más dinero del deseado, el público compra bonos, sube su precio y baja su rentabilidad.' : 'Con menos dinero del deseado, el público vende bonos, baja su precio y sube su rentabilidad.'}${b.trampa ? ' Has llegado al suelo de la trampa de la liquidez: a partir de aquí más dinero ya no baja el tipo.' : ''}`);
-      p.push(`Cadena de transmisión keynesiana: Δr = ${f2(dr)}, la inversión cambia −b·Δr = ${f1(dI)} (con b = ${f1(BI.b)}) y la renta, por el multiplicador ${f3(mult(BI))}, ${f1(dY)}. ${BI.b < 0.5 ? 'Con b tan baja, como sostenía Keynes, la política monetaria apenas llega a la renta.' : 'Cuanto menor sea b, menos llega la política monetaria a la renta.'}`);
+      p.push(`Cadena de transmisión keynesiana: Δr = ${f2(dr)}, la inversión cambia −b·Δr = ${f1(dI)} (con b = ${f1(BI.b)}) y la renta, por el multiplicador ${f3(mult(BI))}, ${f1(dY)}. ${BI.b < 0.5 ? 'Con b tan baja la política monetaria apenas llega a la renta: es uno de los dos eslabones débiles del §1. 5. 2.' : 'Cuanto menor sea b, menos llega la política monetaria a la renta.'}`);
+      cambia.add('IS');
     }
   } else if (k === 'Y') {
-    cambia.add('transaccion');
-    p.push(`Has ${B.Y > A.Y ? 'subido' : 'bajado'} la renta de ${f1(A.Y)} a ${f1(B.Y)}. La demanda por motivo transacción y precaución, k·Y, pasa de ${f1(A.k * A.Y)} a ${f1(B.k * B.Y)} y la M<sup>D</sup> se desplaza hacia la ${B.Y > A.Y ? 'derecha' : 'izquierda'}.`);
-    if (!b.clasico) p.push(b.trampa ? 'Aun así, el tipo sigue en el suelo de la trampa.' : `Con la oferta fija, el tipo de interés ${sube(a.r, b.r)} de ${f2(a.r)} a ${f2(b.r)}: es lo que, en la IS-LM, da pendiente positiva a la LM.`);
+    cambia.add('transaccion'); cambia.add('IS');
+    p.push(`Has ${B.Y > A.Y ? 'subido' : 'bajado'} la renta de ${f1(A.Y)} a ${f1(B.Y)}. La demanda por motivo transacción y precaución, k·Y, pasa de ${f1(A.k * A.Y)} a ${f1(B.k * B.Y)} y la M<sup>D</sup> se desplaza hacia la ${B.Y > A.Y ? 'derecha' : 'izquierda'}. El ahorro, S + T, también ${B.Y > A.Y ? 'sube' : 'baja'}: depende de la renta, no del tipo.`);
+    if (!b.clasico) p.push(b.trampa ? 'El tipo sigue en el suelo de la trampa.' : `Con la oferta fija, el tipo de interés ${sube(a.r, b.r)} de ${f2(a.r)} a ${f2(b.r)}: es lo que, en la IS-LM, da pendiente positiva a la LM.`);
   } else if (k === 'h') {
     cambia.add('especulacion');
     p.push(`Has cambiado la sensibilidad de la demanda de dinero al tipo, h, de ${f1(A.h)} a ${f1(B.h)}. Recoge el motivo especulación: cuanto mayor es h, más plana es la M<sup>D</sup>.`);
-    p.push(b.clasico ? 'Con h = 0 la demanda es vertical y solo responde a la renta: es el caso neoclásico, sin motivo especulación.' : `El tipo de equilibrio pasa de ${f2(a.r)} a ${f2(b.r)}. ${B.h > A.h ? 'Con h alta, un mismo cambio en M<sup>S</sup> mueve poco el tipo, y en el límite, con h infinita, se llega a la trampa de la liquidez.' : 'Con h baja, un mismo cambio en M<sup>S</sup> mueve mucho el tipo.'}`);
+    p.push(b.clasico ? 'Con h = 0 la demanda es vertical y solo responde a la renta: es el caso neoclásico, sin motivo especulación.' : `El tipo de equilibrio pasa de ${a.clasico ? '—' : f2(a.r)} a ${f2(b.r)}. ${B.h > A.h ? 'Con h alta, un mismo cambio en M<sup>S</sup> mueve poco el tipo; en el límite, h infinita, es la trampa de la liquidez.' : 'Con h baja, un mismo cambio en M<sup>S</sup> mueve mucho el tipo.'}`);
   } else if (k === 'k') {
     cambia.add('transaccion');
-    p.push(`Has cambiado k, la sensibilidad de la demanda de dinero a la renta, de ${f2(A.k)} a ${f2(B.k)}. La M<sup>D</sup> se desplaza ${B.k > A.k ? 'a la derecha' : 'a la izquierda'} y el tipo pasa de ${b.clasico || a.clasico ? '—' : f2(a.r)} a ${b.clasico ? '—' : f2(b.r)}.`);
+    p.push(`Has cambiado k, la sensibilidad de la demanda de dinero a la renta, de ${f2(A.k)} a ${f2(B.k)}. La M<sup>D</sup> se desplaza ${B.k > A.k ? 'a la derecha' : 'a la izquierda'} y el tipo pasa de ${a.clasico ? '—' : f2(a.r)} a ${b.clasico ? '—' : f2(b.r)}.`);
   } else if (k === 'rt') {
     cambia.add('trampa');
     p.push(`Has movido el suelo de la trampa de la liquidez de ${f2(A.rt)} a ${f2(B.rt)}: el tipo por debajo del cual todos esperan que suba y prefieren dinero a bonos. ${b.trampa ? 'Ahora estás dentro de la trampa.' : 'El equilibrio está fuera de la trampa.'}`);
   }
+  const fb = frasesBienes(b, B); if (fb) p.push(fb);
   return { titulo: `${{ M: 'M<sup>S</sup>', Y: 'Y', k: 'k', h: 'h', rt: 'r<sub>min</sub>' }[k]}: ${fmt(A[k], k === 'k' ? 2 : 1)} → ${fmt(B[k], k === 'k' ? 2 : 1)}`, p, cambia };
 }
 function inicialDI() {
   const m = mDI(DI);
   return { titulo: 'Punto de partida', cambia: new Set(), p: [
-    `El tipo de interés de equilibrio es r* = ${f2(m.r)}: el que hace que el público quiera mantener exactamente la oferta monetaria M<sup>S</sup> = ${f1(DI.M)}. Para Keynes, el tipo se determina aquí, en el mercado de bonos y dinero, no en el de fondos prestables.`,
-    'Sube M<sup>S</sup> para ver la cadena de transmisión hasta la renta, o baja el tipo hasta la trampa de la liquidez.'] };
+    `El tipo de interés de equilibrio es r* = ${f2(m.r)}: el que hace que el público quiera mantener exactamente la oferta monetaria M<sup>S</sup> = ${f1(DI.M)}. Para Keynes, el tipo se determina aquí, en el mercado de bonos-dinero, no en el de fondos prestables.`,
+    frasesBienes(m, DI),
+    'Sube M<sup>S</sup> para ver la cadena de transmisión hasta la renta, o bájala hasta la trampa de la liquidez.'] };
 }
 PINTAR.dinero = () => {
   const m = mDI(DI);
   pintarConceptos('con-dinero', [
-    { k: 'transaccion', n: 'Motivos transacción y precaución', d: 'Dinero para las operaciones corrientes y para gastos imprevistos. Depende sobre todo de la renta.', f: String.raw`k\cdot Y`, v: f1(DI.k * DI.Y), ref: '3A4 §1. 4. 2' },
-    { k: 'especulacion', n: 'Motivo especulación', d: 'Se mantiene dinero cuando se espera que el tipo suba (y el precio de los bonos baje) respecto a su valor «normal». Hace que la demanda de dinero dependa negativamente de r y la vuelve inestable.', f: String.raw`-h\cdot r`, v: `h = ${f1(DI.h)}`, ref: '3A4 §1. 4. 2. 1' },
-    { k: 'eq', n: 'Equilibrio bonos-dinero', d: 'El tipo de interés iguala el deseo de mantener riqueza líquida con la cantidad de dinero. No depende del ahorro y la inversión, así que no hay garantía de equilibrio automático en el mercado de bienes.', f: String.raw`M^S = k\,Y - h\,r`, v: m.clasico ? 'indeterminado (h = 0)' : `r* = ${f2(m.r)}`, ref: '3A4 §1. 4. 2. 3' },
+    { k: 'transaccion', n: 'Motivos transacción y precaución', d: 'Dinero para las operaciones corrientes y para gastos imprevistos. Dependen de la renta.', f: String.raw`k\cdot Y`, v: f1(DI.k * DI.Y), ref: '3A4 §1. 4. 2. 2' },
+    { k: 'especulacion', n: 'Motivo especulación', d: 'Cada individuo tiene un tipo «normal». Si el tipo vigente está por debajo, espera que suba y que el precio de los bonos baje, y prefiere dinero; si está por encima, prefiere bonos. Por eso la demanda de dinero depende negativamente de r y es inestable.', f: String.raw`-h\cdot r`, v: `h = ${f1(DI.h)}`, ref: '3A4 §1. 4. 2. 1' },
+    { k: 'eq', n: 'Equilibrio bonos-dinero', d: 'El tipo de interés nominal iguala el deseo de mantener riqueza en forma líquida con la cantidad de dinero. Es un fenómeno monetario.', f: String.raw`M^S = k\,Y - h\,r`, v: m.clasico ? 'indeterminado (h = 0)' : `r* = ${f2(m.r)}`, ref: '3A4 §1. 4. 2. 3' },
+    { k: 'IS', n: 'Tipo de interés, ahorro e inversión', d: 'Como el tipo se fija en el mercado de dinero, no tiene por qué igualar ahorro e inversión: no hay equilibrio automático en el mercado de bienes. Lo que ajusta es la renta.', f: String.raw`I + G \gtrless S + T`, v: m.clasico ? '—' : `I + G = ${f1(IGde(m.r))}, S + T = ${f1(STde(DI.Y))}`, ref: '3A4 §1. 4. 2. 3' },
     { k: 'trampa', n: 'Trampa de la liquidez', d: 'Por debajo de cierto tipo, la demanda de dinero se vuelve perfectamente elástica (h → ∞): todo aumento de dinero se atesora y la política monetaria no baja el tipo.', v: `r<sub>min</sub> = ${f2(DI.rt)}${m.trampa ? ' (estás dentro)' : ''}`, ref: '3A4 §1. 4. 2. 2' },
     { k: 'MS', n: 'Oferta monetaria M<sup>S</sup>', d: 'Exógena, fijada por la autoridad monetaria: recta vertical.', v: f1(DI.M), ref: '3A4 §1. 4. 2. 3' },
-    { k: 'transmision', n: 'Transmisión monetaria keynesiana', d: 'El dinero llega a la economía real solo a través del tipo de interés: ΔM → Δr → ΔI → ΔY. Por eso es poco eficaz si hay trampa de la liquidez o si b es baja.', f: String.raw`\Delta Y = \frac{-b\,\Delta r}{1-c(1-t)}`, ref: '3A4 §1. 2. 2. 5 y §1. 4. 2. 3' },
+    { k: 'transmision', n: 'Transmisión monetaria keynesiana', d: 'El dinero llega a la economía real solo a través del tipo de interés: ΔM → Δr → ΔI → ΔY. Tiene dos eslabones débiles: la trampa de la liquidez y la baja sensibilidad de la inversión al tipo.', f: String.raw`\Delta Y = \frac{-b\,\Delta r}{1-c(1-t)}`, ref: '3A4 §1. 5. 2' },
   ], ULT.dinero || new Set());
 };
 
@@ -838,7 +968,7 @@ function abrir(k) {
   for (const n of TABS) { document.getElementById('tab-' + n).setAttribute('aria-selected', String(n === k)); document.getElementById('v-' + n).hidden = n !== k; }
 }
 for (const n of TABS) document.getElementById('tab-' + n).addEventListener('click', () => abrir(n));
-dibujarTrabajo(); dibujarBienes(); dibujarDinero();
+dibujarTrabajo(); dibujarBienes(); dibujarDinero(); kListo = true;
 mostrarPorque('trabajo', inicialTB()); mostrarPorque('bienes', inicialBI()); mostrarPorque('dinero', inicialDI());
 const desdeHash = () => abrir(TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'trabajo');
 desdeHash();
