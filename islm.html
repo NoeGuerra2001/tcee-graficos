@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+/* Parámetros: ?tema=claro|oscuro (fuerza el tema), ?compacto=1 (oculta la cabecera, para insertar en Obsidian) */
+(function () { try {
+  var q = new URLSearchParams(location.search), t = q.get('tema');
+  if (t === 'oscuro' || t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  if (t === 'claro' || t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  if (q.get('compacto')) document.documentElement.classList.add('compacto');
+} catch (e) {} })();
+</script>
+<style>
+html, body { margin: 0; }
+body { font-family: system-ui, sans-serif; font-size: 14px; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.compacto header { display: none !important; }
+.compacto body { padding-block: 8px 24px !important; }
+</style>
+<title>IS-LM según las escuelas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script>
+window.MathJax = {
+  tex: { packages: { '[+]': ['html'] } },
+  svg: { fontCache: 'local' },
+  options: { enableAssistiveMml: false },
+  startup: { typeset: false, ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => { try { document.head.appendChild(MathJax.svgStylesheet()); } catch (e) {} window.__mjListo = true; if (window.montar) window.montar(document.body); }); } },
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.min.js"></script>
+<style>
+/* Layout: lámina de pizarra a la izquierda (SVG), lectura y mandos a la derecha; una columna en móvil. Dos pestañas: corto y largo plazo. */
+:root {
+  --bg: #fbfaf7; --fg: #1d2230; --muted: #5f6676; --line: #d9dbe2; --panel: #f1f2f5;
+  --azul: #2E5C8A; --naranja: #D9671E; --verde: #548235; --rojo: #C00000; --gris: #7F7F7F; --punto: #1F3864;
+  --z1: rgba(192,0,0,.07); --z2: rgba(84,130,53,.10); --z3: rgba(127,127,127,.12);
+  --f-math: "STIX Two Text", "STIXGeneral", "Cambria Math", "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+header { display: flex; flex-direction: column; gap: 4px; }
+.eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-math); font-weight: 600; font-size: 32px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.intro { color: var(--muted); max-width: 70ch; margin: 0; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tabs button, .chips button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--fg); cursor: pointer; }
+.tabs button[aria-selected="true"], .chips button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.mirar { font-size: 13.5px; max-width: 80ch; margin: 0; padding-left: 12px; border-left: 2px solid var(--line); }
+
+.vista { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+@media (min-width: 960px) { .vista { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } }
+.figs { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.figs .controles { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+svg.lamina { width: 100%; max-width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+svg text { fill: var(--fg); }
+.m { font-family: var(--f-math); font-style: italic; font-size: 15px; }
+.r { font-family: var(--f-body); font-style: normal; font-size: 11.5px; letter-spacing: .04em; }
+.eje { stroke: var(--fg); stroke-width: 1.3; fill: none; }
+.tick { stroke: var(--fg); stroke-width: 1; }
+.tlab { font-family: var(--f-body); font-size: 11px; fill: var(--muted) !important; }
+.guia { stroke: var(--gris); stroke-width: .9; stroke-dasharray: 4 4; fill: none; }
+.cur { fill: none; stroke-width: 2.4; }
+.cur-fina { fill: none; stroke-width: 1.1; opacity: .55; }
+.tang { fill: none; stroke-width: 1.6; }
+.rayo { fill: none; stroke-width: 1.4; stroke-dasharray: 6 4; }
+.pto { stroke: var(--bg); stroke-width: 1.5; }
+.drag { cursor: grab; }
+.drag:active { cursor: grabbing; }
+.z1 { fill: var(--z1); } .z2 { fill: var(--z2); } .z3 { fill: var(--z3); }
+
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.lectura { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.lectura .f { font-family: var(--f-math); font-style: italic; font-size: 16px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 2px 22px; font-variant-numeric: tabular-nums; }
+.kv div { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
+.kv b { font-weight: 500; }
+.lectura .msg { margin-top: 4px; }
+.etapa { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px; border: 1px solid currentColor; }
+.e1 { color: var(--rojo); } .e2 { color: var(--verde); } .e3 { color: var(--muted); }
+.controles { display: flex; flex-direction: column; gap: 6px; }
+.fila { display: grid; grid-template-columns: minmax(8.5em, 12em) minmax(0, 1fr) 3.6em; align-items: center; gap: 8px; }
+.fila input[type=range] { width: 100%; accent-color: var(--azul); }
+.val { text-align: right; font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ayuda { color: var(--muted); font-size: 12.5px; }
+.nota { font-size: 12.5px; color: var(--muted); max-width: 80ch; margin: 0; }
+sub, sup { font-size: 72%; }
+.porque { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.porque .eti, .sec-eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.porque h3 { font-family: var(--f-math); font-size: 19px; font-weight: 600; margin: 0; }
+.porque p { margin: 0; }
+.porque details { margin-top: 4px; }
+.porque summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.porque .prev { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.ctl-ayuda { margin: -2px 0 6px; font-size: 12.5px; color: var(--muted); }
+.sec { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.sec h2 { font-family: var(--f-math); font-size: 22px; font-weight: 600; margin: 0; }
+.conceptos { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.concepto { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.concepto.cambia { border-color: var(--rojo); background: var(--z1); }
+.concepto .cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.concepto h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.concepto p { margin: 0; font-size: 13px; }
+.concepto .formula { font-family: var(--f-math); font-style: italic; font-size: 15px; overflow-x: auto; }
+.concepto .valor { font-variant-numeric: tabular-nums; }
+.concepto .ref { color: var(--muted); font-size: 11.5px; }
+.formas { display: flex; flex-direction: column; gap: 3px; }
+.formas .lbl { font-family: var(--f-body); font-style: normal; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.formas .ec { font-family: var(--f-math); font-style: italic; font-size: 16px; overflow-x: auto; }
+.formas .fijo { font-family: var(--f-body); font-style: normal; font-size: 12.5px; color: var(--muted); }
+.tex { display: inline-block; max-width: 100%; vertical-align: middle; }
+.tex[data-d="1"] { display: block; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.tex:not([data-ok]) { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; }
+.tex mjx-container { margin: 0 !important; }
+.tex[data-d="1"] mjx-container { text-align: left !important; }
+.tex g.mv { color: var(--azul); fill: var(--azul); stroke: var(--azul); }
+.formas .tex[data-d="1"] { font-size: 112%; }
+.mod { color: var(--azul); font-weight: 600; border-bottom: 1px dotted currentColor; }
+.chip-cambia { font-size: 11px; color: var(--rojo); border: 1px solid currentColor; border-radius: 999px; padding: 0 7px; white-space: nowrap; }
+</style>
+<style>
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer; }
+.vista.ancha { grid-template-columns: 1fr !important; }
+.panel.dos { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 960px) { .panel.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.panel.dos .col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.chips button:disabled, input:disabled { opacity: .4; cursor: not-allowed; }
+.figs .controles .chips { margin: 2px 0 4px; }
+@media (min-width: 960px) { .figs .controles { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; row-gap: 8px; align-items: center; } .figs .controles > .aviso, .figs .controles > .chips, .figs .controles > .ctl-ayuda { grid-column: 1 / -1; } }
+.tabs { gap: 6px; }
+.lecturas2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 720px) { .lecturas2 { grid-template-columns: 1fr 1fr; } }
+.kv-panel { background: var(--panel); border-radius: 10px; padding: 8px 12px; grid-template-columns: 1fr !important; font-size: 13px; }
+.kv-tit { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); justify-content: flex-start !important; }
+.aviso { border: 1px solid var(--naranja); color: var(--naranja); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+.cadena { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.cadena .eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.cadena p { margin: 0; }
+a.term { color: inherit; text-decoration: underline dotted; text-underline-offset: 2px; cursor: pointer; }
+.concepto.destello { animation: destello 1.6s ease-out; }
+@keyframes destello { 0% { box-shadow: 0 0 0 3px var(--azul); } 100% { box-shadow: 0 0 0 0 transparent; } }
+[hidden] { display: none !important; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TCEE · Parte A) · 3A5 · Anexo 3 · Comparativa del modelo IS-LM según las escuelas</div>
+    <h1>El IS-LM según las escuelas</h1>
+    <p class="intro">Cada escuela es un juego de pendientes: <b>b</b>, la respuesta del gasto al tipo de interés, inclina la IS; <b>h</b>, la de la demanda de dinero, inclina la LM. Elige una pestaña, mira qué hacen las dos políticas y mueve los mandos de debajo del gráfico. El recuadro «Qué ha cambiado y por qué» explica cada cambio, y las palabras subrayadas abren su ficha.</p>
+  </header>
+  <div class="tabs" role="tablist" aria-label="Escuela" id="tabs"></div>
+
+  <section class="vista-wrap">
+    <p class="mirar" id="mirar"></p>
+    <div class="figs" style="margin-top:12px">
+      <svg class="lamina" id="svg-islm" role="img" aria-label="Política fiscal y política monetaria en el modelo IS-LM"></svg>
+      <div class="lecturas2">
+        <div class="kv kv-panel" id="kv-f"></div>
+        <div class="kv kv-panel" id="kv-m"></div>
+      </div>
+      <div class="controles">
+        <div class="aviso" id="aviso" hidden></div>
+        <div class="chips" id="chips-extra" role="group"></div>
+        <div class="fila" data-ctl="b"><label><b>b</b> (sensibilidad del gasto al tipo)</label><input id="is-b" data-k="b" type="range" min="0" max="5" step="0.05"><span class="val" id="is-b-v"></span></div>
+        <div class="fila" data-ctl="h"><label><b>h</b> (sensibilidad de la demanda de dinero al tipo)</label><input id="is-h" data-k="h" type="range" min="0" max="5" step="0.05"><span class="val" id="is-h-v"></span></div>
+        <label class="check" data-ctl="inf"><input id="is-inf" type="checkbox"><span>h → ∞ (trampa de la liquidez: LM horizontal en i<sub>min</sub>)</span></label>
+        <div class="fila" data-ctl="imin"><label>i<sub>min</sub> (suelo del tipo)</label><input id="is-imin" data-k="imin" type="range" min="0" max="3" step="0.1"><span class="val" id="is-imin-v"></span></div>
+        <div class="fila" data-ctl="k"><label><b>k</b> (sensibilidad de la demanda de dinero a Y)</label><input id="is-k" data-k="k" type="range" min="0.5" max="2" step="0.05"><span class="val" id="is-k-v"></span></div>
+        <div class="fila" data-ctl="dA"><label>ΔA (política fiscal)</label><input id="is-dA" data-k="dA" type="range" min="-3" max="3" step="0.1"><span class="val" id="is-dA-v"></span></div>
+        <div class="fila" data-ctl="dM"><label>Δ(M/P) (política monetaria)</label><input id="is-dM" data-k="dM" type="range" min="-3" max="3" step="0.1"><span class="val" id="is-dM-v"></span></div>
+        <div class="fila" data-ctl="phi"><label>φ (reacción del banco central)</label><input id="is-phi" data-k="phi" type="range" min="0" max="1" step="0.05"><span class="val" id="is-phi-v"></span></div>
+        <div class="fila" data-ctl="dr"><label>Δr (decisión del banco central)</label><input id="is-dr" data-k="dr" type="range" min="-3" max="3" step="0.1"><span class="val" id="is-dr-v"></span></div>
+        <label class="check" data-ctl="simple"><input id="is-simple" type="checkbox" checked><span>Mostrar el multiplicador simple (círculo blanco)</span></label>
+        <p class="ctl-ayuda" id="ayuda-ctl"></p>
+      </div>
+    </div>
+    <div class="vista ancha" style="margin-top:14px">
+      <div class="panel dos">
+        <div class="col">
+          <div class="porque" id="porque-m" aria-live="polite"></div>
+          <div class="cadena" id="cadena"></div>
+        </div>
+        <div class="col">
+          <div class="lectura" id="lec-m"></div>
+          <p class="nota" id="nota"></p>
+        </div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-m"></div></div>
+  </section>
+</div>
+
+<script>
+'use strict';
+const NS = 'http://www.w3.org/2000/svg';
+const fmt = (v, d = 2) => Number.isFinite(v)
+  ? v.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—';
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+/* ------------------------------------------------ ecuaciones con MathJax (SVG) */
+const TEXC = new Map();
+const escH = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const TX = (tex) => `<span class="tex" data-d="1">${escH(tex)}</span>`;
+const TI = (tex) => `<span class="tex">${escH(tex)}</span>`;
+const fT = (v, d = 2) => fmt(v, d).replace(/,/g, '{,}');
+const MV = (t) => String.raw`\class{mv}{${t}}`;
+function montar(root) {
+  if (!window.__mjListo || !root) return;
+  root.querySelectorAll('span.tex:not([data-ok])').forEach((s) => {
+    const tex = s.textContent, d = s.dataset.d === '1', key = (d ? 'D' : 'I') + tex;
+    try {
+      let n = TEXC.get(key);
+      if (!n) { n = MathJax.tex2svg(tex, { display: d }); TEXC.set(key, n); if (TEXC.size > 600) TEXC.delete(TEXC.keys().next().value); }
+      s.replaceChildren(n.cloneNode(true)); s.dataset.ok = '1'; s.setAttribute('aria-label', tex);
+    } catch (e) { /* se queda el texto plano */ }
+  });
+}
+window.montar = montar;
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if ((k === 'stroke' || k === 'fill') && String(v).startsWith('var(')) e.style.setProperty(k, v);
+    else e.setAttribute(k, v);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+/* texto matemático: "PMag_L", "x^2" */
+function tx(parent, x, y, txt, attrs = {}) {
+  const t = el('text', Object.assign({ x, y, class: 'm' }, attrs), parent);
+  const re = /([_^])(\{[^}]*\}|.)/g; let last = 0, m;
+  const push = (s, sh) => { if (!s) return; const ts = el('tspan', {}, t);
+    if (sh) { ts.setAttribute('baseline-shift', sh); ts.setAttribute('font-size', '72%'); } ts.textContent = s; };
+  while ((m = re.exec(txt))) { push(txt.slice(last, m.index)); const b = m[2][0] === '{' ? m[2].slice(1, -1) : m[2];
+    push(b, m[1] === '_' ? 'sub' : 'super'); last = re.lastIndex; }
+  push(txt.slice(last));
+  return t;
+}
+function limpiar(g) { while (g.firstChild) g.removeChild(g.firstChild); }
+function path(pts) {
+  let d = '', on = false;
+  for (const p of pts) { if (!p) { on = false; continue; } d += (on ? 'L' : 'M') + p[0].toFixed(2) + ',' + p[1].toFixed(2); on = true; }
+  return d;
+}
+/* panel con escalas lineales */
+function panel(svg, x0, y0, w, h, xr, yr) {
+  const P = { x0, y0, w, h, xr, yr };
+  P.sx = (x) => x0 + (x - xr[0]) / (xr[1] - xr[0]) * w;
+  P.sy = (y) => y0 + h - (y - yr[0]) / (yr[1] - yr[0]) * h;
+  P.ix = (px) => xr[0] + (px - x0) / w * (xr[1] - xr[0]);
+  P.iy = (py) => yr[0] + (y0 + h - py) / h * (yr[1] - yr[0]);
+  const id = 'c' + Math.random().toString(36).slice(2);
+  const cp = el('clipPath', { id }, svg); el('rect', { x: x0, y: y0 - 2, width: w + 2, height: h + 4 }, cp);
+  P.clip = `url(#${id})`;
+  /* curva f(x) cortada al rango */
+  P.curva = (f, a = xr[0], b = xr[1], n = 400) => {
+    const pts = [];
+    for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n, y = f(x);
+      pts.push(Number.isFinite(y) && y >= yr[0] - (yr[1] - yr[0]) && y <= yr[1] + (yr[1] - yr[0]) ? [P.sx(x), P.sy(y)] : null); }
+    return path(pts);
+  };
+  return P;
+}
+function puntoSVG(svg, evt) {
+  const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+/* arrastre con el estado en el <svg> (cada redibujo sustituye los nodos) */
+function habilitarArrastre(svg, redibujar, alSoltar) {
+  svg._drag = null;
+  svg.addEventListener('pointermove', (e) => { if (!svg._drag) return; svg._drag(puntoSVG(svg, e)); redibujar(); });
+  const fin = (e) => { const habia = !!svg._drag; svg._drag = null; try { svg.releasePointerCapture(e.pointerId); } catch (_) {} if (habia && alSoltar) alSoltar(); };
+  svg.addEventListener('pointerup', fin); svg.addEventListener('pointercancel', fin);
+}
+function arrastrable(svg, nodo, mover, alEmpezar) {
+  nodo.classList.add('drag');
+  nodo.addEventListener('pointerdown', (e) => { e.preventDefault(); if (alEmpezar) alEmpezar(); svg._drag = mover; try { svg.setPointerCapture(e.pointerId); } catch (_) {} });
+}
+function ejes(g, P, xlab, ylab, xt, yt, conCero) {
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0 + P.w + 8, y2: P.y0 + P.h, class: 'eje' }, g);
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0, y2: P.y0 - 8, class: 'eje' }, g);
+  el('path', { d: `M${P.x0 + P.w + 8},${P.y0 + P.h - 4}l7,4l-7,4z`, fill: 'var(--fg)' }, g);
+  el('path', { d: `M${P.x0 - 4},${P.y0 - 8}l4,-7l4,7z`, fill: 'var(--fg)' }, g);
+  tx(g, P.x0 + P.w + 14, P.y0 + P.h + 30, xlab, { 'text-anchor': 'end' });
+  tx(g, P.x0 + 8, P.y0 - 4, ylab, { 'text-anchor': 'start' });
+  for (const v of xt || []) { el('line', { x1: P.sx(v), y1: P.y0 + P.h, x2: P.sx(v), y2: P.y0 + P.h + 4, class: 'tick' }, g);
+    el('text', { x: P.sx(v), y: P.y0 + P.h + 15, class: 'tlab', 'text-anchor': 'middle' }, g).textContent = fmt(v, 0); }
+  for (const v of yt || []) { el('line', { x1: P.x0 - 4, y1: P.sy(v), x2: P.x0, y2: P.sy(v), class: 'tick' }, g);
+    el('text', { x: P.x0 - 7, y: P.sy(v) + 4, class: 'tlab', 'text-anchor': 'end' }, g).textContent = fmt(v, 0); }
+  if (conCero) el('line', { x1: P.x0, y1: P.sy(0), x2: P.x0 + P.w, y2: P.sy(0), class: 'eje', 'stroke-width': .8 }, g);
+}
+
+
+/* ===================================================================== utilidades de explicación */
+const f1 = (v) => fmt(v, 1), f2 = (v) => fmt(v, 2), f3 = (v) => fmt(v, 3);
+const sg = (v, d = 2) => (v > 0 ? '+' : '') + fmt(v, d);
+const HIST = {}, ULT = {};
+const PINTAR = {};
+/* término que abre su ficha */
+const T = (k, txt) => `<a class="term" data-k="${k}">${txt}</a>`;
+function conectarTerminos(root) {
+  root.querySelectorAll('a.term').forEach((a) => {
+    if (a.dataset.on) return; a.dataset.on = '1';
+    a.addEventListener('click', () => {
+      const c = document.querySelector(`#con-m [data-ficha="${a.dataset.k}"]`);
+      if (!c) return;
+      c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      c.classList.remove('destello'); void c.offsetWidth; c.classList.add('destello');
+    });
+  });
+}
+function mostrarPorque(k, e) {
+  HIST[k] = [e, ...(HIST[k] || [])].slice(0, 6);
+  ULT[k] = e.cambia || new Set();
+  const box = document.getElementById('porque-' + k);
+  const [act, ...prev] = HIST[k];
+  box.innerHTML = `<div class="eti">Qué ha cambiado y por qué</div><h3>${act.titulo}</h3>` + act.p.map((t) => `<p>${t}</p>`).join('') +
+    (prev.length ? `<details><summary>Cambios anteriores (${prev.length})</summary>` + prev.map((h) => `<div class="prev"><b>${h.titulo}</b>${h.p.map((t) => `<p>${t}</p>`).join('')}</div>`).join('') + '</details>' : '');
+  montar(box); conectarTerminos(box);
+  PINTAR[k]();
+}
+function pintarConceptos(id, lista, cambia) {
+  const c = document.getElementById(id);
+  c.innerHTML = lista.map((x) => `
+    <article class="concepto${cambia.has(x.k) ? ' cambia' : ''}" data-ficha="${x.k}">
+      <div class="cab"><h4>${x.n}</h4>${cambia.has(x.k) ? '<span class="chip-cambia">ha cambiado</span>' : ''}</div>
+      <p class="def">${x.d}</p>
+      ${x.f ? `<div class="formula">${TX(x.f)}</div>` : ''}
+      ${x.v !== undefined ? `<p class="valor">Ahora: <b>${x.v}</b></p>` : ''}
+      ${x.ref ? `<p class="ref">${x.ref}</p>` : ''}
+    </article>`).join('');
+  montar(c);
+}
+function sesion(k, estado, explicar, redibujar) {
+  let snap = null;
+  return {
+    empezar: () => { if (!snap) snap = JSON.parse(JSON.stringify(estado)); },
+    cerrar: () => { if (!snap) return; const e = explicar(snap, JSON.parse(JSON.stringify(estado))); snap = null; if (e) { if (redibujar) redibujar(); mostrarPorque(k, e); } },
+  };
+}
+
+/* ===================================================================== escuelas y pestañas */
+const PRE = {
+  clas: { A: 9, b: 1, k: 1, h: 0, M: 5, dA: 2, dM: 2, imin: 0, inf: false },
+  key: { A: 5, b: 0.3, k: 1, h: 0.5, M: 6, dA: 1.5, dM: 2, imin: 1, inf: false },
+  sin: { A: 9, b: 1, k: 1, h: 1, M: 2, dA: 2, dM: 2, imin: 0, inf: false },
+  mon: { A: 19.5, b: 3, k: 1, h: 0.25, M: 4.5, dA: 2, dM: 1.5, imin: 0, inf: false },
+};
+const TABS = [
+  ['pend', 'Pendientes'], ['hicks', 'Hicks (LL)'], ['clas', 'Clásicos'], ['key', 'Keynesiano extremo'],
+  ['sin', 'Síntesis'], ['mon', 'Monetaristas'], ['nc', 'Nueva clásica'], ['nk', 'Neokeynesianos (IS-MP)'],
+];
+const NOMBRE = Object.fromEntries(TABS);
+const MIRAR = {
+  pend: 'Dos familias de curvas que pasan por el mismo punto. A la izquierda, la IS con b = 0,4 y b = 3,5; a la derecha, la LM con h = 0, h = 0,35, h = 2,2 y h → ∞. Mueve b y h: la curva en trazo grueso es la tuya.',
+  hicks: 'La LL de Hicks: casi horizontal a la izquierda, porque hay un mínimo por debajo del cual el tipo no baja, y casi vertical a la derecha. Elige la IS que corta cada tramo y compara qué hace cada política.',
+  clas: 'LM vertical (h = 0): el dinero solo sirve para transacciones. La política fiscal solo sube el tipo; la monetaria fija la renta.',
+  key: 'LM horizontal en el suelo del tipo, i<sub>min</sub> = 1: la trampa de la liquidez. La política fiscal da el multiplicador simple; la monetaria no mueve nada.',
+  sin: 'Pendientes normales: las dos políticas funcionan. La fiscal pierde la mitad por el efecto expulsión.',
+  mon: 'IS plana (b grande) y LM empinada (h pequeño): casi toda la expansión fiscal se expulsa y la política monetaria es muy potente.',
+  nc: 'La nueva clásica no discute las pendientes: sustituye el modelo. Plano (Y, P) con la oferta agregada de Lucas. Cambia entre política anticipada y no anticipada.',
+  nk: 'IS-MP: el banco central fija el tipo con una regla y suministra la liquidez que se demande. La expulsión la decide la regla, φ, no el mercado de dinero.',
+};
+const S = { tab: 'sin', A: 9, b: 1, k: 1, h: 1, M: 2, dA: 2, dM: 2, imin: 0, inf: false, simple: true, caso: 'sin',
+  tramo: 2, antic: true, phi: 0, dr: -1.5, rng: null };
+
+/* ===================================================================== modelo IS-LM */
+function eq(s, A, M) {
+  if (s.inf) return { Y: A - s.b * s.imin, i: s.imin, trampa: true };
+  if (s.h < 1e-9) {
+    const Y = M / s.k;
+    if (s.b < 1e-9) return { Y, i: NaN, indet: true };
+    const i = (A - Y) / s.b;
+    return { Y, i };
+  }
+  let Y = (s.h * A + s.b * M) / (s.h + s.b * s.k), i = (s.k * Y - M) / s.h;
+  if (i < s.imin) { i = s.imin; Y = A - s.b * s.imin; return { Y, i, trampa: true }; }
+  return { Y, i };
+}
+const mF = (s) => (s.inf ? 1 : s.h + s.b * s.k < 1e-12 ? NaN : s.h / (s.h + s.b * s.k));
+const mM = (s) => (s.inf ? 0 : s.h + s.b * s.k < 1e-12 ? NaN : s.b / (s.h + s.b * s.k));
+/* LM: Y en función de i (con suelo) */
+const LMpts = (s, M, P, iTop) => {
+  if (s.inf) return [[P.sx(P.xr[0]), P.sy(s.imin)], [P.sx(P.xr[1]), P.sy(s.imin)]];
+  if (s.h < 1e-9) return [[P.sx(M / s.k), P.sy(P.yr[0])], [P.sx(M / s.k), P.sy(iTop)]];
+  const Yf = (M + s.h * s.imin) / s.k, pts = [];
+  if (s.imin > 0) pts.push([P.sx(P.xr[0]), P.sy(s.imin)]);
+  const i0 = Math.max(s.imin, 0);
+  pts.push([P.sx((M + s.h * i0) / s.k), P.sy(i0)]);
+  pts.push([P.sx((M + s.h * iTop) / s.k), P.sy(iTop)]);
+  void Yf; return pts;
+};
+const ISpts = (s, A, P, iTop) => [[P.sx(A - s.b * P.yr[0]), P.sy(P.yr[0])], [P.sx(A - s.b * iTop), P.sy(iTop)]];
+function calc(s) {
+  const e0 = eq(s, s.A, s.M), eF = eq(s, s.A + s.dA, s.M), eM = eq(s, s.A, s.M + s.dM);
+  const dYf = eF.Y - e0.Y, dif = eF.i - e0.i, dYm = eM.Y - e0.Y, dim = eM.i - e0.i;
+  const expulsion = Math.abs(s.dA) > 1e-9 ? 1 - dYf / s.dA : NaN;
+  return { e0, eF, eM, dYf, dif, dYm, dim, expulsion, mf: mF(s), mm: mM(s) };
+}
+
+/* ===================================================================== Hicks: la LL */
+const HK = { M: 8, imin: 1, s: 0.3, A: [4.5, 9, 13] };
+const LLi = (Y, M) => (Y >= M ? Infinity : HK.imin + HK.s * Y / (M - Y));
+function eqLL(A, M) { let lo = 0, hi = M - 1e-9; for (let j = 0; j < 100; j++) { const m = (lo + hi) / 2; if (m + LLi(m, M) < A) lo = m; else hi = m; } const Y = (lo + hi) / 2; return { Y, i: LLi(Y, M) }; }
+const TRAMO = ['plano («economía de la depresión»)', 'intermedio («teoría general»)', 'casi vertical (el «clásico» de los manuales)'];
+
+/* ===================================================================== nueva clásica: (Y, P) */
+const NC = { A: 5, M: 6, a: 0.5, bt: 0.5, Yn: 5.5, g: 4, P0: 1 };
+const DAy = (P, A, M) => NC.a * A + NC.bt * M / P;
+const OAy = (P, Pe) => NC.Yn + NC.g * (P - Pe);
+function cruceNC(A, M, Pe) { let lo = 0.05, hi = 20; for (let j = 0; j < 100; j++) { const m = (lo + hi) / 2; if (OAy(m, Pe) < DAy(m, A, M)) lo = m; else hi = m; } const P = (lo + hi) / 2; return { P, Y: OAy(P, Pe) }; }
+function calcNC(s, A, M) {
+  const PC = NC.bt * M / (NC.Yn - NC.a * A);                  /* anticipada: Y = Yn */
+  return { A0: { P: NC.P0, Y: NC.Yn }, B: cruceNC(A, M, NC.P0), C: { P: PC, Y: NC.Yn }, PC };
+}
+
+/* ===================================================================== neokeynesianos: IS-MP */
+const NK = { A: 9, r0: 3.5, Y0: 5.5 };
+function calcNK(s, dA, dr, phi) {
+  const A = NK.A + dA, r0 = NK.r0 + dr;
+  const Y = (A - s.b * r0 + s.b * phi * NK.Y0) / (1 + s.b * phi);
+  return { Y, r: r0 + phi * (Y - NK.Y0) };
+}
+
+/* ===================================================================== dibujo */
+const svg = document.getElementById('svg-islm'); svg.setAttribute('viewBox', '0 0 1000 470');
+const g = el('g', {}, svg);
+const SM = sesion('m', S, explicar, () => dibujar());
+let PF, PM_;
+function paneles() {
+  const R = S.rng || { Y: 10, i: 8 };
+  limpiar(g); limpiar(svg); svg.appendChild(g);
+  PF = panel(svg, 58, 34, 380, 360, [0, R.Y], [0, R.i]);
+  PM_ = panel(svg, 578, 34, 380, 360, [0, R.Y], [0, R.i]);
+}
+const niceUp = (v) => { const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= v) return m * p; return 10 * p; };
+function rangoEscuela(s) {
+  const c = calc(s), Ys = [c.e0.Y, c.eF.Y, c.eM.Y, c.e0.Y + Math.abs(s.dA)].filter(Number.isFinite);
+  const is = [c.e0.i, c.eF.i, c.eM.i].filter(Number.isFinite);
+  return { Y: niceUp(Math.max(8, ...Ys) * 1.35), i: niceUp(Math.max(6, ...is) * 1.5) };
+}
+function ticks(max) { const st = max <= 6 ? 1 : max <= 12 ? 2 : max <= 30 ? 5 : 10; const t = []; for (let v = 0; v <= max + 1e-9; v += st) t.push(v); return t; }
+function marco(P, titulo, xl, yl) {
+  ejes(g, P, xl, yl, ticks(P.xr[1]), ticks(P.yr[1]));
+  el('text', { x: P.x0 + P.w / 2, y: 16, class: 'r', 'text-anchor': 'middle' }, g).textContent = titulo;
+}
+const linea = (pts, attrs, parent) => el('path', Object.assign({ d: path(pts) }, attrs), parent || g);
+/* punto para rotular una recta Y(i) dentro del panel */
+function sitio(P, Yde, ipref) {
+  for (const f of [ipref, 0.92, 0.8, 0.65, 0.5, 0.35, 0.2]) { const i = P.yr[1] * f, Y = Yde(i); if (Y > P.xr[1] * 0.04 && Y < P.xr[1] * 0.9) return [Y, i]; }
+  return [P.xr[1] * 0.85, P.yr[1] * 0.1];
+}
+function rotIS(P, A, b, t, f) {
+  if (b * P.yr[1] > P.xr[1] * 1.2) { const Y = P.xr[1] * (f > 0.85 ? 0.03 : 0.1), i = (A - Y) / b; if (i > 0 && i < P.yr[1] * 0.95) { rot(P, Y, i + P.yr[1] * 0.03, t, 'var(--rojo)'); return; } }
+  const [Y, i] = sitio(P, (i) => A - b * i, f); rot(P, Y + P.xr[1] * 0.018, i + P.yr[1] * 0.012, t, 'var(--rojo)'); }
+function rot(P, x, y, t, color, extra = {}) { return tx(g, P.sx(x), P.sy(y), t, Object.assign({ style: `fill:${color}` }, extra)); }
+function punto(P, Y, i, etiqueta, opts = {}) {
+  if (!Number.isFinite(Y) || !Number.isFinite(i)) return;
+  el('circle', opts.hueco ? { cx: P.sx(Y), cy: P.sy(i), r: opts.r || 6, fill: 'var(--bg)', stroke: 'var(--punto)', 'stroke-width': 1.8 } : { cx: P.sx(Y), cy: P.sy(i), r: opts.r || 6, class: 'pto', fill: 'var(--punto)' }, g);
+  if (etiqueta) tx(g, P.sx(Y) + (opts.dx ?? 8), P.sy(i) + (opts.dy ?? -8), etiqueta, { style: `font-size:${opts.fs || 14}px;fill:var(--punto)` + (opts.hueco ? ';opacity:.8' : '') });
+}
+function guias(P, Y, i, yl = 'Y', il = 'i', sub = '0') {
+  if (!Number.isFinite(Y) || !Number.isFinite(i)) return;
+  el('line', { x1: P.sx(Y), y1: P.sy(i), x2: P.sx(Y), y2: P.y0 + P.h, class: 'guia' }, g);
+  el('line', { x1: P.x0, y1: P.sy(i), x2: P.sx(Y), y2: P.sy(i), class: 'guia' }, g);
+  const dxY = sub === '0' ? 0 : (Math.abs(P.sx(Y) - (P._y0x ?? -99)) < 16 ? 14 : 0), dyI = sub === '0' ? 0 : (Math.abs(P.sy(i) - (P._i0y ?? -99)) < 13 ? (P.sy(i) > P._i0y ? 10 : -10) : 0);
+  if (sub === '0') { P._y0x = P.sx(Y); P._i0y = P.sy(i); }
+  tx(g, P.sx(Y) + dxY, P.y0 + P.h + 30, `${yl}_${sub}`, { 'text-anchor': 'middle', style: 'font-size:12px' });
+  tx(g, P.x0 + 5, P.sy(i) - 4 + dyI, `${il}_${sub}`, { style: 'font-size:12px' });
+}
+function flecha(P, a, b) {
+  if (![a.Y, a.i, b.Y, b.i].every(Number.isFinite)) return;
+  const x1 = P.sx(a.Y), y1 = P.sy(a.i), x2 = P.sx(b.Y), y2 = P.sy(b.i), L = Math.hypot(x2 - x1, y2 - y1);
+  if (L < 14) return;
+  const ux = (x2 - x1) / L, uy = (y2 - y1) / L, xa = x1 + ux * 9, ya = y1 + uy * 9, xb = x2 - ux * 10, yb = y2 - uy * 10;
+  el('line', { x1: xa, y1: ya, x2: xb, y2: yb, stroke: 'var(--punto)', 'stroke-width': 1.8 }, g);
+  el('path', { d: `M${xb + ux * 2},${yb + uy * 2}l${-ux * 9 - uy * 4.5},${-uy * 9 + ux * 4.5}l${uy * 9},${-ux * 9}z`, fill: 'var(--punto)' }, g);
+}
+const EPS = 1e-6;
+
+function dibujar() {
+  paneles();
+  const s = S;
+  if (s.tab === 'pend') dibPend(s);
+  else if (s.tab === 'hicks') dibHicks(s);
+  else if (s.tab === 'nc') dibNC(s);
+  else if (s.tab === 'nk') dibNK(s);
+  else dibEscuela(s);
+  refrescar();
+  PINTAR.m();
+}
+
+/* ---------- escuelas (IS-LM) */
+function dibEscuela(s) {
+  const c = calc(s);
+  // ampliar el rango si algo se sale
+  const R = S.rng, Ys = [c.e0.Y, c.eF.Y, c.eM.Y, c.e0.Y + s.dA], is = [c.e0.i, c.eF.i, c.eM.i];
+  if (Ys.some((v) => v > R.Y * 0.95) || is.some((v) => v > R.i * 0.92)) { S.rng = { Y: niceUp(Math.max(R.Y, ...Ys.filter(Number.isFinite)) * 1.25), i: niceUp(Math.max(R.i, ...is.filter(Number.isFinite)) * 1.25) }; return dibujar(); }
+  for (const [P, tipo] of [[PF, 'f'], [PM_, 'm']]) {
+    marco(P, tipo === 'f' ? 'POLÍTICA FISCAL · ΔA' : 'POLÍTICA MONETARIA · Δ(M/P)', 'Y', 'i');
+    const gc = el('g', { 'clip-path': P.clip }, g), top = P.yr[1] * 1.05;
+    // IS
+    linea(ISpts(s, s.A, P, top), { class: 'cur', stroke: 'var(--rojo)' }, gc);
+    rotIS(P, s.A, s.b, 'IS', 0.9);
+    if (tipo === 'f' && Math.abs(s.dA) > EPS) {
+      linea(ISpts(s, s.A + s.dA, P, top), { class: 'cur', stroke: 'var(--rojo)', 'stroke-dasharray': '7 4' }, gc);
+      rotIS(P, s.A + s.dA, s.b, "IS'", 0.8);
+    }
+    // LM
+    linea(LMpts(s, s.M, P, top), { class: 'cur', stroke: 'var(--azul)' }, gc);
+    const yLab = (M, f) => (s.inf ? [P.xr[1] * 0.86, s.imin + P.yr[1] * 0.04] : s.h < EPS ? [M / s.k + P.xr[1] * 0.012, P.yr[1] * f] : [(M + s.h * P.yr[1] * f) / s.k + P.xr[1] * 0.015, P.yr[1] * f]);
+    { const [x, y] = yLab(s.M, 0.92); rot(P, Math.min(x, P.xr[1] * 0.93), y, 'LM', 'var(--azul)'); }
+    if (tipo === 'm' && Math.abs(s.dM) > EPS) {
+      linea(LMpts(s, s.M + s.dM, P, top), { class: 'cur', stroke: 'var(--azul)', 'stroke-dasharray': '7 4' }, gc);
+      const [x, y] = yLab(s.M + s.dM, 0.8); rot(P, Math.min(x, P.xr[1] * 0.93), y + (s.inf ? P.yr[1] * 0.06 : 0), "LM'", 'var(--azul)');
+    }
+    const e1 = tipo === 'f' ? c.eF : c.eM;
+    guias(P, c.e0.Y, c.e0.i);
+    const mueve = Math.abs(e1.Y - c.e0.Y) > 1e-3 || Math.abs(e1.i - c.e0.i) > 1e-3;
+    if (mueve) guias(P, e1.Y, e1.i, 'Y', 'i', '1');
+    if (tipo === 'f' && s.simple && Math.abs(s.dA) > EPS && Number.isFinite(c.e0.i) && Math.abs(c.eF.Y - c.e0.Y - s.dA) > 0.05) {
+      el('line', { x1: P.sx(c.e0.Y), y1: P.sy(c.e0.i), x2: P.sx(c.e0.Y + s.dA), y2: P.sy(c.e0.i), class: 'guia' }, g);
+      punto(P, c.e0.Y + s.dA, c.e0.i, 'ΔY = ΔA', { hueco: true, r: 5.5, fs: 11, dy: 18, dx: -18 });
+    }
+    if (tipo === 'm' && s.simple && Math.abs(s.dM) > EPS && !s.inf && s.h > EPS && !c.e0.trampa) {
+      const il = Math.max(s.imin, (s.k * c.e0.Y - s.M - s.dM) / s.h);
+      if (Math.abs(il - c.e0.i) > 1e-3 && il > P.yr[1] * 0.03) punto(P, c.e0.Y, il, 'a Y₀', { hueco: true, r: 5, fs: 11, dx: -40, dy: 4 });
+    }
+    flecha(P, c.e0, e1);
+    punto(P, c.e0.Y, c.e0.i, 'E₀', { dx: -24, dy: -8 });
+    if (mueve) punto(P, e1.Y, e1.i, 'E₁');
+    else if (Math.abs(tipo === 'f' ? s.dA : s.dM) > EPS) el('text', { x: P.sx(c.e0.Y) + 10, y: P.sy(c.e0.i) + 22, class: 'r', style: 'fill:var(--punto);font-size:10.5px' }, g).textContent = 'E₀ = E₁: NO SE MUEVE';
+    if (c.e0.indet) el('text', { x: P.x0 + P.w / 2, y: P.y0 + 30, class: 'r', 'text-anchor': 'middle', style: 'fill:var(--rojo)' }, g).textContent = 'b = 0 y h = 0: IS y LM verticales, sin equilibrio';
+  }
+  const fila = (k, v) => `<div><span>${k}</span><b>${v}</b></div>`;
+  const ex = Number.isFinite(c.expulsion) ? fmt(100 * c.expulsion, 0) + ' %' : '—';
+  document.getElementById('kv-f').innerHTML = '<div class="kv-tit">Política fiscal</div>' + fila('E₀ → E₁', `(${f2(c.e0.Y)}; ${f2(c.e0.i)}) → (${f2(c.eF.Y)}; ${f2(c.eF.i)})`) + fila('ΔY · Δi', `${sg(c.dYf)} · ${sg(c.dif)}`) + fila(`${T('expulsion', 'Expulsión')} (1 − ΔY/ΔA)`, ex) + fila('Multiplicador fiscal h/(h+bk)', Number.isFinite(c.mf) ? f3(c.mf) + (c.e0.trampa && !s.inf ? ' <span class="ayuda">(en el suelo: 1)</span>' : '') : '—');
+  document.getElementById('kv-m').innerHTML = '<div class="kv-tit">Política monetaria</div>' + fila('E₀ → E₁', `(${f2(c.e0.Y)}; ${f2(c.e0.i)}) → (${f2(c.eM.Y)}; ${f2(c.eM.i)})`) + fila('ΔY · Δi', `${sg(c.dYm)} · ${sg(c.dim)}`) + fila('ΔY / Δ(M/P)', Math.abs(s.dM) > EPS ? f3(c.dYm / s.dM) : '—') + fila('Multiplicador monetario b/(h+bk)', Number.isFinite(c.mm) ? f3(c.mm) + (c.e0.trampa && !s.inf ? ' <span class="ayuda">(en el suelo: 0)</span>' : '') : '—');
+  cadenas(s, c);
+  lecturaEscuela(s, c);
+}
+
+/* ---------- pendientes */
+function dibPend(s) {
+  const Y0 = 5.5, i0 = 3.5;
+  for (const [P, tipo] of [[PF, 'IS'], [PM_, 'LM']]) {
+    marco(P, tipo === 'IS' ? 'LA IS: EL PAPEL DE b' : 'LA LM: EL PAPEL DE h', 'Y', 'i');
+    const gc = el('g', { 'clip-path': P.clip }, g), top = P.yr[1] * 1.05;
+    if (tipo === 'IS') {
+      for (const [bb, et, ff] of [[0.4, 'b = 0,4', 0.92], [3.5, 'b = 3,5', 0.35]]) {
+        linea([[P.sx(Y0 + bb * i0), P.sy(0)], [P.sx(Y0 - bb * (top - i0)), P.sy(top)]], { class: 'cur-fina', style: 'stroke:var(--rojo);opacity:.6;stroke-width:1.6' }, gc);
+        const [yy, ii] = sitio(P, (i) => Y0 - bb * (i - i0), ff); rot(P, yy + 0.12, ii + 0.1, et, 'var(--rojo)', { style: 'fill:var(--rojo);font-size:12px;opacity:.85' });
+      }
+      linea([[P.sx(Y0 + s.b * i0), P.sy(0)], [P.sx(Y0 - s.b * (top - i0)), P.sy(top)]], { class: 'cur', stroke: 'var(--rojo)' }, gc);
+      rot(P, Math.max(0.2, Math.min(9.2, Y0 - s.b * (6.6 - i0))) + 0.15, 6.6, `IS (b = ${f2(s.b)})`, 'var(--rojo)', { style: 'fill:var(--rojo);font-size:13px;font-weight:600' });
+    } else {
+      const fam = [[0, 'h = 0'], [0.35, 'h = 0,35'], [2.2, 'h = 2,2'], [Infinity, 'h → ∞']];
+      for (const [hh, et] of fam) {
+        const pts = hh === Infinity ? [[P.sx(0), P.sy(i0)], [P.sx(P.xr[1]), P.sy(i0)]] : [[P.sx(Y0 + (hh / s.k) * (0 - i0)), P.sy(0)], [P.sx(Y0 + (hh / s.k) * (top - i0)), P.sy(top)]];
+        linea(pts, { class: 'cur-fina', style: 'stroke:var(--azul);opacity:.6;stroke-width:1.6' }, gc);
+        const yy = hh === Infinity ? i0 + 0.2 : hh === 0 ? 7.3 : 6.6 + (hh > 1 ? -1.2 : 0);
+        const xx = hh === Infinity ? 8.6 : Y0 + (hh / s.k) * (yy - i0) + 0.12;
+        rot(P, Math.min(xx, 9.2), yy, et, 'var(--azul)', { style: 'fill:var(--azul);font-size:12px;opacity:.85' });
+      }
+      const hh = s.inf ? Infinity : s.h;
+      const pts = hh === Infinity ? [[P.sx(0), P.sy(i0)], [P.sx(P.xr[1]), P.sy(i0)]] : [[P.sx(Y0 - (hh / s.k) * i0), P.sy(0)], [P.sx(Y0 + (hh / s.k) * (top - i0)), P.sy(top)]];
+      linea(pts, { class: 'cur', stroke: 'var(--azul)' }, gc);
+      rot(P, 0.3, 0.5, `LM (h = ${s.inf ? '∞' : f2(s.h)}, k = ${f2(s.k)})`, 'var(--azul)', { style: 'fill:var(--azul);font-size:13px;font-weight:600' });
+    }
+    punto(P, Y0, i0, 'E₀', { dx: -24 });
+  }
+  const pIS = s.b < EPS ? 'vertical' : f3(-1 / s.b), pLM = s.inf ? '0 (horizontal)' : s.h < EPS ? 'vertical' : f3(s.k / s.h);
+  const sv = { b: s.b, h: s.h, k: s.k, inf: s.inf, imin: -1e9 };
+  document.getElementById('kv-f').innerHTML = `<div class="kv-tit">IS</div><div><span>Pendiente −1/b</span><b>${pIS}</b></div><div><span>Multiplicador monetario b/(h+bk)</span><b>${Number.isFinite(mM(sv)) ? f3(mM(sv)) : '—'}</b></div>`;
+  document.getElementById('kv-m').innerHTML = `<div class="kv-tit">LM</div><div><span>Pendiente k/h</span><b>${pLM}</b></div><div><span>Multiplicador fiscal h/(h+bk)</span><b>${Number.isFinite(mF(sv)) ? f3(mF(sv)) : '—'}</b></div>`;
+  document.getElementById('cadena').innerHTML = `<div class="eti">Qué dice cada pendiente</div><p>La IS es más plana cuanto mayor es <b>b</b>: si el gasto responde mucho al tipo, una bajada pequeña de i basta para que la renta de equilibrio del mercado de bienes suba mucho. Con b = 0 es vertical.</p><p>La LM es más plana cuanto mayor es <b>h</b> (más pesa el ${T('especulacion', 'motivo especulación')}) y más empinada cuanto mayor es <b>k</b>. Con h = 0 es vertical (el caso que los manuales llaman clásico); con h → ∞, horizontal (la ${T('trampa', 'trampa de la liquidez')}).</p>`;
+  conectarTerminos(document.getElementById('cadena'));
+  lecturaEscuela(s, null);
+}
+
+/* ---------- Hicks */
+function dibHicks(s) {
+  const M0 = HK.M, M1 = HK.M + s.dM, A = HK.A[s.tramo - 1], A1 = A + s.dA;
+  const e0 = eqLL(A, M0), eF = eqLL(A1, M0), eM = eqLL(A, M1);
+  for (const [P, tipo] of [[PF, 'f'], [PM_, 'm']]) {
+    marco(P, tipo === 'f' ? 'POLÍTICA FISCAL · ΔA' : 'POLÍTICA MONETARIA · ΔM', 'Y', 'i');
+    const gc = el('g', { 'clip-path': P.clip }, g), top = P.yr[1] * 1.05;
+    const LL = (M) => { const pts = []; for (let j = 0; j <= 300; j++) { const Y = (M - 0.02) * j / 300, i = LLi(Y, M); if (i <= top) pts.push([P.sx(Y), P.sy(i)]); } pts.push([P.sx(M - 0.002), P.sy(top)]); return pts; };
+    // las tres IS, la elegida en grueso
+    HK.A.forEach((Aj, j) => {
+      const sel = j + 1 === s.tramo;
+      linea([[P.sx(Aj), P.sy(0)], [P.sx(Aj - top), P.sy(top)]], sel ? { class: 'cur', stroke: 'var(--rojo)' } : { class: 'cur-fina', style: 'stroke:var(--rojo);opacity:.45' }, gc);
+      rot(P, Aj - 0.3 + 0.2, 0.3, `IS${['₁', '₂', '₃'][j]}`, 'var(--rojo)', { style: `fill:var(--rojo);font-size:13px;opacity:${sel ? 1 : 0.55}` });
+    });
+    if (tipo === 'f' && Math.abs(s.dA) > EPS) { linea([[P.sx(A1), P.sy(0)], [P.sx(A1 - top), P.sy(top)]], { class: 'cur', stroke: 'var(--rojo)', 'stroke-dasharray': '7 4' }, gc); rot(P, A1 - 6.6 + 0.15, 6.6, "IS'", 'var(--rojo)'); }
+    linea(LL(M0), { class: 'cur', stroke: 'var(--azul)' }, gc);
+    rot(P, M0 - 0.6, P.yr[1] * 0.93, 'LL', 'var(--azul)', { 'text-anchor': 'end' });
+    if (tipo === 'm' && Math.abs(s.dM) > EPS) { linea(LL(M1), { class: 'cur', stroke: 'var(--azul)', 'stroke-dasharray': '7 4' }, gc); rot(P, M1 + 0.15, P.yr[1] * 0.8, "LL'", 'var(--azul)'); }
+    el('text', { x: P.sx(0.3), y: P.sy(HK.imin) + 16, class: 'r', style: 'fill:var(--muted);font-size:10.5px' }, g).textContent = 'MÍNIMO DEL TIPO';
+    const e1 = tipo === 'f' ? eF : eM;
+    guias(P, e0.Y, e0.i);
+    if (Math.abs(e1.Y - e0.Y) > 1e-3) guias(P, e1.Y, e1.i, 'Y', 'i', '1');
+    if (tipo === 'f' && s.simple && Math.abs(s.dA) > EPS) punto(P, e0.Y + s.dA, e0.i, 'ΔY = ΔA', { hueco: true, r: 5.5, fs: 11, dy: 18, dx: -18 });
+    flecha(P, e0, e1); punto(P, e0.Y, e0.i, 'E₀', { dx: -24 }); if (Math.abs(e1.Y - e0.Y) > 1e-3) punto(P, e1.Y, e1.i, 'E₁');
+  }
+  const fila = (k, v) => `<div><span>${k}</span><b>${v}</b></div>`;
+  document.getElementById('kv-f').innerHTML = '<div class="kv-tit">Política fiscal</div>' + fila('ΔY · Δi', `${sg(eF.Y - e0.Y)} · ${sg(eF.i - e0.i)}`) + fila(T('expulsion', 'Expulsión'), Math.abs(s.dA) > EPS ? fmt(100 * (1 - (eF.Y - e0.Y) / s.dA), 0) + ' %' : '—') + fila('Tramo', TRAMO[s.tramo - 1]);
+  document.getElementById('kv-m').innerHTML = '<div class="kv-tit">Política monetaria</div>' + fila('ΔY · Δi', `${sg(eM.Y - e0.Y)} · ${sg(eM.i - e0.i)}`) + fila('ΔY / ΔM', Math.abs(s.dM) > EPS ? f3((eM.Y - e0.Y) / s.dM) : '—');
+  const t = s.tramo;
+  document.getElementById('cadena').innerHTML = `<div class="eti">Qué decide el tramo</div><p>${t === 1 ? `La IS corta la LL en su tramo plano: el tipo está casi en su mínimo. Una expansión fiscal apenas lo sube y casi no expulsa gasto (ΔY = ${f2(eF.Y - e0.Y)} de ${f2(s.dA)}); más dinero no lo baja, así que la política monetaria casi no hace nada (ΔY = ${f2(eM.Y - e0.Y)}). Es la frase de Hicks: la <i>Teoría General</i> es «la economía de la depresión».` : t === 2 ? `La IS corta en el tramo intermedio: las dos políticas funcionan a medias (fiscal ΔY = ${f2(eF.Y - e0.Y)}, monetaria ΔY = ${f2(eM.Y - e0.Y)}). Es la «teoría general» que Hicks obtiene al meter la renta en la demanda de dinero, M = L(Y, i), y que le parece «apreciablemente más ortodoxa».` : `La IS corta en el tramo casi vertical: el dinero está todo comprometido en transacciones. La expansión fiscal solo sube el tipo (ΔY = ${f2(eF.Y - e0.Y)}) y la monetaria mueve casi toda la renta (ΔY = ${f2(eM.Y - e0.Y)}). Los manuales posteriores llamarán «clásico» a este tramo; Hicks no usó esa palabra para él.`}</p><p>Cautela: Hicks llamó «teoría especial» de Keynes al caso M = L(i), con la demanda de dinero dependiente solo del tipo, no a la trampa.</p>`;
+  conectarTerminos(document.getElementById('cadena'));
+  lecturaHicks(s, e0, eF, eM);
+}
+
+/* ---------- nueva clásica */
+function dibNC(s) {
+  const A1 = NC.A + s.dA, M1 = NC.M + s.dM;
+  for (const [P, tipo] of [[PF, 'f'], [PM_, 'm']]) {
+    const Ax = tipo === 'f' ? A1 : NC.A, Mx = tipo === 'f' ? NC.M : M1, mov = Math.abs(tipo === 'f' ? s.dA : s.dM) > EPS;
+    const r = calcNC(s, Ax, Mx);
+    marco(P, tipo === 'f' ? 'POLÍTICA FISCAL · ΔA' : 'POLÍTICA MONETARIA · ΔM', 'Y', 'P');
+    const gc = el('g', { 'clip-path': P.clip }, g);
+    const curvaDA = (A, M) => { const pts = []; for (let j = 1; j <= 300; j++) { const Pp = P.yr[1] * j / 300; pts.push([P.sx(DAy(Pp, A, M)), P.sy(Pp)]); } return pts; };
+    const curvaOA = (Pe) => [[P.sx(OAy(0, Pe)), P.sy(0)], [P.sx(OAy(P.yr[1], Pe)), P.sy(P.yr[1])]];
+    linea(curvaDA(NC.A, NC.M), { class: 'cur', stroke: 'var(--rojo)' }, gc);
+    rot(P, DAy(P.yr[1] * 0.9, NC.A, NC.M) + 0.15, P.yr[1] * 0.9, 'DA', 'var(--rojo)');
+    if (mov) { linea(curvaDA(Ax, Mx), { class: 'cur', stroke: 'var(--rojo)', 'stroke-dasharray': '7 4' }, gc); rot(P, DAy(P.yr[1] * 0.78, Ax, Mx) + 0.15, P.yr[1] * 0.78, "DA'", 'var(--rojo)'); }
+    linea(curvaOA(NC.P0), { class: 'cur', stroke: 'var(--azul)' }, gc);
+    rot(P, OAy(P.yr[1] * 0.12, NC.P0) + 0.25, P.yr[1] * 0.1, 'OA (Pᵉ = P₀)', 'var(--azul)', { style: 'fill:var(--azul);font-size:13px' });
+    if (mov && s.antic && Number.isFinite(r.PC) && r.PC > 0) { linea(curvaOA(r.PC), { class: 'cur', stroke: 'var(--azul)', 'stroke-dasharray': '7 4' }, gc); rot(P, Math.min(OAy(P.yr[1] * 0.97, r.PC), P.xr[1] * 0.8) + 0.15, P.yr[1] * 0.97, "OA'", 'var(--azul)'); }
+    el('line', { x1: P.sx(NC.Yn), y1: P.y0, x2: P.sx(NC.Yn), y2: P.y0 + P.h, class: 'guia', style: 'stroke:var(--muted);stroke-dasharray:2 3' }, g);
+    tx(g, P.sx(NC.Yn), P.y0 + P.h + 30, 'Y_n', { 'text-anchor': 'middle', style: 'font-size:12px' });
+    punto(P, NC.Yn, NC.P0, 'A', { dx: -18 });
+    if (mov) {
+      const fin = s.antic ? r.C : r.B;
+      punto(P, r.B.Y, r.B.P, 'B', s.antic ? { hueco: true, r: 5 } : {});
+      if (Number.isFinite(r.C.P) && r.C.P > 0 && r.C.P < P.yr[1]) punto(P, r.C.Y, r.C.P, 'C', s.antic ? { dx: -20 } : { hueco: true, r: 5, dx: -20 });
+      flecha(P, { Y: NC.Yn, i: NC.P0 }, { Y: fin.Y, i: fin.P });
+      el('line', { x1: P.x0, y1: P.sy(fin.P), x2: P.sx(fin.Y), y2: P.sy(fin.P), class: 'guia' }, g);
+    }
+    el('line', { x1: P.x0, y1: P.sy(NC.P0), x2: P.sx(NC.Yn), y2: P.sy(NC.P0), class: 'guia' }, g);
+    tx(g, P.x0 + 5, P.sy(NC.P0) - 4, 'P_0', { style: 'font-size:12px' });
+  }
+  const rF = calcNC(s, NC.A + s.dA, NC.M), rM = calcNC(s, NC.A, NC.M + s.dM);
+  const fila = (k, v) => `<div><span>${k}</span><b>${v}</b></div>`;
+  const lado = (r, tit) => `<div class="kv-tit">${tit}</div>` + fila('Anticipada: A → C', `Y = ${f2(r.C.Y)}, P = ${f2(r.C.P)}`) + fila('No anticipada: A → B', `Y = ${f2(r.B.Y)}, P = ${f2(r.B.P)}`);
+  document.getElementById('kv-f').innerHTML = lado(rF, 'Política fiscal');
+  document.getElementById('kv-m').innerHTML = lado(rM, 'Política monetaria');
+  document.getElementById('cadena').innerHTML = `<div class="eti">Qué pasa con cada política</div>
+    <p>${s.antic ? `<b>Anticipada.</b> Con ${T('expectativas', 'expectativas racionales')}, los agentes conocen la política y su efecto: Pᵉ sube a la vez que P, la ${T('lucas', 'OA de Lucas')} se desplaza y la economía pasa de A a C. La renta no se mueve de Y<sub>n</sub> = ${f2(NC.Yn)}; solo suben los precios (con la monetaria, P sube en la misma proporción que M: de ${f2(NC.P0)} a ${f2(rM.C.P)}). Es la proposición de ineficacia de Sargent y Wallace.` : `<b>No anticipada.</b> Los agentes esperaban P<sub>0</sub>: la DA se desplaza y la economía se mueve a lo largo de la OA de Lucas, de A a B. La renta sube por encima de Y<sub>n</sub> (fiscal: ${f2(rF.B.Y)}, monetaria: ${f2(rM.B.Y)}) porque los productores confunden la subida general de precios con una subida de su precio relativo. Es temporal: en cuanto revisan Pᵉ, la economía vuelve a Y<sub>n</sub>.`}</p>
+    <p>La nueva clásica no discute las pendientes del IS-LM: lo sustituye. Sin expectativas racionales ni fundamentos de optimización, sus parámetros cambian cuando cambia la política (crítica de Lucas).</p>`;
+  conectarTerminos(document.getElementById('cadena'));
+  lecturaNC(s, rF, rM);
+}
+
+/* ---------- neokeynesianos */
+function dibNK(s) {
+  const b0 = calcNK(s, 0, 0, s.phi), fF0 = calcNK(s, s.dA, 0, 0), fF = calcNK(s, s.dA, 0, s.phi), fM = calcNK(s, 0, s.dr, s.phi);
+  for (const [P, tipo] of [[PF, 'f'], [PM_, 'm']]) {
+    marco(P, tipo === 'f' ? 'POLÍTICA FISCAL · ΔA' : 'POLÍTICA MONETARIA · Δr', 'Y', 'r');
+    const gc = el('g', { 'clip-path': P.clip }, g), top = P.yr[1] * 1.05;
+    linea([[P.sx(NK.A), P.sy(0)], [P.sx(NK.A - s.b * top), P.sy(top)]], { class: 'cur', stroke: 'var(--rojo)' }, gc);
+    rotIS(P, NK.A, s.b, 'IS', 0.9);
+    if (tipo === 'f' && Math.abs(s.dA) > EPS) { linea([[P.sx(NK.A + s.dA), P.sy(0)], [P.sx(NK.A + s.dA - s.b * top), P.sy(top)]], { class: 'cur', stroke: 'var(--rojo)', 'stroke-dasharray': '7 4' }, gc); rotIS(P, NK.A + s.dA, s.b, "IS'", 0.8); }
+    // MP de partida y regla
+    linea([[P.sx(0), P.sy(NK.r0)], [P.sx(P.xr[1]), P.sy(NK.r0)]], { class: 'cur', stroke: 'var(--azul)' }, gc);
+    rot(P, P.xr[1] * 0.9, NK.r0 + P.yr[1] * 0.025, 'MP', 'var(--azul)');
+    const fin = tipo === 'f' ? fF : fM, mov = Math.abs(tipo === 'f' ? s.dA : s.dr) > EPS;
+    if (s.phi > EPS) {
+      const r0x = NK.r0 + (tipo === 'm' ? s.dr : 0);
+      linea([[P.sx(0), P.sy(r0x - s.phi * NK.Y0)], [P.sx(P.xr[1]), P.sy(r0x + s.phi * (P.xr[1] - NK.Y0))]], { class: 'rayo', stroke: 'var(--azul)' }, gc);
+      rot(P, P.xr[1] * 0.06, r0x + s.phi * (P.xr[1] * 0.06 - NK.Y0) + 0.35, `regla, φ = ${f2(s.phi)}`, 'var(--azul)', { style: 'fill:var(--azul);font-size:11px;opacity:.85' });
+    }
+    if (mov && Math.abs(fin.r - NK.r0) > 1e-3) { linea([[P.sx(0), P.sy(fin.r)], [P.sx(P.xr[1]), P.sy(fin.r)]], { class: 'cur', stroke: 'var(--azul)', 'stroke-dasharray': '7 4' }, gc); rot(P, P.xr[1] * 0.9, fin.r + P.yr[1] * 0.025, "MP'", 'var(--azul)'); }
+    guias(P, b0.Y, b0.r, 'Y', 'r');
+    if (mov) guias(P, fin.Y, fin.r, 'Y', 'r', s.phi > EPS && tipo === 'f' ? '2' : '1');
+    if (tipo === 'f' && mov && s.phi > EPS && s.simple) punto(P, fF0.Y, fF0.r, 'E₁ (φ = 0)', { hueco: true, r: 5.5, fs: 11, dy: -10, dx: -10 });
+    if (mov) flecha(P, { Y: b0.Y, i: b0.r }, { Y: fin.Y, i: fin.r });
+    punto(P, b0.Y, b0.r, 'E₀', { dx: -24 });
+    if (mov) punto(P, fin.Y, fin.r, s.phi > EPS && tipo === 'f' ? 'E₂' : 'E₁');
+  }
+  const fila = (k, v) => `<div><span>${k}</span><b>${v}</b></div>`;
+  document.getElementById('kv-f').innerHTML = '<div class="kv-tit">Política fiscal</div>' + fila('Sin reacción (φ = 0)', `(${f2(fF0.Y)}; ${f2(fF0.r)})`) + fila(`Con la regla (φ = ${f2(s.phi)})`, `(${f2(fF.Y)}; ${f2(fF.r)})`) + fila(T('expulsion', 'Expulsión'), Math.abs(s.dA) > EPS ? fmt(100 * (1 - (fF.Y - b0.Y) / s.dA), 0) + ' %' : '—');
+  document.getElementById('kv-m').innerHTML = '<div class="kv-tit">Política monetaria</div>' + fila('E₀ → E₁', `(${f2(b0.Y)}; ${f2(b0.r)}) → (${f2(fM.Y)}; ${f2(fM.r)})`) + fila('ΔY · Δr', `${sg(fM.Y - b0.Y)} · ${sg(fM.r - b0.r)}`);
+  document.getElementById('cadena').innerHTML = `<div class="eti">Qué decide la regla</div>
+    <p><b>Fiscal.</b> El gasto sube ΔA = ${f2(s.dA)}. El banco central fija el tipo y suministra toda la liquidez que se demande, así que no hay mercado de dinero que lo empuje. ${s.phi < EPS ? `Con φ = 0 mantiene r = ${f2(NK.r0)}: no hay ${T('expulsion', 'expulsión')} y la renta sube lo que da el ${T('simple', 'multiplicador simple')}, de ${f2(b0.Y)} a ${f2(fF.Y)}.` : `Con φ = ${f2(s.phi)}, al subir la renta el banco central sube el tipo según su ${T('mp', 'regla')}: la MP sube a r = ${f2(fF.r)} y la economía acaba en E₂ = (${f2(fF.Y)}; ${f2(fF.r)}). La expulsión (${fmt(100 * (1 - (fF.Y - b0.Y) / (s.dA || 1)), 0)} %) la decide la regla, no el mercado de dinero.`}</p>
+    <p><b>Monetaria.</b> El banco central mueve el tipo directamente: Δr = ${f2(s.dr)}. La MP se desplaza y la renta pasa de ${f2(b0.Y)} a ${f2(fM.Y)}${s.phi > EPS ? '; la regla recorta parte del efecto, porque el tipo vuelve a subir con la renta' : ''}.</p>`;
+  conectarTerminos(document.getElementById('cadena'));
+  lecturaNK(s, b0, fF, fM);
+}
+
+/* ===================================================================== cadenas razonadas (escuelas) */
+function cadenaFiscal(s, c) {
+  if (Math.abs(s.dA) < EPS) return 'Mueve ΔA para ver la cadena de la política fiscal.';
+  const sube = s.dA > 0, v = sube ? 'sube' : 'baja';
+  const ini = `El gasto autónomo ${v} ΔA = ${f2(s.dA)}; la renta empieza a ${sube ? 'subir' : 'bajar'}: si el tipo no cambiara, ${sube ? 'subiría' : 'bajaría'} ΔA, lo que da el ${T('simple', 'multiplicador simple')}.`;
+  if (c.e0.indet) return 'Con b = 0 y h = 0 no hay equilibrio: IS y LM son verticales.';
+  if (c.e0.trampa && c.eF.trampa) return `${ini} La mayor renta eleva la demanda de dinero para transacciones (k = ${f2(s.k)}), pero estamos en la ${T('trampa', 'trampa de la liquidez')}: con el tipo en su suelo i<sub>min</sub> = ${f2(s.imin)}, el público tiene saldos ociosos de sobra y los cede sin que el tipo suba. No hay ${T('expulsion', 'expulsión')}: ΔY = ${f2(c.dYf)}, el 100 % del multiplicador simple.`;
+  if (s.h < EPS) return `${ini} La mayor renta eleva la demanda de dinero para transacciones (k = ${f2(s.k)}), pero con h = 0 no hay demanda especulativa que pueda liberar saldos: la renta no puede cambiar si no cambia M/P. El tipo ${v} lo necesario, Δi = ${sg(c.dif)}, para que la inversión (b = ${f2(s.b)}) caiga exactamente ΔA. ${T('expulsion', 'Expulsión')} completa: ΔY = ${f2(c.dYf)}.`;
+  if (s.b < EPS) return `${ini} La mayor renta eleva la demanda de dinero (k = ${f2(s.k)}) y el tipo ${v} hasta que la demanda especulativa (h = ${f2(s.h)}) libera esos saldos: Δi = ${sg(c.dif)}. Pero con b = 0 la inversión no responde al tipo: no hay expulsión y ΔY = ΔA = ${f2(c.dYf)}.`;
+  const pct = c.dYf / s.dA;
+  return `${ini} La mayor renta eleva la demanda de dinero para transacciones (k = ${f2(s.k)}); con la oferta fija, el tipo ${v} hasta que la demanda especulativa (h = ${f2(s.h)}) ${sube ? 'libera' : 'reabsorbe'} esos saldos: Δi = ${sg(c.dif)}. ${sube ? 'La subida' : 'La bajada'} del tipo ${sube ? 'reduce' : 'aumenta'} la inversión (b = ${f2(s.b)}). Resultado: la renta ${v} ΔY = ${sg(c.dYf)}, el ${fmt(100 * pct, 0)} % de lo que daría el multiplicador simple; la ${T('expulsion', 'expulsión')} se come el ${fmt(100 * (1 - pct), 0)} %.${c.eF.trampa && !c.e0.trampa ? ' (El tipo ha tocado su suelo, i<sub>min</sub>.)' : ''}`;
+}
+function cadenaMonetaria(s, c) {
+  if (Math.abs(s.dM) < EPS) return 'Mueve Δ(M/P) para ver la cadena de la política monetaria.';
+  const sube = s.dM > 0;
+  const ini = `La oferta de saldos reales ${sube ? 'sube' : 'baja'} Δ(M/P) = ${f2(s.dM)}. A la renta inicial hay ${sube ? 'exceso de oferta' : 'exceso de demanda'} de dinero:`;
+  if (c.e0.indet) return 'Con b = 0 y h = 0 no hay equilibrio: IS y LM son verticales.';
+  if (c.e0.trampa && c.eM.trampa) return `${ini} el público ${sube ? 'podría comprar bonos' : 'vendería bonos'}, pero estamos en la ${T('trampa', 'trampa de la liquidez')}: con el tipo en su suelo todos esperan que suba y atesoran el dinero nuevo (${T('especulacion', 'motivo especulación')}). El tipo no baja, la LM solo se alarga y la inversión no cambia: ΔY = ${f2(c.dYm)}.`;
+  if (s.h < EPS) return `${ini} con h = 0 solo puede absorberse con más transacciones, así que la renta tiene que ${sube ? 'subir' : 'bajar'} Δ(M/P)/k = ${f2(s.dM / s.k)}. El tipo ${sube ? 'baja' : 'sube'} lo necesario (Δi = ${sg(c.dim)}) para que la inversión (b = ${f2(s.b)}) absorba esa renta. Es la teoría cuantitativa: con ${T('velocidad', 'V = 1/k')}, el dinero fija la renta nominal.`;
+  if (s.b < EPS) return `${ini} el público ${sube ? 'compra' : 'vende'} bonos y el tipo ${sube ? 'baja' : 'sube'} (Δi = ${sg(c.dim)}), pero con b = 0 la inversión no responde: ΔY = ${f2(c.dYm)}.`;
+  const iliq = (s.k * c.e0.Y - s.M - s.dM) / s.h - c.e0.i;
+  return `${ini} el público ${sube ? 'compra' : 'vende'} bonos, su precio ${sube ? 'sube' : 'baja'} y el tipo ${sube ? 'baja' : 'sube'}, tanto más cuanto menor sea h (= ${f2(s.h)}): a renta constante ${sube ? 'bajaría' : 'subiría'} ${f2(Math.abs(iliq))} puntos. ${sube ? 'La bajada' : 'La subida'} del tipo ${sube ? 'eleva' : 'reduce'} la inversión (b = ${f2(s.b)}) y la renta ${sube ? 'sube' : 'baja'} por el multiplicador; la nueva renta ${sube ? 'eleva' : 'reduce'} la demanda de dinero para transacciones (k = ${f2(s.k)}), que frena el movimiento del tipo. Resultado: ΔY = ${sg(c.dYm)}, Δi = ${sg(c.dim)}; el multiplicador monetario es b/(h + bk) = ${f3(c.mm)}.${c.eM.trampa && !c.e0.trampa ? ' (El tipo ha llegado a su suelo i<sub>min</sub>: a partir de ahí, más dinero ya no lo baja.)' : ''}`;
+}
+function cadenas(s, c) {
+  const box = document.getElementById('cadena');
+  box.innerHTML = `<div class="eti">Cadena de cada política</div><p><b>Fiscal.</b> ${cadenaFiscal(s, c)}</p><p><b>Monetaria.</b> ${cadenaMonetaria(s, c)}</p>`;
+  conectarTerminos(box);
+}
+
+/* ===================================================================== lecturas (forma general y valores) */
+function lecturaEscuela(s, c) {
+  const Am = 'A', bm = MV('b'), km = MV('k'), hm = MV('h'), Mm = 'M/P';
+  const lec = document.getElementById('lec-m');
+  let val = '';
+  if (c && !c.e0.indet) {
+    val = s.inf || c.e0.trampa
+      ? TX(String.raw`\text{trampa: } i = i_{min} = ${fT(s.imin)}`) + TX(String.raw`Y = A - b\,i_{min} = ${fT(s.A)} - ${fT(s.b)}\cdot ${fT(s.imin)} = ${fT(c.e0.Y)}`)
+      : s.h < EPS ? TX(String.raw`Y = \frac{M/P}{k} = \frac{${fT(s.M)}}{${fT(s.k)}} = ${fT(c.e0.Y)},\qquad i = \frac{A - Y}{b} = ${fT(c.e0.i)}`)
+        : TX(String.raw`Y = \frac{${fT(s.h)}}{${fT(s.h)} + ${fT(s.b)}\cdot ${fT(s.k)}}\cdot ${fT(s.A)} + \frac{${fT(s.b)}}{${fT(s.h)} + ${fT(s.b)}\cdot ${fT(s.k)}}\cdot ${fT(s.M)} = ${fT(c.e0.Y)},\quad i = ${fT(c.e0.i)}`);
+  }
+  lec.innerHTML = `
+    <div class="formas">
+      <span class="lbl">Forma general · en color, lo que puedes mover</span>
+      ${TX(String.raw`\text{IS: } Y = ${Am} - ${bm}\,i\qquad \text{pendiente } -\tfrac{1}{${bm}}`)}
+      ${TX(String.raw`\text{LM: } ${Mm} = ${km}\,Y - ${hm}\,i\qquad \text{pendiente } \tfrac{${km}}{${hm}}`)}
+      ${TX(String.raw`Y = \frac{${hm}}{${hm} + ${bm}${km}}\,${Am} + \frac{${bm}}{${hm} + ${bm}${km}}\,${Mm}`)}
+      ${TX(String.raw`\text{políticas: } A \to A + ${MV(String.raw`\Delta A`)},\qquad M/P \to M/P + ${MV(String.raw`\Delta (M/P)`)}`)}
+      ${c ? '<span class="lbl" style="margin-top:6px">Con tus valores (E₀)</span>' + val : ''}
+    </div>
+    <p class="ayuda" style="margin:4px 0 0">b ya incluye el multiplicador del gasto y A es el gasto autónomo multiplicado, como en la nota de notación del anexo. Por eso el multiplicador simple es ΔY = ΔA.</p>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = s.tab === 'pend' ? 'Las dos familias pasan por E₀ = (5,5; 3,5) para comparar solo pendientes.' : 'Con el suelo i<sub>min</sub> activo, la LM es horizontal a la izquierda de donde corta i<sub>min</sub>. La expulsión se mide como 1 − ΔY/ΔA, que fuera del suelo coincide con 1 − h/(h + bk).';
+}
+function lecturaHicks(s, e0, eF, eM) {
+  const lec = document.getElementById('lec-m');
+  lec.innerHTML = `<div class="formas"><span class="lbl">Forma general</span>
+    ${TX(String.raw`\text{IS}_j:\ Y = A_j - i,\qquad A_j \in \{${HK.A.map((a) => fT(a, 1)).join(';\\ ')}\}`)}
+    ${TX(String.raw`\text{LL:}\ i = i_{min} + s\,\frac{Y}{M/k - Y}\qquad (i_{min} = 1,\ s = 0{,}3,\ M/k = ${fT(HK.M + 0, 0)})`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`E_0 = (${fT(e0.Y)};\ ${fT(e0.i)}),\quad \text{fiscal: } (${fT(eF.Y)};\ ${fT(eF.i)}),\quad \text{monetaria: } (${fT(eM.Y)};\ ${fT(eM.i)})`)}</div>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = 'La forma algebraica de la LL es mía: Hicks la dibuja sin ecuación. Lo que importa es su forma, casi horizontal a la izquierda y casi vertical a la derecha. Hicks, «Mr. Keynes and the "Classics"; A Suggested Interpretation», <i>Econometrica</i> 5(2), 1937, pp. 147-159.';
+}
+function lecturaNC(s, rF, rM) {
+  const lec = document.getElementById('lec-m');
+  lec.innerHTML = `<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\text{OA de Lucas: } Y = Y_n + \gamma\,(P - P^e)`)}
+    ${TX(String.raw`\text{DA: } Y = \tfrac{h}{h+bk}\,(A + ${MV(String.raw`\Delta A`)}) + \tfrac{b}{h+bk}\,\frac{M + ${MV(String.raw`\Delta M`)}}{P}`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`Y_n = ${fT(NC.Yn)},\ \gamma = ${fT(NC.g, 0)},\ P_0 = 1:\quad C_{\text{monet.}} = (${fT(rM.C.Y)};\ ${fT(rM.C.P)}),\ \ B_{\text{monet.}} = (${fT(rM.B.Y)};\ ${fT(rM.B.P)})`)}</div>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = 'La DA sale del propio IS-LM con b = k = h = 1 (A = 5, M = 6, P<sub>0</sub> = 1), para que Y<sub>0</sub> = Y<sub>n</sub>. Con la política anticipada, Pᵉ = P en el nuevo equilibrio, así que Y = Y<sub>n</sub>.';
+}
+function lecturaNK(s, b0, fF, fM) {
+  const lec = document.getElementById('lec-m');
+  lec.innerHTML = `<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\text{IS: } Y = A + ${MV(String.raw`\Delta A`)} - ${MV('b')}\,r`)}
+    ${TX(String.raw`\text{MP (regla): } r = r_0 + ${MV(String.raw`\Delta r`)} + ${MV(String.raw`\varphi`)}\,(Y - Y_0)`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`\text{fiscal: } Y = \frac{${fT(NK.A + s.dA)} - ${fT(s.b)}\cdot ${fT(NK.r0)} + ${fT(s.b)}\cdot ${fT(s.phi)}\cdot ${fT(NK.Y0)}}{1 + ${fT(s.b)}\cdot ${fT(s.phi)}} = ${fT(fF.Y)},\quad r = ${fT(fF.r)}`)}</div>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = 'IS de la síntesis (A = 9) y MP en r<sub>0</sub> = 3,5, con Y<sub>0</sub> = 5,5. D. Romer, «Keynesian Macroeconomics without the LM Curve», <i>Journal of Economic Perspectives</i> 14(2), 2000, pp. 149-169.';
+}
+
+/* ===================================================================== mandos */
+const CTL = {
+  pend: ['b', 'h', 'inf', 'k'], hicks: ['dA', 'dM', 'simple'],
+  clas: ['b', 'h', 'inf', 'imin', 'k', 'dA', 'dM', 'simple'], key: ['b', 'h', 'inf', 'imin', 'k', 'dA', 'dM', 'simple'],
+  sin: ['b', 'h', 'inf', 'imin', 'k', 'dA', 'dM', 'simple'], mon: ['b', 'h', 'inf', 'imin', 'k', 'dA', 'dM', 'simple'],
+  nc: ['dA', 'dM'], nk: ['b', 'dA', 'phi', 'dr', 'simple'],
+};
+const AYUDA = {
+  pend: 'b inclina la IS; h y k inclinan la LM. La casilla h → ∞ pone la LM horizontal.',
+  hicks: 'Elige con los botones qué IS es la tuya. ΔM desplaza el tramo vertical de la LL; el plano casi no se mueve.',
+  nc: 'ΔA y ΔM desplazan la DA. El interruptor elige si los agentes anticipan la política.',
+  nk: 'φ es cuánto sube el banco central el tipo por cada unidad que la renta supera Y₀. Δr es su decisión de política monetaria.',
+};
+function construir() {
+  const tabs = document.getElementById('tabs');
+  for (const [k, t] of TABS) {
+    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.k = k; b.textContent = t;
+    b.addEventListener('click', () => abrir(k, true));
+    tabs.appendChild(b);
+  }
+  document.querySelectorAll('input[type=range][id^="is-"]').forEach((inp) => {
+    const k = inp.dataset.k;
+    inp.addEventListener('input', () => { SM.empezar(); S[k] = parseFloat(inp.value); dibujar(); });
+    inp.addEventListener('change', SM.cerrar);
+  });
+  for (const [id, k] of [['is-inf', 'inf'], ['is-simple', 'simple']]) document.getElementById(id).addEventListener('change', (e) => { SM.empezar(); S[k] = e.target.checked; dibujar(); SM.cerrar(); });
+  habilitarArrastre(svg, () => dibujar(), () => SM.cerrar());
+}
+function chipsExtra() {
+  const c = document.getElementById('chips-extra'); c.innerHTML = '';
+  const add = (t, act, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.setAttribute('aria-pressed', String(act)); b.addEventListener('click', () => { SM.empezar(); fn(); dibujar(); SM.cerrar(); chipsExtra(); }); c.appendChild(b); };
+  if (S.tab === 'hicks') [1, 2, 3].forEach((j) => add(`IS${['₁', '₂', '₃'][j - 1]}: tramo ${['plano', 'intermedio', 'vertical'][j - 1]}`, S.tramo === j, () => { S.tramo = j; }));
+  if (S.tab === 'nc') { add('Política anticipada', S.antic, () => { S.antic = true; }); add('Política no anticipada', !S.antic, () => { S.antic = false; }); }
+  if (PRE[S.tab]) add(`Volver al caso ${NOMBRE[S.tab]}`, false, () => cargar(S.tab));
+  const vb = [...c.children].find((b) => b.textContent.startsWith('Volver')); if (vb) vb.dataset.volver = '1';
+  c.hidden = !c.children.length;
+}
+function cargar(k) { Object.assign(S, PRE[k], { caso: k }); S.rng = rangoEscuela(S); }
+function abrir(k, conExplicacion) {
+  const prev = JSON.parse(JSON.stringify(S));
+  S.tab = k;
+  if (PRE[k]) cargar(k);
+  else {
+    Object.assign(S, { caso: null, inf: false, imin: 0 });
+    if (k === 'pend') Object.assign(S, { b: 1, h: 1, k: 1, rng: { Y: 10, i: 8 } });
+    if (k === 'hicks') Object.assign(S, { dA: 2, dM: 2, tramo: 2, rng: { Y: 16, i: 8 } });
+    if (k === 'nc') Object.assign(S, { dA: 2, dM: 2, antic: true, rng: { Y: 10, i: 3 } });
+    if (k === 'nk') Object.assign(S, { b: 1, dA: 2, dr: -1.5, phi: 0, rng: { Y: 12, i: 8 } });
+  }
+  document.querySelectorAll('#tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.k === k)));
+  document.getElementById('mirar').innerHTML = MIRAR[k];
+  chipsExtra();
+  dibujar();
+  if (conExplicacion) mostrarPorque('m', inicial(k, prev));
+}
+function refrescar() {
+  const act = new Set(CTL[S.tab]);
+  document.querySelectorAll('[data-ctl]').forEach((n) => { n.hidden = !act.has(n.dataset.ctl); });
+  document.querySelectorAll('input[type=range][id^="is-"]').forEach((inp) => {
+    const k = inp.dataset.k; inp.value = S[k];
+    document.getElementById(inp.id + '-v').textContent = (['dA', 'dM', 'dr'].includes(k) && S[k] > 0 ? '+' : '') + fmt(S[k], 2);
+  });
+  document.getElementById('is-h').disabled = S.inf;
+  document.getElementById('is-inf').checked = S.inf; document.getElementById('is-simple').checked = S.simple;
+  document.getElementById('ayuda-ctl').textContent = AYUDA[S.tab] || 'Al mover un mando después de cargar una escuela, el gráfico deja de ser ese caso: aparece un aviso.';
+  const av = document.getElementById('aviso');
+  if (PRE[S.tab]) {
+    const p = PRE[S.tab], difiere = ['A', 'b', 'k', 'h', 'M', 'dA', 'dM', 'imin', 'inf'].some((x) => (typeof p[x] === 'boolean' ? p[x] !== S[x] : Math.abs(p[x] - S[x]) > 1e-9));
+    av.hidden = !difiere; const vb = document.querySelector('#chips-extra [data-volver]'); if (vb) vb.hidden = !difiere; document.getElementById('chips-extra').hidden = ![...document.getElementById('chips-extra').children].some((b) => !b.hidden);
+    av.textContent = `Ya no es el caso ${NOMBRE[S.tab]}: has cambiado sus parámetros. «Volver al caso ${NOMBRE[S.tab]}» los restaura.`;
+  } else av.hidden = true;
+}
+
+/* ===================================================================== explicaciones */
+function inicial(k, prev) {
+  const p = [];
+  if (PRE[k]) {
+    const c = calc(S);
+    p.push(`${MIRAR[k]} Parámetros: A = ${f2(S.A)}, b = ${f2(S.b)}, k = ${f2(S.k)}, h = ${f2(S.h)}, M/P = ${f2(S.M)}${S.imin > 0 ? `, i<sub>min</sub> = ${f2(S.imin)}` : ''}; ΔA = ${f2(S.dA)}, Δ(M/P) = ${f2(S.dM)}.`);
+    p.push(`E₀ = (${f2(c.e0.Y)}; ${f2(c.e0.i)}). Fiscal: E₁ = (${f2(c.eF.Y)}; ${f2(c.eF.i)}), expulsión del ${fmt(100 * c.expulsion, 0)} %. Monetaria: E₁ = (${f2(c.eM.Y)}; ${f2(c.eM.i)}).`);
+    p.push(FICHA_ESC[k]);
+  } else p.push(MIRAR[k]);
+  void prev;
+  return { titulo: NOMBRE[k], p, cambia: new Set(PRE[k] ? ['escuela', 'expulsion'] : k === 'pend' ? ['pendb', 'pendh'] : k === 'hicks' ? ['hicks'] : k === 'nc' ? ['expectativas', 'lucas'] : ['mp']) };
+}
+const FICHA_ESC = {
+  clas: 'Por qué: el dinero solo sirve para transacciones, así que su demanda no depende del tipo (h = 0); el tipo lo fijan el ahorro y la inversión. M/P = kY es MV = PY con V = 1/k.',
+  key: 'Por qué: motivo especulación; con un tipo muy bajo todos esperan que suba y atesoran dinero, de ahí el suelo del tipo. La inversión depende sobre todo de las expectativas, b → 0.',
+  sin: 'Por qué: los tres motivos de Keynes sin extremos; las dos políticas funcionan y la elección entre ellas depende de su composición.',
+  mon: 'Por qué: el dinero es sustituto de muchos activos y su demanda depende de la renta permanente (h pequeño); el gasto, incluidos vivienda y bienes duraderos, responde mucho al tipo (b grande). Cautela: los monetaristas defendían una inversión más sensible al tipo, no menos.',
+};
+function explicar(A, B) {
+  const p = [], cambia = new Set();
+  const nom = { b: 'b', h: 'h', k: 'k', imin: 'i<sub>min</sub>', dA: 'ΔA', dM: 'Δ(M/P)', phi: 'φ', dr: 'Δr' };
+  const k = Object.keys(nom).find((x) => Math.abs((A[x] ?? 0) - (B[x] ?? 0)) > 1e-9);
+  const ca = calc(A), cb = calc(B);
+  const esc = PRE[B.tab];
+  if (k) {
+    const t = `${nom[k]}: ${fmt(A[k], 2)} → ${fmt(B[k], 2)}`;
+    if (B.tab === 'pend') {
+      if (k === 'b') { cambia.add('pendb'); p.push(`Has cambiado b de ${f2(A.b)} a ${f2(B.b)}. La IS ${B.b > A.b ? 'se aplana' : 'se empina'}: su pendiente pasa de ${A.b < EPS ? 'vertical' : f3(-1 / A.b)} a ${B.b < EPS ? 'vertical' : f3(-1 / B.b)}. Con más b, el gasto responde más al tipo: la política monetaria gana fuerza y la fiscal pierde, porque expulsa más.`); }
+      else { cambia.add('pendh'); p.push(`Has cambiado ${nom[k]} de ${fmt(A[k], 2)} a ${fmt(B[k], 2)}. La pendiente de la LM, k/h, pasa de ${A.h < EPS ? 'vertical' : f3(A.k / A.h)} a ${B.h < EPS ? 'vertical' : f3(B.k / B.h)}. ${k === 'h' ? (B.h > A.h ? 'Más h: la demanda de dinero absorbe o libera saldos con menos movimiento del tipo, la LM se aplana.' : 'Menos h: hace falta más movimiento del tipo para equilibrar el mercado de dinero, la LM se empina.') : (B.k > A.k ? 'Más k: cada unidad de renta pide más dinero para transacciones, la LM se empina.' : 'Menos k: la renta pide menos dinero, la LM se aplana.')}`); }
+      return { titulo: t, p, cambia };
+    }
+    if (B.tab === 'nc') { cambia.add('lucas'); p.push(`Has cambiado ${nom[k]} de ${fmt(A[k], 2)} a ${fmt(B[k], 2)}: la DA se desplaza. ${B.antic ? 'Anticipada: solo cambian los precios.' : 'No anticipada: la renta se separa temporalmente de Yₙ.'}`); return { titulo: t, p, cambia }; }
+    if (B.tab === 'nk') {
+      cambia.add('mp');
+      if (k === 'phi') p.push(`Has cambiado la reacción del banco central de φ = ${f2(A.phi)} a φ = ${f2(B.phi)}. Cuanto mayor es φ, más sube el tipo cuando sube la renta, y más se recorta la expansión fiscal. Con φ = 0 el banco central mantiene el tipo y no hay expulsión.`);
+      else if (k === 'dr') p.push(`Has cambiado la decisión del banco central: Δr pasa de ${f2(A.dr)} a ${f2(B.dr)}. La MP se desplaza ${B.dr < A.dr ? 'hacia abajo' : 'hacia arriba'} y la renta se mueve a lo largo de la IS.`);
+      else if (k === 'b') p.push(`Has cambiado b de ${f2(A.b)} a ${f2(B.b)}: la IS ${B.b > A.b ? 'se aplana' : 'se empina'}, y la política monetaria, que mueve el tipo, gana o pierde fuerza en consecuencia.`);
+      else p.push(`Has cambiado ΔA de ${f2(A.dA)} a ${f2(B.dA)}: la IS' se desplaza.`);
+      return { titulo: t, p, cambia };
+    }
+    if (B.tab === 'hicks') { cambia.add('hicks'); p.push(`Has cambiado ${nom[k]} de ${fmt(A[k], 2)} a ${fmt(B[k], 2)}. Lo que pasa depende del tramo de la LL en que corte la IS: mira la cadena.`); return { titulo: t, p, cambia }; }
+    // escuelas
+    if (k === 'dA') { cambia.add('expulsion'); cambia.add('simple'); p.push(`Has cambiado la política fiscal: ΔA pasa de ${f2(A.dA)} a ${f2(B.dA)}. La IS' se desplaza ${B.dA > A.dA ? 'a la derecha' : 'a la izquierda'}. ${cadenaFiscal(B, cb)}`); }
+    else if (k === 'dM') { cambia.add('mm'); p.push(`Has cambiado la política monetaria: Δ(M/P) pasa de ${f2(A.dM)} a ${f2(B.dM)}. La LM' se desplaza. ${cadenaMonetaria(B, cb)}`); }
+    else {
+      cambia.add(k === 'b' ? 'pendb' : k === 'imin' ? 'trampa' : 'pendh'); cambia.add('mf'); cambia.add('mm');
+      const que = { b: `la IS ${B.b > A.b ? 'se aplana' : 'se empina'} (pendiente −1/b)`, h: `la LM ${B.h > A.h ? 'se aplana' : 'se empina'} (pendiente k/h)`, k: `la LM ${B.k > A.k ? 'se empina' : 'se aplana'} (pendiente k/h)`, imin: `el suelo del tipo pasa a i<sub>min</sub> = ${f2(B.imin)}` }[k];
+      p.push(`Has cambiado ${nom[k]} de ${fmt(A[k], 2)} a ${fmt(B[k], 2)}: ${que}.`);
+      if (Number.isFinite(ca.mf) && Number.isFinite(cb.mf)) p.push(`El multiplicador fiscal h/(h + bk) pasa de ${f3(ca.mf)} a ${f3(cb.mf)} y el monetario b/(h + bk), de ${f3(ca.mm)} a ${f3(cb.mm)}. ${k === 'b' ? 'Más b: la fiscal expulsa más y la monetaria llega mejor al gasto.' : k === 'h' ? 'Más h: la fiscal expulsa menos y la monetaria se queda parada en saldos ociosos.' : k === 'k' ? 'Los dos multiplicadores caen con k.' : ''}`);
+      p.push(`Ahora, con la misma política: fiscal ΔY = ${sg(cb.dYf)} (antes ${sg(ca.dYf)}), monetaria ΔY = ${sg(cb.dYm)} (antes ${sg(ca.dYm)}).`);
+    }
+    if (esc) p.push(`Ya no es el caso ${NOMBRE[B.tab]}.`);
+    return { titulo: t, p, cambia };
+  }
+  if (A.inf !== B.inf) { cambia.add('trampa'); p.push(B.inf ? `Activas h → ∞: la LM es horizontal en i<sub>min</sub> = ${f2(B.imin)}. La política fiscal da el multiplicador simple (ΔY = ${f2(cb.dYf)}) y la monetaria no mueve nada (ΔY = ${f2(cb.dYm)}).` : `Quitas h → ∞: la LM vuelve a tener pendiente k/h.`); return { titulo: B.inf ? 'Trampa de la liquidez' : 'Sin trampa', p, cambia }; }
+  if (A.simple !== B.simple) { cambia.add('simple'); p.push(B.simple ? 'El círculo blanco marca dónde estaría la economía si el tipo no cambiara: ΔY = ΔA. La distancia hasta E₁ es la expulsión.' : 'Ocultas el multiplicador simple.'); return { titulo: 'Multiplicador simple', p, cambia }; }
+  if (A.tramo !== B.tramo) { cambia.add('hicks'); p.push(`Eliges la IS que corta la LL en el tramo ${TRAMO[B.tramo - 1]}.`); return { titulo: `IS${['₁', '₂', '₃'][B.tramo - 1]}`, p, cambia }; }
+  if (A.antic !== B.antic) { cambia.add('expectativas'); p.push(B.antic ? 'Política anticipada: los agentes ajustan Pᵉ y la OA de Lucas se desplaza; la renta se queda en Yₙ.' : 'Política no anticipada: Pᵉ se queda en P₀ y la economía se mueve a lo largo de la OA.'); return { titulo: B.antic ? 'Anticipada' : 'No anticipada', p, cambia }; }
+  if (A.caso !== B.caso || A.A !== B.A || A.M !== B.M) { cambia.add('escuela'); p.push(`Vuelves a los valores del caso ${NOMBRE[B.tab]}.`); return { titulo: `Caso ${NOMBRE[B.tab]}`, p, cambia }; }
+  return null;
+}
+
+/* ===================================================================== fichas */
+PINTAR.m = () => {
+  const c = PRE[S.tab] ? calc(S) : null;
+  pintarConceptos('con-m', [
+    { k: 'expulsion', n: 'Efecto expulsión', d: 'Caída del gasto privado por la subida del tipo de interés que provoca la expansión fiscal: el mayor gasto eleva la renta, la demanda de dinero y el tipo, y el tipo más alto reduce la inversión.', f: String.raw`1 - \frac{\Delta Y}{\Delta A} = 1 - \frac{h}{h+bk}`, v: c && Number.isFinite(c.expulsion) ? fmt(100 * c.expulsion, 0) + ' %' : undefined, ref: '3A5 §1. 1. 3 y Anexo 3' },
+    { k: 'simple', n: 'Multiplicador simple', d: 'Lo que subiría la renta si el tipo de interés no cambiara. Con la notación del anexo, A ya es el gasto autónomo multiplicado, así que el multiplicador simple es ΔY = ΔA: el círculo blanco.', f: String.raw`\Delta Y = \Delta A`, ref: '3A5 Anexo 3' },
+    { k: 'mf', n: 'Multiplicador fiscal', d: 'Fracción del multiplicador simple que sobrevive a la expulsión. Crece con h, cae con b y con k.', f: String.raw`\frac{\partial Y}{\partial A} = \frac{h}{h+bk}`, v: c && Number.isFinite(c.mf) ? f3(c.mf) : undefined, ref: '3A5 Anexo 3' },
+    { k: 'mm', n: 'Multiplicador monetario', d: 'Cuánto sube la renta por cada unidad de saldos reales nuevos. Crece con b, cae con h y con k.', f: String.raw`\frac{\partial Y}{\partial (M/P)} = \frac{b}{h+bk}`, v: c && Number.isFinite(c.mm) ? f3(c.mm) : undefined, ref: '3A5 Anexo 3' },
+    { k: 'pendb', n: 'b: la pendiente de la IS', d: 'Respuesta del gasto al tipo de interés, ya multiplicada. Cuanto mayor, más plana la IS (pendiente −1/b).', f: String.raw`Y = A - b\,i`, v: f2(S.b), ref: '3A5 §1. 1. 1' },
+    { k: 'pendh', n: 'h y k: la pendiente de la LM', d: 'h es la respuesta de la demanda de dinero al tipo; k, a la renta. La pendiente de la LM es k/h: vertical con h = 0, horizontal con h → ∞.', f: String.raw`\frac{M}{P} = k\,Y - h\,i`, v: `h = ${S.inf ? '∞' : f2(S.h)}, k = ${f2(S.k)}`, ref: '3A5 §1. 1. 2' },
+    { k: 'trampa', n: 'Trampa de la liquidez', d: 'Por debajo de cierto tipo, la demanda de dinero es perfectamente elástica: todo dinero nuevo se atesora, el tipo no baja y la política monetaria no mueve la renta. La LM es horizontal.', v: S.inf ? `h → ∞, i<sub>min</sub> = ${f2(S.imin)}` : S.imin > 0 ? `suelo en i<sub>min</sub> = ${f2(S.imin)}` : 'sin suelo', ref: '3A4 §1. 4. 2. 2 y 3A5 Anexo 3' },
+    { k: 'especulacion', n: 'Motivo especulación', d: 'Se mantiene dinero cuando se espera que el tipo suba y el precio de los bonos baje. Hace que la demanda de dinero dependa del tipo (h > 0); con un tipo muy bajo, todos esperan que suba y atesoran.', f: String.raw`-h\,i`, ref: '3A4 §1. 4. 2. 1' },
+    { k: 'velocidad', n: 'Velocidad del dinero', d: 'Veces que el dinero cambia de manos en un periodo. Con h = 0, la LM es la teoría cuantitativa: M/P = kY equivale a MV = PY con V = 1/k.', f: String.raw`MV = PY,\quad V = \frac{1}{k}`, v: `V = ${f2(1 / S.k)}`, ref: '3A4 §1. 4. 1 y 3A5 Anexo 3' },
+    { k: 'hicks', n: 'La LL de Hicks', d: 'Casi horizontal a la izquierda (mínimo del tipo) y casi vertical a la derecha. Hicks llama «economía de la depresión» al tramo plano y «teoría general» al sistema con M = L(Y, i). «Teoría especial» de Keynes es para él M = L(i), no la trampa. El tramo vertical como «clásico» es de los manuales posteriores.', ref: '3A5 Anexo 3' },
+    { k: 'escuela', n: 'Por qué esta escuela', d: PRE[S.tab] ? FICHA_ESC[S.tab] : 'Elige una escuela para ver su justificación.', ref: '3A5 Anexo 3' },
+    { k: 'expectativas', n: 'Expectativas racionales', d: 'Los agentes usan toda la información disponible, incluido el modelo y la política anunciada: no cometen errores sistemáticos. Por eso solo la política no anticipada mueve la renta, y de forma temporal.', ref: '3A5 Anexo 3' },
+    { k: 'lucas', n: 'Oferta agregada de Lucas', d: 'La producción solo se separa de su nivel natural cuando los precios sorprenden a los agentes.', f: String.raw`Y = Y_n + \gamma\,(P - P^e)`, ref: '3A5 Anexo 3' },
+    { k: 'mp', n: 'Regla monetaria y curva MP', d: 'El banco central fija el tipo de interés con una regla y suministra la liquidez que se demande, así que la LM desaparece. La expulsión ya no la decide el mercado de dinero sino la reacción φ del banco central.', f: String.raw`r = r_0 + \varphi\,(Y - Y_0)`, v: S.tab === 'nk' ? `φ = ${f2(S.phi)}` : undefined, ref: 'D. Romer, JEP 14(2), 2000, pp. 149-169' },
+  ], ULT.m || new Set());
+};
+
+/* ===================================================================== arranque */
+construir();
+const TAB0 = (() => { const h = location.hash.slice(1); return NOMBRE[h] ? h : 'sin'; })();
+abrir(TAB0, false);
+mostrarPorque('m', inicial(TAB0));
+window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (NOMBRE[h]) abrir(h, true); });
+
+</script>
+
+</body>
+</html>
