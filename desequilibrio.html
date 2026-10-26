@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+/* Parámetros: ?tema=claro|oscuro (fuerza el tema), ?compacto=1 (oculta la cabecera, para insertar en Obsidian) */
+(function () { try {
+  var q = new URLSearchParams(location.search), t = q.get('tema');
+  if (t === 'oscuro' || t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  if (t === 'claro' || t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  if (q.get('compacto')) document.documentElement.classList.add('compacto');
+} catch (e) {} })();
+</script>
+<style>
+html, body { margin: 0; }
+body { font-family: system-ui, sans-serif; font-size: 14px; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.compacto header { display: none !important; }
+.compacto body { padding-block: 8px 24px !important; }
+</style>
+<title>Keynesianos del desequilibrio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script>
+window.MathJax = {
+  tex: { packages: { '[+]': ['html'] } },
+  svg: { fontCache: 'local' },
+  options: { enableAssistiveMml: false },
+  startup: { typeset: false, ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => { try { document.head.appendChild(MathJax.svgStylesheet()); } catch (e) {} window.__mjListo = true; if (window.montar) window.montar(document.body); }); } },
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.min.js"></script>
+<style>
+/* Layout: lámina de pizarra a la izquierda (SVG), lectura y mandos a la derecha; una columna en móvil. Dos pestañas: corto y largo plazo. */
+:root {
+  --bg: #fbfaf7; --fg: #1d2230; --muted: #5f6676; --line: #d9dbe2; --panel: #f1f2f5;
+  --azul: #2E5C8A; --naranja: #D9671E; --verde: #548235; --rojo: #C00000; --gris: #7F7F7F; --punto: #1F3864;
+  --z1: rgba(192,0,0,.07); --z2: rgba(84,130,53,.10); --z3: rgba(127,127,127,.12);
+  --f-math: "STIX Two Text", "STIXGeneral", "Cambria Math", "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+header { display: flex; flex-direction: column; gap: 4px; }
+.eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-math); font-weight: 600; font-size: 32px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.intro { color: var(--muted); max-width: 70ch; margin: 0; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tabs button, .chips button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--fg); cursor: pointer; }
+.tabs button[aria-selected="true"], .chips button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.mirar { font-size: 13.5px; max-width: 80ch; margin: 0; padding-left: 12px; border-left: 2px solid var(--line); }
+
+.vista { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+@media (min-width: 960px) { .vista { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } }
+.figs { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.figs .controles { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+svg.lamina { width: 100%; max-width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+svg text { fill: var(--fg); }
+.m { font-family: var(--f-math); font-style: italic; font-size: 15px; }
+.r { font-family: var(--f-body); font-style: normal; font-size: 11.5px; letter-spacing: .04em; }
+.eje { stroke: var(--fg); stroke-width: 1.3; fill: none; }
+.tick { stroke: var(--fg); stroke-width: 1; }
+.tlab { font-family: var(--f-body); font-size: 11px; fill: var(--muted) !important; }
+.guia { stroke: var(--gris); stroke-width: .9; stroke-dasharray: 4 4; fill: none; }
+.cur { fill: none; stroke-width: 2.4; }
+.cur-fina { fill: none; stroke-width: 1.1; opacity: .55; }
+.tang { fill: none; stroke-width: 1.6; }
+.rayo { fill: none; stroke-width: 1.4; stroke-dasharray: 6 4; }
+.pto { stroke: var(--bg); stroke-width: 1.5; }
+.drag { cursor: grab; }
+.drag:active { cursor: grabbing; }
+.z1 { fill: var(--z1); } .z2 { fill: var(--z2); } .z3 { fill: var(--z3); }
+
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.lectura { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.lectura .f { font-family: var(--f-math); font-style: italic; font-size: 16px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 2px 22px; font-variant-numeric: tabular-nums; }
+.kv div { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
+.kv b { font-weight: 500; }
+.lectura .msg { margin-top: 4px; }
+.etapa { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px; border: 1px solid currentColor; }
+.e1 { color: var(--rojo); } .e2 { color: var(--verde); } .e3 { color: var(--muted); }
+.controles { display: flex; flex-direction: column; gap: 6px; }
+.fila { display: grid; grid-template-columns: minmax(8.5em, 12em) minmax(0, 1fr) 3.6em; align-items: center; gap: 8px; }
+.fila input[type=range] { width: 100%; accent-color: var(--azul); }
+.val { text-align: right; font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ayuda { color: var(--muted); font-size: 12.5px; }
+.nota { font-size: 12.5px; color: var(--muted); max-width: 80ch; margin: 0; }
+sub, sup { font-size: 72%; }
+.porque { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.porque .eti, .sec-eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.porque h3 { font-family: var(--f-math); font-size: 19px; font-weight: 600; margin: 0; }
+.porque p { margin: 0; }
+.porque details { margin-top: 4px; }
+.porque summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.porque .prev { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.ctl-ayuda { margin: -2px 0 6px; font-size: 12.5px; color: var(--muted); }
+.sec { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.sec h2 { font-family: var(--f-math); font-size: 22px; font-weight: 600; margin: 0; }
+.conceptos { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.concepto { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.concepto.cambia { border-color: var(--rojo); background: var(--z1); }
+.concepto .cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.concepto h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.concepto p { margin: 0; font-size: 13px; }
+.concepto .formula { font-family: var(--f-math); font-style: italic; font-size: 15px; overflow-x: auto; }
+.concepto .valor { font-variant-numeric: tabular-nums; }
+.concepto .ref { color: var(--muted); font-size: 11.5px; }
+.formas { display: flex; flex-direction: column; gap: 3px; }
+.formas .lbl { font-family: var(--f-body); font-style: normal; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.formas .ec { font-family: var(--f-math); font-style: italic; font-size: 16px; overflow-x: auto; }
+.formas .fijo { font-family: var(--f-body); font-style: normal; font-size: 12.5px; color: var(--muted); }
+.tex { display: inline-block; max-width: 100%; vertical-align: middle; }
+.tex[data-d="1"] { display: block; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.tex:not([data-ok]) { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; }
+.tex mjx-container { margin: 0 !important; }
+.tex[data-d="1"] mjx-container { text-align: left !important; }
+.tex g.mv { color: var(--azul); fill: var(--azul); stroke: var(--azul); }
+.formas .tex[data-d="1"] { font-size: 112%; }
+.mod { color: var(--azul); font-weight: 600; border-bottom: 1px dotted currentColor; }
+.chip-cambia { font-size: 11px; color: var(--rojo); border: 1px solid currentColor; border-radius: 999px; padding: 0 7px; white-space: nowrap; }
+</style>
+<style>
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer; }
+.vista.ancha { grid-template-columns: 1fr !important; }
+.panel.dos { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 960px) { .panel.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.panel.dos .col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.chips button:disabled, input:disabled { opacity: .4; cursor: not-allowed; }
+.figs .controles .chips { margin: 2px 0 4px; }
+@media (min-width: 960px) { .figs .controles { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; row-gap: 8px; align-items: center; } .figs .controles > .aviso, .figs .controles > .chips, .figs .controles > .ctl-ayuda { grid-column: 1 / -1; } }
+.tabs { gap: 6px; }
+.lecturas2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 720px) { .lecturas2 { grid-template-columns: 1fr 1fr; } }
+.kv-panel { background: var(--panel); border-radius: 10px; padding: 8px 12px; grid-template-columns: 1fr !important; font-size: 13px; }
+.kv-tit { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); justify-content: flex-start !important; }
+.aviso { border: 1px solid var(--naranja); color: var(--naranja); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+.cadena { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.cadena .eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.cadena p { margin: 0; }
+a.term { color: inherit; text-decoration: underline dotted; text-underline-offset: 2px; cursor: pointer; }
+.concepto.destello { animation: destello 1.6s ease-out; }
+@keyframes destello { 0% { box-shadow: 0 0 0 3px var(--azul); } 100% { box-shadow: 0 0 0 0 transparent; } }
+[hidden] { display: none !important; }
+.tabla-reg { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+.tabla-reg th, .tabla-reg td { border: 1px solid var(--line); padding: 5px 7px; text-align: center; }
+.tabla-reg th { font-weight: 500; color: var(--muted); }
+.tabla-reg td.act { background: var(--fg); color: var(--bg); font-weight: 600; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TCEE · Parte A) · 3A4 · §2. 3 y Anexos 1-3 · Keynesianos del desequilibrio</div>
+    <h1>Keynesianos del desequilibrio</h1>
+    <p class="intro">Cuatro piezas del tema con la misma economía: Barro-Grossman (§2. 3. 1), la decisión dual de Clower (Anexo 1), el multiplicador de Leijonhufvud (Anexo 2) y los regímenes de Malinvaud (Anexo 3). Mueve los mandos de debajo del gráfico: el recuadro «Qué ha cambiado y por qué» explica cada cambio y abajo tienes la ficha de cada concepto.</p>
+  </header>
+  <div class="tabs" role="tablist" aria-label="Pieza" id="tabs"></div>
+  <section class="vista-wrap">
+    <p class="mirar" id="mirar"></p>
+    <div class="figs" style="margin-top:12px">
+      <svg class="lamina" id="svg-d" role="img" aria-label="Modelos de desequilibrio"></svg>
+      <div class="controles">
+        <div class="chips" id="chips-extra" role="group"></div>
+        <div class="fila" data-ctl="P"><label>P₁ / P* (nivel de precios)</label><input id="de-P" data-k="P" type="range" min="0.7" max="2" step="0.01"><span class="val" id="de-P-v"></span></div>
+        <div class="fila" data-ctl="w"><label>w (salario real)</label><input id="de-w" data-k="w" type="range" min="3" max="8" step="0.05"><span class="val" id="de-w-v"></span></div>
+        <div class="fila" data-ctl="wc"><label>w′ (salario real)</label><input id="de-wc" data-k="wc" type="range" min="5" max="8" step="0.05"><span class="val" id="de-wc-v"></span></div>
+        <div class="fila" data-ctl="iD"><label>i<sup>D</sup> (demanda autónoma)</label><input id="de-iD" data-k="iD" type="range" min="0" max="30" step="0.5"><span class="val" id="de-iD-v"></span></div>
+        <div class="fila" data-ctl="dI"><label>Δi<sup>D</sup> (shock de demanda)</label><input id="de-dI" data-k="dI" type="range" min="-8" max="0" step="0.5"><span class="val" id="de-dI-v"></span></div>
+        <div class="fila" data-ctl="n"><label>Rondas del proceso</label><input id="de-n" data-k="n" type="range" min="0" max="12" step="1"><span class="val" id="de-n-v"></span></div>
+        <label class="check" data-ctl="dual"><input id="de-dual" type="checkbox" checked><span>Decisión dual: el hogar racionado en trabajo gasta según su ingreso efectivo</span></label>
+        <p class="ctl-ayuda" id="ayuda-ctl"></p>
+      </div>
+    </div>
+    <div class="vista ancha" style="margin-top:14px">
+      <div class="panel dos">
+        <div class="col"><div class="porque" id="porque-d" aria-live="polite"></div></div>
+        <div class="col"><div class="lectura" id="lec-d"></div><p class="nota" id="nota"></p></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-d"></div></div>
+  </section>
+</div>
+
+<script>
+'use strict';
+const NS = 'http://www.w3.org/2000/svg';
+const fmt = (v, d = 2) => Number.isFinite(v)
+  ? v.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—';
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+/* ------------------------------------------------ ecuaciones con MathJax (SVG) */
+const TEXC = new Map();
+const escH = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const TX = (tex) => `<span class="tex" data-d="1">${escH(tex)}</span>`;
+const TI = (tex) => `<span class="tex">${escH(tex)}</span>`;
+const fT = (v, d = 2) => fmt(v, d).replace(/,/g, '{,}');
+const MV = (t) => String.raw`\class{mv}{${t}}`;
+function montar(root) {
+  if (!window.__mjListo || !root) return;
+  root.querySelectorAll('span.tex:not([data-ok])').forEach((s) => {
+    const tex = s.textContent, d = s.dataset.d === '1', key = (d ? 'D' : 'I') + tex;
+    try {
+      let n = TEXC.get(key);
+      if (!n) { n = MathJax.tex2svg(tex, { display: d }); TEXC.set(key, n); if (TEXC.size > 600) TEXC.delete(TEXC.keys().next().value); }
+      s.replaceChildren(n.cloneNode(true)); s.dataset.ok = '1'; s.setAttribute('aria-label', tex);
+    } catch (e) { /* se queda el texto plano */ }
+  });
+}
+window.montar = montar;
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if ((k === 'stroke' || k === 'fill') && String(v).startsWith('var(')) e.style.setProperty(k, v);
+    else e.setAttribute(k, v);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+/* texto matemático: "PMag_L", "x^2" */
+function tx(parent, x, y, txt, attrs = {}) {
+  const t = el('text', Object.assign({ x, y, class: 'm' }, attrs), parent);
+  const re = /([_^])(\{[^}]*\}|.)/g; let last = 0, m;
+  const push = (s, sh) => { if (!s) return; const ts = el('tspan', {}, t);
+    if (sh) { ts.setAttribute('baseline-shift', sh); ts.setAttribute('font-size', '72%'); } ts.textContent = s; };
+  while ((m = re.exec(txt))) { push(txt.slice(last, m.index)); const b = m[2][0] === '{' ? m[2].slice(1, -1) : m[2];
+    push(b, m[1] === '_' ? 'sub' : 'super'); last = re.lastIndex; }
+  push(txt.slice(last));
+  return t;
+}
+function limpiar(g) { while (g.firstChild) g.removeChild(g.firstChild); }
+function path(pts) {
+  let d = '', on = false;
+  for (const p of pts) { if (!p) { on = false; continue; } d += (on ? 'L' : 'M') + p[0].toFixed(2) + ',' + p[1].toFixed(2); on = true; }
+  return d;
+}
+/* panel con escalas lineales */
+function panel(svg, x0, y0, w, h, xr, yr) {
+  const P = { x0, y0, w, h, xr, yr };
+  P.sx = (x) => x0 + (x - xr[0]) / (xr[1] - xr[0]) * w;
+  P.sy = (y) => y0 + h - (y - yr[0]) / (yr[1] - yr[0]) * h;
+  P.ix = (px) => xr[0] + (px - x0) / w * (xr[1] - xr[0]);
+  P.iy = (py) => yr[0] + (y0 + h - py) / h * (yr[1] - yr[0]);
+  const id = 'c' + Math.random().toString(36).slice(2);
+  const cp = el('clipPath', { id }, svg); el('rect', { x: x0, y: y0 - 2, width: w + 2, height: h + 4 }, cp);
+  P.clip = `url(#${id})`;
+  /* curva f(x) cortada al rango */
+  P.curva = (f, a = xr[0], b = xr[1], n = 400) => {
+    const pts = [];
+    for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n, y = f(x);
+      pts.push(Number.isFinite(y) && y >= yr[0] - (yr[1] - yr[0]) && y <= yr[1] + (yr[1] - yr[0]) ? [P.sx(x), P.sy(y)] : null); }
+    return path(pts);
+  };
+  return P;
+}
+function puntoSVG(svg, evt) {
+  const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+/* arrastre con el estado en el <svg> (cada redibujo sustituye los nodos) */
+function habilitarArrastre(svg, redibujar, alSoltar) {
+  svg._drag = null;
+  svg.addEventListener('pointermove', (e) => { if (!svg._drag) return; svg._drag(puntoSVG(svg, e)); redibujar(); });
+  const fin = (e) => { const habia = !!svg._drag; svg._drag = null; try { svg.releasePointerCapture(e.pointerId); } catch (_) {} if (habia && alSoltar) alSoltar(); };
+  svg.addEventListener('pointerup', fin); svg.addEventListener('pointercancel', fin);
+}
+function arrastrable(svg, nodo, mover, alEmpezar) {
+  nodo.classList.add('drag');
+  nodo.addEventListener('pointerdown', (e) => { e.preventDefault(); if (alEmpezar) alEmpezar(); svg._drag = mover; try { svg.setPointerCapture(e.pointerId); } catch (_) {} });
+}
+function ejes(g, P, xlab, ylab, xt, yt, conCero) {
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0 + P.w + 8, y2: P.y0 + P.h, class: 'eje' }, g);
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0, y2: P.y0 - 8, class: 'eje' }, g);
+  el('path', { d: `M${P.x0 + P.w + 8},${P.y0 + P.h - 4}l7,4l-7,4z`, fill: 'var(--fg)' }, g);
+  el('path', { d: `M${P.x0 - 4},${P.y0 - 8}l4,-7l4,7z`, fill: 'var(--fg)' }, g);
+  tx(g, P.x0 + P.w + 14, P.y0 + P.h + 30, xlab, { 'text-anchor': 'end' });
+  tx(g, P.x0 + 8, P.y0 - 4, ylab, { 'text-anchor': 'start' });
+  for (const v of xt || []) { el('line', { x1: P.sx(v), y1: P.y0 + P.h, x2: P.sx(v), y2: P.y0 + P.h + 4, class: 'tick' }, g);
+    el('text', { x: P.sx(v), y: P.y0 + P.h + 15, class: 'tlab', 'text-anchor': 'middle' }, g).textContent = fmt(v, 0); }
+  for (const v of yt || []) { el('line', { x1: P.x0 - 4, y1: P.sy(v), x2: P.x0, y2: P.sy(v), class: 'tick' }, g);
+    el('text', { x: P.x0 - 7, y: P.sy(v) + 4, class: 'tlab', 'text-anchor': 'end' }, g).textContent = fmt(v, 0); }
+  if (conCero) el('line', { x1: P.x0, y1: P.sy(0), x2: P.x0 + P.w, y2: P.sy(0), class: 'eje', 'stroke-width': .8 }, g);
+}
+
+
+/* ===================================================================== utilidades */
+const f1 = (v) => fmt(v, 1), f2 = (v) => fmt(v, 2), f3 = (v) => fmt(v, 3);
+const sg = (v, d = 2) => (v > 0 ? '+' : '') + fmt(v, d);
+const HIST = {}, ULT = {}, PINTAR = {};
+function mostrarPorque(k, e) {
+  HIST[k] = [e, ...(HIST[k] || [])].slice(0, 6); ULT[k] = e.cambia || new Set();
+  const box = document.getElementById('porque-' + k), [act, ...prev] = HIST[k];
+  box.innerHTML = `<div class="eti">Qué ha cambiado y por qué</div><h3>${act.titulo}</h3>` + act.p.map((t) => `<p>${t}</p>`).join('') +
+    (prev.length ? `<details><summary>Cambios anteriores (${prev.length})</summary>` + prev.map((h) => `<div class="prev"><b>${h.titulo}</b>${h.p.map((t) => `<p>${t}</p>`).join('')}</div>`).join('') + '</details>' : '');
+  montar(box); PINTAR[k]();
+}
+function pintarConceptos(id, lista, cambia) {
+  const c = document.getElementById(id);
+  c.innerHTML = lista.map((x) => `
+    <article class="concepto${cambia.has(x.k) ? ' cambia' : ''}">
+      <div class="cab"><h4>${x.n}</h4>${cambia.has(x.k) ? '<span class="chip-cambia">ha cambiado</span>' : ''}</div>
+      <p class="def">${x.d}</p>
+      ${x.f ? `<div class="formula">${TX(x.f)}</div>` : ''}
+      ${x.v !== undefined ? `<p class="valor">Ahora: <b>${x.v}</b></p>` : ''}
+      ${x.ref ? `<p class="ref">${x.ref}</p>` : ''}
+    </article>`).join('');
+  montar(c);
+}
+function sesion(k, estado, explicar, redibujar) {
+  let snap = null;
+  return {
+    empezar: () => { if (!snap) snap = JSON.parse(JSON.stringify(estado)); },
+    cerrar: () => { if (!snap) return; const e = explicar(snap, JSON.parse(JSON.stringify(estado))); snap = null; if (e) { if (redibujar) redibujar(); mostrarPorque(k, e); } },
+  };
+}
+
+/* ===================================================================== la economía común */
+/* producción Y = f(L) = 2A√L; demanda nocional de trabajo w = PMagL; oferta nocional de trabajo L = w/φ */
+const AA = 10, PHI = 1.25;
+const fL = (L) => 2 * AA * Math.sqrt(Math.max(0, L));
+const finv = (Y) => Math.pow(Y / (2 * AA), 2);
+const Ld = (w) => Math.pow(AA / w, 2);
+const Ls = (w) => w / PHI;
+const WS = 5, LS_ = 4, YS = 40;                       /* equilibrio walrasiano A */
+const Ys = (w) => fL(Ld(w));                          /* oferta nocional de bienes */
+const YF = (w) => fL(Ls(w));                          /* producción si se contrata toda la oferta de trabajo */
+
+/* --- §2. 3. 1 (Barro-Grossman): consumo = c · renta total + gasto autónomo con saldos reales */
+const BG = { c: 0.5, g0: 10, m: 10 };
+const aut = (P) => BG.g0 + BG.m / P;
+const Ydn = (w, P) => BG.c * YF(w) + aut(P);         /* demanda nocional de bienes: renta si se vendiera toda la oferta de trabajo */
+function eqBG(w, P) {
+  const Yk = aut(P) / (1 - BG.c), ys = Ys(w), yf = YF(w);
+  const Y = Math.min(Yk, ys, yf), reg = Y === Yk && Yk < Math.min(ys, yf) - 1e-9 ? 'K' : Y === ys && ys <= yf ? 'C' : 'RI';
+  return { Y, L: finv(Y), Yk, ys, yf, reg };
+}
+/* --- Malinvaud y Leijonhufvud: los hogares gastan el salario (P·Y^D = w·L), más la demanda autónoma i^D */
+function rootK(w, iD) { const d = 400 - 4 * w * iD; if (d < 0) return null; const x = (20 - Math.sqrt(d)) / (2 * w); return x * x; }
+function eqMal(w, iD) {
+  const Lk = rootK(w, iD), ys = Ys(w), yf = YF(w), Yk = Lk == null ? Infinity : fL(Lk);
+  if (Yk < Math.min(ys, yf) - 1e-9) return { reg: 'K', L: Lk, Y: Yk, ys, yf, Yk };
+  if (ys <= yf) return { reg: 'C', L: Ld(w), Y: ys, ys, yf, Yk };
+  return { reg: 'RI', L: Ls(w), Y: yf, ys, yf, Yk };
+}
+const REG = { K: 'Desempleo keynesiano', C: 'Desempleo clásico', RI: 'Inflación reprimida', SC: 'Subconsumo' };
+
+/* ===================================================================== estado y pestañas */
+const TABS = [['bg', 'Nocional y efectiva · §2. 3. 1'], ['clower', 'Decisión dual · Anexo 1'], ['leij', 'Multiplicador · Anexo 2'], ['mal', 'Regímenes · Anexo 3']];
+const NOM = Object.fromEntries(TABS);
+const S = { tab: 'bg', P: 1.5, w: 5, wc: 6, iD: 18, dI: -5, n: 0, dual: true };
+const MIRAR = {
+  bg: 'Sube P₁ por encima de P*: a ese precio las empresas no venden lo que querrían, la restricción de ventas se traslada al trabajo y la demanda efectiva de trabajo se vuelve vertical en L₁. Sube también w para pasar del punto B (paro keynesiano) a un punto como D (paro clásico).',
+  clower: 'Con un salario real w′ por encima de w*, la empresa quiere el punto 2 y el hogar el 3. Hay exceso de oferta de trabajo y, sobre el papel, exceso de demanda de bienes. Desmarca y marca la decisión dual para ver por qué ese exceso de demanda no llega al mercado.',
+  leij: 'La economía parte del punto 1. Un pesimismo empresarial baja la demanda autónoma i<sup>D</sup>; sube «Rondas del proceso» para ver la cadena 1 → 2 → 3 → … → N: menos ventas, menos empleo, menos consumo, menos ventas.',
+  mal: 'Mueve el salario real w y la demanda autónoma i<sup>D</sup>. El punto blanco del mapa marca en qué régimen de desequilibrio está la economía, y el panel de la izquierda qué pasa con el empleo si sube el salario.',
+};
+const svg = document.getElementById('svg-d'); svg.setAttribute('viewBox', '0 0 1000 480');
+const g = el('g', {}, svg);
+const SD = sesion('d', S, explicar, () => dibujar());
+let PL, PR;
+function paneles(rL, rR) { limpiar(g); limpiar(svg); svg.appendChild(g); PL = panel(svg, 62, 36, 380, 370, rL[0], rL[1]); PR = panel(svg, 580, 36, 380, 370, rR[0], rR[1]); }
+const linea = (pts, attrs, parent) => el('path', Object.assign({ d: path(pts) }, attrs), parent || g);
+const rot = (P, x, y, t, color, extra = {}) => tx(g, P.sx(x), P.sy(y), t, Object.assign({ style: `fill:${color}` }, extra));
+function pto(P, x, y, et, o = {}) {
+  if (![x, y].every(Number.isFinite)) return;
+  el('circle', o.hueco ? { cx: P.sx(x), cy: P.sy(y), r: o.r || 5.5, fill: 'var(--bg)', stroke: 'var(--punto)', 'stroke-width': 1.8 } : { cx: P.sx(x), cy: P.sy(y), r: o.r || 6, class: 'pto', fill: o.fill || 'var(--punto)' }, g);
+  if (et) tx(g, P.sx(x) + (o.dx ?? 8), P.sy(y) + (o.dy ?? -8), et, { style: `font-size:${o.fs || 14}px;font-style:normal;font-weight:600;fill:var(--punto)` });
+}
+function hguia(P, x, y, et, dy = 4) { el('line', { x1: P.x0, y1: P.sy(y), x2: P.sx(x), y2: P.sy(y), class: 'guia' }, g); if (et) tx(g, P.x0 + 5, P.sy(y) - 4 + (dy > 4 ? 14 : 0), et, { style: 'font-size:12px' }); }
+function vguia(P, x, y, et) { el('line', { x1: P.sx(x), y1: P.sy(y), x2: P.sx(x), y2: P.y0 + P.h, class: 'guia' }, g); if (et) tx(g, P.sx(x), P.y0 + P.h + 30, et, { 'text-anchor': 'middle', style: 'font-size:12px' }); }
+const titulo = (P, t) => { el('text', { x: P.x0 + P.w / 2, y: 18, class: 'r', 'text-anchor': 'middle' }, g).textContent = t; };
+const curva = (P, fn, a, b, attrs, n = 300) => { const pts = []; for (let j = 0; j <= n; j++) { const x = a + (b - a) * j / n, y = fn(x); pts.push(Number.isFinite(y) ? [P.sx(x), P.sy(y)] : null); } return linea(pts, attrs, el('g', { 'clip-path': P.clip }, g)); };
+const curvaInv = (P, fn, a, b, attrs, n = 300) => { const pts = []; for (let j = 0; j <= n; j++) { const y = a + (b - a) * j / n, x = fn(y); pts.push(Number.isFinite(x) ? [P.sx(x), P.sy(y)] : null); } return linea(pts, attrs, el('g', { 'clip-path': P.clip }, g)); };
+function mercadoTrabajo(P, tit) {
+  titulo(P, tit); ejes(g, P, 'L', 'w', [0, 2, 4, 6, 8, 10], [0, 2, 4, 6, 8, 10]);
+  curvaInv(P, (w) => Ld(w), 0.8, P.yr[1], { class: 'cur', stroke: 'var(--rojo)' });
+  curvaInv(P, (w) => Ls(w), 0, P.yr[1], { class: 'cur', stroke: 'var(--verde)' });
+  rot(P, Ld(9.3) + 0.25, 9.3, 'L^d', 'var(--rojo)'); rot(P, Ls(9.3) + 0.25, 9.3, 'L^s', 'var(--verde)');
+}
+
+function dibujar() {
+  ({ bg: dibBG, clower: dibClower, leij: dibLeij, mal: dibMal })[S.tab]();
+  refrescar(); PINTAR.d();
+}
+
+/* ---------- §2. 3. 1 Barro-Grossman */
+function dibBG() {
+  paneles([[0, 10], [0, 10]], [[0, 70], [0, 10]]);
+  const s = S, e = eqBG(s.w, s.P), e0 = eqBG(s.w, 1), L1 = e.L, wD = AA / Math.sqrt(L1), wC = PHI * L1;
+  mercadoTrabajo(PL, 'MERCADO DE TRABAJO');
+  /* bienes: w en vertical, Y en horizontal */
+  titulo(PR, 'MERCADO DE BIENES'); ejes(g, PR, 'Y', 'w', [0, 10, 20, 30, 40, 50, 60, 70], [0, 2, 4, 6, 8, 10]);
+  curvaInv(PR, (w) => Ys(w), 2.9, 10, { class: 'cur', stroke: 'var(--azul)' });
+  rot(PR, Ys(9.4) + 1, 9.4, 'Y^s', 'var(--azul)');
+  curvaInv(PR, (w) => Ydn(w, 1), 0.01, 10, { class: Math.abs(s.P - 1) > 1e-9 ? 'rayo' : 'cur', stroke: 'var(--naranja)' });
+  rot(PR, Ydn(9.3, 1) + 1, 9.3, 'Y^d(P^*)', 'var(--naranja)', { style: 'fill:var(--naranja);font-size:13px' });
+  if (Math.abs(s.P - 1) > 1e-9) { curvaInv(PR, (w) => Ydn(w, s.P), 0.01, 10, { class: 'cur', stroke: 'var(--naranja)' }); rot(PR, Ydn(8.2, s.P) - 1, 8.2, 'Y^d(P_1)', 'var(--naranja)', { 'text-anchor': 'end', style: 'fill:var(--naranja);font-size:13px' }); }
+  pto(PL, LS_, WS, 'A', { r: 4.5 }); pto(PR, YS, WS, 'A', { r: 4.5 });
+  hguia(PL, LS_, WS, 'w^*'); vguia(PL, LS_, WS, 'L^*'); hguia(PR, YS, WS, 'w^*'); vguia(PR, YS, WS, 'Y^*');
+  if (e.reg === 'K') {
+    /* restricción de ventas: Y1 vertical y L1 vertical */
+    el('line', { x1: PR.sx(e.Y), y1: PR.y0, x2: PR.sx(e.Y), y2: PR.y0 + PR.h, class: 'cur', stroke: 'var(--punto)', 'stroke-width': 1.8 }, el('g', { 'clip-path': PR.clip }, g));
+    rot(PR, e.Y + 1, 9.6, 'Y_1(P_1)', 'var(--punto)', { style: 'fill:var(--punto);font-size:13px' });
+    el('line', { x1: PL.sx(L1), y1: PL.y0, x2: PL.sx(L1), y2: PL.y0 + PL.h, class: 'cur', stroke: 'var(--punto)', 'stroke-width': 1.8 }, el('g', { 'clip-path': PL.clip }, g));
+    tx(g, PL.sx(L1), PL.y0 + PL.h + 30, 'L_1', { 'text-anchor': 'middle', style: 'font-size:12px' });
+    for (const [P, x] of [[PL, L1], [PR, e.Y]]) {
+      hguia(P, x, wD, 'w_D'); hguia(P, x, wC, 'w_C', 10);
+      pto(P, x, wD, 'D', { r: 4.5 }); pto(P, x, s.w, 'B', { dx: 8, dy: 4 }); pto(P, x, wC, 'C', { r: 4.5, dy: 16 });
+    }
+    if (Math.abs(s.w - WS) > 1e-6) { hguia(PL, L1, s.w, 'w'); hguia(PR, e.Y, s.w, 'w'); }
+  } else {
+    const L = e.L, Y = e.Y;
+    pto(PL, L, s.w, e.reg === 'C' ? 'D' : 'E'); pto(PR, Y, s.w, e.reg === 'C' ? 'D' : 'E');
+    if (Math.abs(s.w - WS) > 1e-6) { hguia(PL, L, s.w, 'w'); hguia(PR, Y, s.w, 'w'); }
+    vguia(PL, L, s.w, 'L'); vguia(PR, Y, s.w, 'Y');
+  }
+  const lec = document.getElementById('lec-d');
+  lec.innerHTML = `<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`Y = f(L) = 2A\sqrt{L},\qquad L^d:\ ${MV('w')} = \mathrm{PMag}_L = \frac{A}{\sqrt L},\qquad L^s = \frac{${MV('w')}}{\phi}`)}
+    ${TX(String.raw`Y^s(${MV('w')}) = f\bigl(L^d(${MV('w')})\bigr),\qquad Y^d(${MV('w')},${MV('P_1')}) = c\,f\bigl(L^s(${MV('w')})\bigr) + G_0 + \frac{m}{${MV('P_1')}}`)}
+    ${TX(String.raw`\text{demanda efectiva: } Y_1 = c\,Y_1 + G_0 + \frac{m}{${MV('P_1')}}\ \Rightarrow\ Y_1 = \frac{G_0 + m/${MV('P_1')}}{1-c}`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`Y = \min\{Y_1, Y^s, f(L^s)\} = \min\{${fT(e.Yk, 1)};\ ${fT(e.ys, 1)};\ ${fT(e.yf, 1)}\} = ${fT(e.Y, 1)},\quad L = ${fT(e.L)}`)}</div>
+    <div class="kv"><div><span>Régimen</span><b>${REG[e.reg]}</b></div><div><span>P₁/P* · w</span><b>${f2(s.P)} · ${f2(s.w)}</b></div>
+    <div><span>Empleo L</span><b>${f2(e.L)} <span class="ayuda">(L* = 4)</span></b></div><div><span>Producción Y</span><b>${f1(e.Y)} <span class="ayuda">(Y* = 40)</span></b></div>
+    <div><span>Demanda nocional a w</span><b>${f1(Ydn(s.w, s.P))}</b></div><div><span>Oferta nocional de trabajo</span><b>${f2(Ls(s.w))}</b></div></div>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = 'Parámetros: A = 10, φ = 1,25, c = 0,5, G₀ = 10, m = 10, P* = 1; el walrasiano A es w* = 5, L* = 4, Y* = 40. El consumo depende de la renta total, por eso en este apartado w no afecta a la demanda efectiva de trabajo, como dice el tema. La demanda nocional supone que los hogares venden toda la oferta de trabajo L<sup>s</sup>(w).';
+  void e0;
+}
+
+/* ---------- Anexo 1: decisión dual de Clower */
+function dibClower() {
+  paneles([[0, 8], [0, 70]], [[0, 10], [0, 10]]);
+  const w = S.wc, LD = Ld(w), LSx = Ls(w), pi = fL(LD) - w * LD, CS = fL(LD), CD = pi + w * LSx, U3 = CD - PHI * LSx * LSx / 2, Ustar = YS - PHI * LS_ * LS_ / 2;
+  titulo(PL, 'EMPRESA Y HOGAR (C, L)'); ejes(g, PL, 'L', 'C', [0, 2, 4, 6, 8], [0, 10, 20, 30, 40, 50, 60, 70]);
+  curva(PL, fL, 0, 8, { class: 'cur', stroke: 'var(--rojo)' }); rot(PL, 7.2, fL(7.2) - 5, 'FPP', 'var(--rojo)');
+  curva(PL, (L) => 20 + WS * L, 0, 8, { class: 'cur-fina', style: 'stroke:var(--fg);stroke-width:1.4' }); rot(PL, 7.6, 20 + WS * 7.6 - 5, 'w^*', 'var(--fg)', { style: 'font-size:13px' });
+  curva(PL, (L) => Ustar + PHI * L * L / 2, 0, 8, { class: 'cur', stroke: 'var(--azul)', 'stroke-width': 1.6 }); rot(PL, 0.3, Ustar - 4, 'CI_0', 'var(--azul)', { style: 'fill:var(--azul);font-size:13px' });
+  pto(PL, LS_, YS, '1', { r: 4.5, dx: -16 });
+  if (w > WS + 1e-6) {
+    curva(PL, (L) => pi + w * L, 0, 8, { class: 'cur-fina', style: 'stroke:var(--fg);stroke-width:1.4' }); rot(PL, Math.min(6.6, (64 - pi) / w), Math.min(64, pi + w * 6.6) + 2, "w'", 'var(--fg)', { style: 'font-size:13px' });
+    curva(PL, (L) => U3 + PHI * L * L / 2, 0, 8, { class: 'cur', stroke: 'var(--azul)', 'stroke-width': 1.6 }); rot(PL, 5.9, Math.min(68, U3 + PHI * 5.9 * 5.9 / 2) + 1, 'CI_1', 'var(--azul)', { 'text-anchor': 'end', style: 'fill:var(--azul);font-size:13px' });
+    pto(PL, LD, CS, '2', { dx: -16, dy: 14 }); pto(PL, LSx, CD, '3', { dx: 8, dy: -6, hueco: S.dual });
+    vguia(PL, LD, CS, 'L^D'); vguia(PL, LSx, CD, 'L^S'); hguia(PL, LD, CS, 'C^S'); hguia(PL, LSx, CD, 'C^D', -2);
+    if (S.dual) { el('path', { d: `M${PL.sx(LSx)},${PL.sy(CD)}L${PL.sx(LD) + 6},${PL.sy(CS) - 4}`, stroke: 'var(--punto)', 'stroke-width': 1.4, 'stroke-dasharray': '4 3', fill: 'none' }, g); }
+  }
+  mercadoTrabajo(PR, 'MERCADO DE TRABAJO');
+  pto(PR, LS_, WS, '1', { r: 4.5 }); hguia(PR, LS_, WS, 'w^*');
+  if (w > WS + 1e-6) {
+    el('line', { x1: PR.sx(LD), y1: PR.sy(w), x2: PR.sx(LSx), y2: PR.sy(w), stroke: 'var(--rojo)', 'stroke-width': 3 }, g);
+    el('text', { x: (PR.sx(LD) + PR.sx(LSx)) / 2, y: PR.sy(w) - 8, class: 'r', 'text-anchor': 'middle', style: 'fill:var(--rojo);font-size:10.5px' }, g).textContent = 'EXCESO DE OFERTA';
+    hguia(PR, LD, w, "w'"); pto(PR, LD, w, '2', { r: 4.5, dx: -16 }); pto(PR, LSx, w, '3', { r: 4.5 });
+  }
+  const lec = document.getElementById('lec-d');
+  lec.innerHTML = `<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\text{empresa: } \max\ f(L) - ${MV("w'")}L\ \Rightarrow\ \mathrm{PMag}_L = ${MV("w'")}\ \Rightarrow\ L^D = \left(\frac{A}{${MV("w'")}}\right)^2`)}
+    ${TX(String.raw`\text{hogar: } \max\ C - \tfrac{\phi}{2}L^2\ \text{ s.a. } C = \pi + ${MV("w'")}L\ \Rightarrow\ \mathrm{RMS} = \phi L = ${MV("w'")}\ \Rightarrow\ L^S = \frac{${MV("w'")}}{\phi}`)}
+    ${TX(String.raw`\text{dual: } C^{ef} = \pi + ${MV("w'")}\,L^D = f(L^D) = C^S`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`L^D = ${fT(LD)},\ L^S = ${fT(LSx)},\ C^S = ${fT(CS, 1)},\ C^D = ${fT(CD, 1)}`)}</div>
+    <div class="kv"><div><span>Exceso de oferta de trabajo</span><b>${f2(LSx - LD)}</b></div><div><span>Exceso de demanda nocional de bienes</span><b>${f1(CD - CS)}</b></div>
+    <div><span>Exceso de demanda efectivo (dual)</span><b>${S.dual ? '0,0' : f1(CD - CS)}</b></div><div><span>Beneficio π</span><b>${f1(pi)}</b></div></div>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = 'Mismos A = 10 y φ = 1,25: con w* = 5, empresa y hogar eligen el punto 1. La recta de salario w′ es a la vez isobeneficio de la empresa y restricción presupuestaria del hogar, que cobra el beneficio π.';
+}
+
+/* ---------- Anexo 2: multiplicador de Leijonhufvud */
+function pasosLeij(n) {
+  const iD1 = 20 + S.dI, pts = [{ L: LS_, Y: YS, et: '1' }]; let L = LS_;
+  for (let j = 0; j < n; j++) {
+    const D = WS * L + iD1; pts.push({ L, Y: D, et: j === 0 ? '2' : '' });
+    const L2 = finv(D); pts.push({ L: L2, Y: D, et: j === 0 ? '3' : '' }); L = L2;
+  }
+  return { pts, LN: rootK(WS, iD1), iD1 };
+}
+function dibLeij() {
+  paneles([[0, 6], [0, 60]], [[0, 10], [0, 10]]);
+  const r = pasosLeij(S.n), iD1 = r.iD1, LN = r.LN;
+  titulo(PL, 'PRODUCCIÓN Y DEMANDA (Y, L)'); ejes(g, PL, 'L', 'Y, C', [0, 1, 2, 3, 4, 5, 6], [0, 10, 20, 30, 40, 50, 60]);
+  curva(PL, fL, 0, 6, { class: 'cur', stroke: 'var(--rojo)' }); rot(PL, 5.9, fL(5.9) - 4, 'FPA: Y = f(L)', 'var(--rojo)', { 'text-anchor': 'end', style: 'fill:var(--rojo);font-size:13px' });
+  curva(PL, (L) => 20 + WS * L, 0, 6, { class: 'cur-fina', style: 'stroke:var(--azul);stroke-width:1.6' }); rot(PL, 1.2, 20 + WS * 1.2 + 4, 'i^D + w·L', 'var(--azul)', { style: 'fill:var(--azul);font-size:12px' });
+  hguia(PL, 0.0001, 20, 'i^D');
+  if (Math.abs(S.dI) > 1e-9) { curva(PL, (L) => iD1 + WS * L, 0, 6, { class: 'cur', stroke: 'var(--azul)' }); hguia(PL, 0.0001, iD1, "i^{D'}", 12); }
+  vguia(PL, LS_, YS, 'L^*'); hguia(PL, LS_, YS, 'y^D');
+  if (S.n > 0) {
+    const pp = r.pts.map((q) => [PL.sx(q.L), PL.sy(q.Y)]);
+    el('path', { d: path(pp), fill: 'none', stroke: 'var(--punto)', 'stroke-width': 1.8 }, g);
+    r.pts.forEach((q, j) => { if (j > 0) pto(PL, q.L, q.Y, q.et, { r: 3.5, dx: q.et === '2' ? 8 : -14, dy: q.et === '2' ? 4 : -6 }); });
+  }
+  if (LN != null && Math.abs(S.dI) > 1e-9) pto(PL, LN, fL(LN), 'N', { r: 5, hueco: S.n < 12, dx: -18 });
+  pto(PL, LS_, YS, '1', { dx: -16 });
+  /* trabajo */
+  mercadoTrabajo(PR, 'MERCADO DE TRABAJO');
+  pto(PR, LS_, WS, '1', { r: 4.5 }); hguia(PR, LS_, WS, 'w^*');
+  const Lact = r.pts[r.pts.length - 1].L;
+  if (S.n > 0) {
+    el('line', { x1: PR.sx(Lact), y1: PR.sy(WS), x2: PR.sx(LS_), y2: PR.sy(WS), stroke: 'var(--rojo)', 'stroke-width': 3 }, g);
+    el('text', { x: (PR.sx(Lact) + PR.sx(LS_)) / 2, y: PR.sy(WS) + 16, class: 'r', 'text-anchor': 'middle', style: 'fill:var(--rojo);font-size:10.5px' }, g).textContent = 'DESEMPLEO';
+    pto(PR, Lact, WS, '', { r: 5 }); vguia(PR, Lact, WS, 'L');
+  }
+  if (LN != null) { el('line', { x1: PR.sx(LN), y1: PR.sy(WS) - 10, x2: PR.sx(LN), y2: PR.sy(WS) + 10, stroke: 'var(--punto)', 'stroke-width': 2 }, g); tx(g, PR.sx(LN), PR.sy(WS) - 14, 'N', { 'text-anchor': 'middle', style: 'font-size:13px;font-style:normal;font-weight:600;fill:var(--punto)' }); }
+  const YN = LN != null ? fL(LN) : NaN, Yact = r.pts[r.pts.length - 1].Y;
+  const lec = document.getElementById('lec-d');
+  lec.innerHTML = `<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\text{demanda: } P\,Y^D = w\,L + P\,i^D\ \Rightarrow\ Y^D = i^D + ${MV(String.raw`\Delta i^D`)} + w\,L`)}
+    ${TX(String.raw`\text{ronda: } Y_{t} = i^{D'} + w\,L_{t-1},\qquad L_t = f^{-1}(Y_t)`)}
+    ${TX(String.raw`\text{punto N: } f(L_N) = i^{D'} + w\,L_N`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`i^{D'} = ${fT(iD1, 1)}:\quad L_N = ${fT(LN)},\ Y_N = ${fT(YN, 1)},\quad \frac{\Delta Y}{\Delta i^D} = ${Math.abs(S.dI) > 1e-9 ? fT((YN - YS) / S.dI, 2) : '—'}`)}</div>
+    <div class="kv"><div><span>Tras ${S.n} rondas: L</span><b>${f2(S.n ? r.pts[r.pts.length - 1].L : LS_)}</b></div><div><span>Y</span><b>${f1(Yact)}</b></div>
+    <div><span>Punto N: L · Y</span><b>${f2(LN)} · ${f1(YN)}</b></div><div><span>Desempleo final (L* − L<sub>N</sub>)</span><b>${f2(LS_ - LN)}</b></div></div>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = 'Los hogares gastan su salario, P·Y<sup>D</sup> = w·L (fórmula del Anexo 1), y la demanda autónoma es la inversión i<sup>D</sup>. El salario real se queda en w* = 5: el ajuste es todo en cantidades. En 1 la recta de demanda es tangente a la FPA, por eso el efecto final es tan grande.';
+}
+
+/* ---------- Anexo 3: regímenes de Malinvaud */
+function dibMal() {
+  paneles([[0, 10], [0, 10]], [[3, 8], [0, 30]]);
+  const s = S, e = eqMal(s.w, s.iD), e2 = eqMal(s.w + 0.4, s.iD);
+  mercadoTrabajo(PL, 'MERCADO DE TRABAJO');
+  pto(PL, LS_, WS, 'A', { r: 4.5 }); hguia(PL, LS_, WS, 'w^*');
+  const et = { K: 'Z', C: '2', RI: 'R' }[e.reg];
+  if (Math.abs(e2.L - e.L) > 0.02) { pto(PL, e2.L, s.w + 0.4, et + "'", { hueco: true, r: 5, dx: 8, dy: -6 }); el('path', { d: `M${PL.sx(e.L)},${PL.sy(s.w) - 8}Q${PL.sx((e.L + e2.L) / 2) - 10},${PL.sy(s.w + 0.4) - 12} ${PL.sx(e2.L) - 4},${PL.sy(s.w + 0.4) - 6}`, fill: 'none', stroke: 'var(--punto)', 'stroke-width': 1.3 }, g); }
+  pto(PL, e.L, s.w, et); hguia(PL, e.L, s.w, 'w'); vguia(PL, e.L, s.w, 'L');
+  /* mapa de regímenes en (w, i^D) */
+  titulo(PR, 'REGÍMENES DE DESEQUILIBRIO'); ejes(g, PR, 'w', 'i^D', [3, 4, 5, 6, 7, 8], [0, 5, 10, 15, 20, 25, 30]);
+  const col = { K: 'var(--z1)', C: 'var(--z3)', RI: 'var(--z2)' }, gm = el('g', { 'clip-path': PR.clip }, g);
+  const nx = 50, ny = 60;
+  for (let a = 0; a < nx; a++) for (let b = 0; b < ny; b++) {
+    const w = 3 + 5 * (a + 0.5) / nx, iD = 30 * (b + 0.5) / ny, r = eqMal(w, iD).reg;
+    el('rect', { x: PR.sx(3 + 5 * a / nx), y: PR.sy(30 * (b + 1) / ny), width: PR.w / nx + 0.6, height: PR.h / ny + 0.6, fill: col[r], stroke: 'none' }, gm);
+  }
+  for (const [r, w, iD] of [['K', 4.2, 6], ['C', 6.9, 16], ['RI', 4.25, 26]]) el('text', { x: PR.sx(w), y: PR.sy(iD), class: 'r', 'text-anchor': 'middle', style: 'fill:var(--fg);font-weight:600' }, g).textContent = REG[r].toUpperCase();
+  pto(PR, WS, 20, 'A', { r: 4.5 });
+  pto(PR, s.w, s.iD, '', { hueco: true, r: 7 });
+  /* tabla */
+  const lec = document.getElementById('lec-d'), celda = (r, txt) => `<td class="${e.reg === r ? 'act' : ''}">${txt}</td>`;
+  const dLdw = (e2.L - e.L) / 0.4;
+  lec.innerHTML = `<table class="tabla-reg"><thead><tr><th></th><th>Bienes: exceso de oferta</th><th>Bienes: exceso de demanda</th></tr></thead><tbody>
+    <tr><th>Trabajo: exceso de oferta</th>${celda('K', 'Desempleo keynesiano')}${celda('C', 'Desempleo clásico')}</tr>
+    <tr><th>Trabajo: exceso de demanda</th>${celda('SC', 'Subconsumo')}${celda('RI', 'Inflación reprimida')}</tr></tbody></table>
+    <div class="formas" style="margin-top:8px"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`Y^D = ${MV('i^D')} + ${MV('w')}\,L,\qquad Y^s = f\bigl(L^d(${MV('w')})\bigr),\qquad Y_F = f\bigl(L^s(${MV('w')})\bigr)`)}
+    ${TX(String.raw`Y = \min\bigl\{Y_K,\ Y^s,\ Y_F\bigr\},\qquad Y_K:\ f(L) = ${MV('i^D')} + ${MV('w')}\,L`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`Y = \min\{${Number.isFinite(e.Yk) ? fT(e.Yk, 1) : '\\infty'};\ ${fT(e.ys, 1)};\ ${fT(e.yf, 1)}\} = ${fT(e.Y, 1)},\quad L = ${fT(e.L)}`)}</div>
+    <div class="kv"><div><span>Régimen</span><b>${REG[e.reg]}</b></div><div><span>Desempleo (L<sup>s</sup> − L)</span><b>${f2(Math.max(0, Ls(s.w) - e.L))}</b></div>
+    <div><span>Si w sube 0,4, L cambia</span><b>${sg(e2.L - e.L)}</b></div><div><span>Domina el efecto</span><b>${e.reg === 'K' ? 'demanda' : e.reg === 'C' ? 'coste' : '— (manda la oferta de trabajo)'}</b></div></div>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = 'Los hogares gastan su salario (P·Y<sup>D</sup> = w·L) y la demanda autónoma es i<sup>D</sup>; así una subida de w tiene efecto demanda. Con ese supuesto el subconsumo no aparece como región: es un caso límite, en la frontera, que la literatura trata como poco relevante. Walrasiano: w* = 5, i<sup>D</sup> = 20.';
+  void dLdw;
+}
+
+/* ===================================================================== mandos */
+const CTL = { bg: ['P', 'w'], clower: ['wc', 'dual'], leij: ['dI', 'n'], mal: ['w', 'iD'] };
+const AYUDA = {
+  bg: 'P₁ desplaza la demanda nocional de bienes (saldos reales). Con w > w* y P₁ bajo, la economía pasa a desempleo clásico.',
+  clower: 'w′ es el salario real, fijado por encima del walrasiano w* = 5.',
+  leij: 'El shock se aplica a la demanda autónoma; las rondas muestran la cadena hasta N.',
+  mal: 'w desplaza la economía en horizontal en el mapa; i^D, en vertical. Los shocks de demanda bajan i^D; los de oferta suben w.',
+};
+function construir() {
+  const tabs = document.getElementById('tabs');
+  for (const [k, t] of TABS) { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.k = k; b.textContent = t; b.addEventListener('click', () => abrir(k, true)); tabs.appendChild(b); }
+  document.querySelectorAll('input[type=range][id^="de-"]').forEach((inp) => {
+    const k = inp.dataset.k;
+    inp.addEventListener('input', () => { SD.empezar(); S[k] = parseFloat(inp.value); dibujar(); });
+    inp.addEventListener('change', SD.cerrar);
+  });
+  document.getElementById('de-dual').addEventListener('change', (e) => { SD.empezar(); S.dual = e.target.checked; dibujar(); SD.cerrar(); });
+}
+function abrir(k, conExplicacion) {
+  S.tab = k;
+  if (k === 'bg') Object.assign(S, { P: 1.5, w: 5 });
+  if (k === 'mal') Object.assign(S, { w: 5, iD: 18 });
+  if (k === 'leij') Object.assign(S, { dI: -5, n: 0 });
+  if (k === 'clower') Object.assign(S, { wc: 6, dual: true });
+  document.querySelectorAll('#tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.k === k)));
+  document.getElementById('mirar').innerHTML = MIRAR[k];
+  dibujar();
+  if (conExplicacion) mostrarPorque('d', inicial(k));
+}
+function refrescar() {
+  const act = new Set(CTL[S.tab]);
+  document.querySelectorAll('[data-ctl]').forEach((n) => { n.hidden = !act.has(n.dataset.ctl); });
+  document.querySelectorAll('input[type=range][id^="de-"]').forEach((inp) => { const k = inp.dataset.k; inp.value = S[k]; document.getElementById(inp.id + '-v').textContent = fmt(S[k], k === 'n' ? 0 : 2); });
+  document.getElementById('de-dual').checked = S.dual;
+  document.getElementById('ayuda-ctl').textContent = AYUDA[S.tab];
+  document.getElementById('chips-extra').hidden = true;
+}
+
+/* ===================================================================== explicaciones */
+function textoBG(e, s) {
+  if (e.reg === 'K') {
+    const L1 = e.L;
+    return [`A P₁ = ${f2(s.P)}·P*, la demanda de bienes solo absorbe Y₁ = ${f1(e.Y)}: las empresas querrían vender ${f1(e.ys)} a ese salario, pero no pueden. Esa restricción de ventas se traslada al mercado de trabajo: contratan solo L₁ = ${f2(L1)}, lo necesario para producir Y₁, y la demanda efectiva de trabajo es la vertical L₁, que no depende del salario real.`,
+      `Los hogares, que querrían trabajar ${f2(Ls(s.w))}, solo venden L₁, y gastan según esa renta efectiva: el recorte inicial de la demanda se amplifica (Y₁ = (G₀ + m/P₁)/(1 − c)). En B hay desempleo keynesiano: el salario es ${s.w > WS + 1e-6 ? 'incluso superior al' : 'el'} walrasiano, y el paro se debe a la insuficiencia de demanda efectiva. Fuera de A no se cumple la ley de Walras.`,
+      `D (w<sub>D</sub> = ${f2(AA / Math.sqrt(L1))}) es el salario al que la demanda nocional de trabajo sería L₁: si la economía estuviera allí, el paro se debería a un salario real excesivo, desempleo clásico. C (w<sub>C</sub> = ${f2(PHI * L1)}) es el salario al que los hogares solo querrían ofrecer L₁.`];
+  }
+  if (e.reg === 'C') return [`Con w = ${f2(s.w)} por encima de w* y una demanda suficiente, las empresas producen su oferta nocional, Y = ${f1(e.Y)}, y contratan L = ${f2(e.L)} sobre su demanda nocional de trabajo: es un punto como D. Hay desempleo clásico, por un salario real excesivo, y exceso de demanda de bienes.`];
+  return [`Con w = ${f2(s.w)} por debajo de w* y la demanda alta, las empresas querrían contratar ${f2(Ld(s.w))} pero solo encuentran ${f2(Ls(s.w))}: el empleo lo limita la oferta de trabajo y hay exceso de demanda en los dos mercados, inflación reprimida.`];
+}
+function inicial(k) {
+  const s = S;
+  if (k === 'bg') return { titulo: NOM.bg, cambia: new Set(['nocional', 'efectiva']), p: textoBG(eqBG(s.w, s.P), s) };
+  if (k === 'clower') return { titulo: NOM.clower, cambia: new Set(['dual']), p: [MIRAR.clower] };
+  if (k === 'leij') return { titulo: NOM.leij, cambia: new Set(['multiplicador']), p: [MIRAR.leij] };
+  const e = eqMal(s.w, s.iD);
+  return { titulo: NOM.mal, cambia: new Set(['regimenes']), p: [MIRAR.mal, `Ahora: ${REG[e.reg]}, con L = ${f2(e.L)} frente a L* = 4.`] };
+}
+function explicar(A, B) {
+  const p = [], cambia = new Set();
+  const k = ['P', 'w', 'wc', 'iD', 'dI', 'n'].find((x) => Math.abs(A[x] - B[x]) > 1e-9);
+  if (B.tab === 'bg' && k) {
+    const a = eqBG(A.w, A.P), b = eqBG(B.w, B.P); cambia.add('efectiva');
+    p.push(k === 'P' ? `Has llevado el precio de P₁ = ${f2(A.P)}·P* a ${f2(B.P)}·P*. La demanda nocional de bienes se desplaza ${B.P > A.P ? 'a la izquierda (menos saldos reales)' : 'a la derecha'}.` : `Has cambiado el salario real de ${f2(A.w)} a ${f2(B.w)}: la oferta nocional de bienes ${B.w > A.w ? 'cae' : 'sube'} y la demanda nocional ${B.w > A.w ? 'sube' : 'baja'}.`);
+    if (a.reg !== b.reg) { cambia.add('regimen'); p.push(`La economía pasa de ${REG[a.reg].toLowerCase()} a ${REG[b.reg].toLowerCase()}.`); }
+    p.push(...textoBG(b, B));
+    return { titulo: k === 'P' ? `P₁/P*: ${f2(A.P)} → ${f2(B.P)}` : `w: ${f2(A.w)} → ${f2(B.w)}`, p, cambia };
+  }
+  if (B.tab === 'clower') {
+    cambia.add('dual');
+    const w = B.wc, LD = Ld(w), LSx = Ls(w), CS = fL(LD), CD = fL(LD) - w * LD + w * LSx;
+    if (k) p.push(`Has llevado el salario real a w′ = ${f2(w)}. La empresa, que iguala PMag<sub>L</sub> = w′, quiere contratar L<sup>D</sup> = ${f2(LD)} y producir C<sup>S</sup> = ${f1(CS)} (punto 2). El hogar, que iguala su RMS a w′, quiere trabajar L<sup>S</sup> = ${f2(LSx)} y consumir C<sup>D</sup> = ${f1(CD)} (punto 3).`);
+    p.push(B.dual ? `Con la decisión dual, el hogar decide primero cuánto trabajo vende y después cuánto consume con lo que de verdad ha cobrado. Solo vende L<sup>D</sup>, así que su consumo efectivo es π + w′·L<sup>D</sup> = ${f1(CS)}, igual a lo que las empresas producen: el exceso de demanda de bienes (${f1(CD - CS)}) es solo nocional y no llega al mercado. La señal que vería un subastador walrasiano para subir el precio de los bienes, y con ello bajar el salario real, no existe: el paro (${f2(LSx - LD)}) persiste por un fallo de coordinación.` : `Sin decisión dual, el hogar demanda como si pudiera vender todo su trabajo: aparece un exceso de demanda de bienes de ${f1(CD - CS)} que, con un subastador, empujaría los precios al alza, bajaría el salario real y devolvería la economía a 1. Es la lectura walrasiana que Clower critica.`);
+    return { titulo: k ? `w′: ${f2(A.wc)} → ${f2(B.wc)}` : (B.dual ? 'Con decisión dual' : 'Sin decisión dual'), p, cambia };
+  }
+  if (B.tab === 'leij') {
+    cambia.add('multiplicador');
+    const r = pasosLeij(B.n), last = r.pts[r.pts.length - 1];
+    if (k === 'dI') p.push(`Has fijado el shock en Δi<sup>D</sup> = ${f2(B.dI)}: la recta de demanda baja en paralelo. El nuevo punto de reposo es N, con L<sub>N</sub> = ${f2(r.LN)} e Y<sub>N</sub> = ${f1(fL(r.LN))}: la renta cae ${f1(YS - fL(r.LN))}, ${f2((YS - fL(r.LN)) / -B.dI)} veces el shock.`);
+    else p.push(B.n === 0 ? 'Vuelves al punto 1.' : `Tras ${B.n} ronda${B.n > 1 ? 's' : ''}: L = ${f2(last.L)}, Y = ${f1(last.Y)}. ${B.n === 1 ? 'De 1 a 2, la demanda cae con el empleo aún en L*: exceso de oferta de bienes. De 2 a 3, las empresas, racionadas en ventas, contratan solo lo necesario para producir lo que venden: exceso de oferta de trabajo.' : 'Cada ronda repite la cadena: los hogares, racionados en trabajo, consumen menos (salario efectivo w·L); las empresas venden menos y vuelven a recortar empleo. Los saltos se hacen más pequeños y la economía converge a N.'}`);
+    p.push('Ningún precio se mueve: el salario real se queda en w* y todo el ajuste es en cantidades. Es la defensa del multiplicador de Leijonhufvud: sin subastador, una caída de la demanda autónoma se amplifica y genera desempleo involuntario; para volver a 1 hace falta estimular la demanda.');
+    return { titulo: k === 'dI' ? `Δi^D: ${f2(A.dI)} → ${f2(B.dI)}` : `Rondas: ${A.n} → ${B.n}`, p, cambia };
+  }
+  if (B.tab === 'mal' && k) {
+    const a = eqMal(A.w, A.iD), b = eqMal(B.w, B.iD); cambia.add('regimenes');
+    if (k === 'w') {
+      cambia.add(b.reg === 'K' ? 'edemanda' : 'ecoste');
+      p.push(`Has ${B.w > A.w ? 'subido' : 'bajado'} el salario real de ${f2(A.w)} a ${f2(B.w)}. El empleo pasa de ${f2(a.L)} a ${f2(b.L)}.`);
+      if (a.reg === 'K' && b.reg === 'K') p.push(`En desempleo keynesiano domina el efecto demanda: los trabajadores gastan su salario, así que un salario mayor eleva la demanda de bienes, las ventas y el empleo (de Z a Z′). Por eso Malinvaud propone ahí subir el salario real.`);
+      else if (a.reg === 'C' && b.reg === 'C') p.push(`En desempleo clásico domina el efecto coste: las empresas no tienen problema de ventas, contratan hasta PMag<sub>L</sub> = w, y un salario mayor reduce el empleo. Ahí el empleo solo sube bajando el salario real, con un impulso a la demanda autónoma.`);
+      else if (a.reg !== b.reg) p.push(`La economía pasa de ${REG[a.reg].toLowerCase()} a ${REG[b.reg].toLowerCase()}. ${a.reg === 'K' && b.reg === 'C' ? 'Es la advertencia del tema: si se combate el paro keynesiano subiendo el salario real, se acaba en paro clásico.' : ''}`);
+      else p.push('En inflación reprimida el empleo lo limita la oferta de trabajo: sube con el salario porque los hogares ofrecen más.');
+    } else {
+      p.push(`Has ${B.iD > A.iD ? 'subido' : 'bajado'} la demanda autónoma de ${f1(A.iD)} a ${f1(B.iD)}. ${b.reg === 'K' ? `Con desempleo keynesiano la renta la decide la demanda: el empleo pasa de ${f2(a.L)} a ${f2(b.L)}.` : `Fuera del régimen keynesiano la demanda no limita la producción: el empleo ${Math.abs(b.L - a.L) < 1e-3 ? 'no cambia' : `pasa de ${f2(a.L)} a ${f2(b.L)}`}.`}`);
+      if (a.reg !== b.reg) p.push(`La economía pasa de ${REG[a.reg].toLowerCase()} a ${REG[b.reg].toLowerCase()}.`);
+    }
+    return { titulo: `${k === 'w' ? 'w' : 'i^D'}: ${f2(A[k])} → ${f2(B[k])}`, p, cambia };
+  }
+  return null;
+}
+
+/* ===================================================================== fichas */
+PINTAR.d = () => {
+  pintarConceptos('con-d', [
+    { k: 'nocional', n: 'Demanda y oferta nocionales', d: 'Las que resultan de optimizar sin restricciones de cantidad en otros mercados: la demanda de trabajo basada en la PMag y el salario, la de bienes suponiendo que se vende todo el trabajo deseado.', ref: '3A4 §2. 3. 1' },
+    { k: 'efectiva', n: 'Demanda efectiva', d: 'La que resulta cuando el agente está racionado en otro mercado. La demanda efectiva de trabajo depende de las ventas, no del salario real: es una vertical en L₁.', ref: '3A4 §2. 3. 1' },
+    { k: 'regimen', n: 'Puntos B y D', d: 'B: desempleo keynesiano, por insuficiencia de demanda efectiva. D: desequilibrio clásico, por un salario real excesivo.', ref: '3A4 §2. 3. 1' },
+    { k: 'dual', n: 'Hipótesis de la decisión dual (Clower)', d: 'Las decisiones no se toman a la vez: primero se decide la oferta en un mercado y, con el ingreso efectivo obtenido, la demanda en el otro. Hogares y empresas ven sus demandas racionadas por sus ingresos efectivos.', f: String.raw`P\,Y^D = w\,L^S`, ref: '3A4 Anexo 1' },
+    { k: 'walras', n: 'Ley de Walras fuera del equilibrio', d: 'Con decisión dual, la suma de excesos de demanda efectivos no es cero: el exceso de oferta de trabajo no se refleja en un exceso de demanda efectiva de bienes. Por eso no hay señal de precios que corrija el desequilibrio.', ref: '3A4 Anexo 1 y 3A21' },
+    { k: 'multiplicador', n: 'Multiplicador de Leijonhufvud', d: 'Un shock de demanda autónoma raciona a las empresas en bienes, que reducen empleo; los hogares, racionados en trabajo, reducen consumo; y así hasta N. Es una defensa del multiplicador keynesiano desde el desequilibrio.', ref: '3A4 Anexo 2' },
+    { k: 'regimenes', n: 'Regímenes de Malinvaud', d: 'Según haya exceso de oferta o de demanda en bienes y en trabajo: desempleo keynesiano, desempleo clásico, inflación reprimida y subconsumo. Los dos relevantes son los que tienen paro involuntario.', ref: '3A4 Anexo 3' },
+    { k: 'edemanda', n: 'Efecto demanda del salario', d: 'Un salario real mayor aumenta el poder de compra de los trabajadores, la demanda de bienes, la producción y el empleo. Domina en el desempleo keynesiano.', ref: '3A4 Anexo 3' },
+    { k: 'ecoste', n: 'Efecto coste del salario', d: 'Un salario real mayor eleva el CMag de las empresas y reduce la demanda de trabajo a través de la función de producción. Domina en el desempleo clásico.', ref: '3A4 Anexo 3' },
+  ], ULT.d || new Set());
+};
+
+/* ===================================================================== arranque */
+construir();
+const TAB0 = NOM[location.hash.slice(1)] ? location.hash.slice(1) : 'bg';
+abrir(TAB0, false);
+mostrarPorque('d', inicial(TAB0));
+window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (NOM[h]) abrir(h, true); });
+
+</script>
+
+</body>
+</html>

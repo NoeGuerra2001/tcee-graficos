@@ -143,6 +143,10 @@ sub, sup { font-size: 72%; }
 :root[data-theme="dark"] { --morado: #B99AE0; }
 .chips button:disabled, input:disabled { opacity: .4; cursor: not-allowed; }
 .figs .controles .chips { margin: 2px 0 4px; }
+.tabla-proy { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.tabla-proy th, .tabla-proy td { border-bottom: 1px solid var(--line); padding: 3px 6px; text-align: right; }
+.tabla-proy th { font-weight: 500; color: var(--muted); }
+.tabla-proy tr.si td { color: var(--verde); font-weight: 600; }
 </style>
 
 </head>
@@ -156,6 +160,7 @@ sub, sup { font-size: 72%; }
   <div class="tabs" role="tablist" aria-label="Mercado">
     <button type="button" role="tab" id="tab-trabajo" aria-selected="true">Trabajo · §1. 2</button>
     <button type="button" role="tab" id="tab-bienes" aria-selected="false">Bienes · §1. 3. 2</button>
+    <button type="button" role="tab" id="tab-inversion" aria-selected="false">Inversión · §1. 3. 2. 1. 3</button>
     <button type="button" role="tab" id="tab-dinero" aria-selected="false">Dinero · §1. 4. 2</button>
   </div>
 
@@ -208,6 +213,30 @@ sub, sup { font-size: 72%; }
       </div>
     </div>
     <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-bienes"></div></div>
+  </section>
+
+  <!-- ================================================================ INVERSIÓN -->
+  <section id="v-inversion" role="tabpanel" class="vista-wrap" hidden>
+    <p class="mirar">La curva de eficiencia marginal del capital de tu figura: cada escalón es un proyecto, con su EMK δ<sub>j</sub>*. Mueve el tipo de interés r y mira qué proyectos se hacen; cambia los animal spirits o la presión sobre el precio de oferta de los bienes de capital para ver cómo se desplaza o se inclina la curva.</p>
+    <div class="vista" style="margin-top:12px">
+      <div class="figs">
+        <svg class="lamina" id="svg-inversion" role="img" aria-label="Curva de eficiencia marginal del capital"></svg>
+        <div class="controles">
+          <div class="fila"><label>r (tipo de interés, %)</label><input id="in-r" data-k="r" type="range" min="0" max="14" step="0.1" value="5"><span class="val" id="in-r-v"></span></div>
+          <p class="ctl-ayuda">Se fija en el mercado de dinero, no aquí. Se invierte en todo proyecto con δ* &gt; r.</p>
+          <div class="fila"><label>Animal spirits (rendimientos esperados)</label><input id="in-a" data-k="a" type="range" min="0.5" max="1.5" step="0.01" value="1"><span class="val" id="in-a-v"></span></div>
+          <p class="ctl-ayuda">Escala los rendimientos esperados de todos los proyectos: optimismo o pesimismo de los empresarios.</p>
+          <div class="fila"><label>θ (subida del precio de oferta)</label><input id="in-th" data-k="th" type="range" min="0" max="0.15" step="0.005" value="0.05"><span class="val" id="in-th-v"></span></div>
+          <p class="ctl-ayuda">Cuánto se encarece cada nuevo bien de capital al aumentar la inversión, por la presión sobre quien lo fabrica.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="porque" id="porque-inversion" aria-live="polite"></div>
+        <div class="lectura" id="lec-inversion"></div>
+        <p class="nota">Simplificación: cada proyecto rinde una perpetuidad R<sub>j</sub> al año, así que su EMK es δ<sub>j</sub>* = R<sub>j</sub>/C<sub>j</sub>. Los rendimientos esperados de partida decrecen de un proyecto al siguiente (primera razón de Keynes) y el precio de oferta C<sub>j</sub> = 10·(1 + θ·(j − 1)) crece con θ (segunda razón).</p>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-inversion"></div></div>
   </section>
 
   <!-- ================================================================ DINERO -->
@@ -966,14 +995,105 @@ PINTAR.dinero = () => {
   ], ULT.dinero || new Set());
 };
 
+/* ===================================================================== INVERSIÓN (§1. 3. 2. 1. 3): eficiencia marginal del capital */
+const IN = { r: 5, a: 1, th: 0.05 };
+const RJ = [1.2, 1.05, 0.9, 0.75, 0.6, 0.5, 0.4, 0.3];          /* rendimiento esperado anual de cada proyecto */
+function proyectos(s) {
+  let acum = 0;
+  return RJ.map((R, j) => { const C = 10 * (1 + s.th * j), d = 100 * s.a * R / C, p = { j: j + 1, R: s.a * R, C, d, desde: acum, hasta: acum + C }; acum += C; return p; });
+}
+function mIN(s) {
+  const pr = proyectos(s), hechos = pr.filter((p) => p.d > s.r), I = hechos.reduce((t, p) => t + p.C, 0);
+  /* recta I = I0 - b·r ajustada a los escalones (mínimos cuadrados de I_medio frente a δ) */
+  const xs = pr.map((p) => p.d), ys = pr.map((p) => (p.desde + p.hasta) / 2), n = xs.length;
+  const mx = xs.reduce((a, b) => a + b) / n, my = ys.reduce((a, b) => a + b) / n;
+  const bb = -xs.reduce((t, x, i) => t + (x - mx) * (ys[i] - my), 0) / xs.reduce((t, x) => t + (x - mx) * (x - mx), 0);
+  return { pr, hechos, I, n: hechos.length, b: bb, I0: my + bb * mx };
+}
+const svgI = document.getElementById('svg-inversion'); svgI.setAttribute('viewBox', '0 0 620 480');
+const PIN = panel(svgI, 60, 30, 520, 380, [0, 130], [0, 21]);
+const gI = el('g', {}, svgI);
+const SIN = sesion('inversion', IN, explicarIN, () => dibujarIN());
+conectarDeslizadores('in', IN, SIN, dibujarIN);
+function dibujarIN() {
+  limpiar(gI);
+  const s = IN, m = mIN(s), P = PIN;
+  ejes(gI, P, 'I', 'δ, r', [0, 20, 40, 60, 80, 100, 120], [0, 3, 6, 9, 12, 15, 18, 21]);
+  const gc = el('g', { 'clip-path': P.clip }, gI);
+  for (const p of m.pr) {
+    const dentro = p.d > s.r;
+    el('rect', { x: P.sx(p.desde), y: P.sy(p.d), width: P.sx(p.hasta) - P.sx(p.desde), height: P.sy(0) - P.sy(p.d), class: dentro ? 'z2' : 'z3', style: 'stroke:var(--fg);stroke-width:1' + (dentro ? '' : ';opacity:.6') }, gc);
+    tx(gI, (P.sx(p.desde) + P.sx(p.hasta)) / 2, P.sy(p.d) - 6, `δ_${p.j}^*`, { 'text-anchor': 'middle', style: 'font-size:13px' });
+    tx(gI, (P.sx(p.desde) + P.sx(p.hasta)) / 2, P.y0 + P.h + 30, `I_${p.j}`, { 'text-anchor': 'middle', style: 'font-size:11px;fill:var(--muted)' });
+  }
+  /* curva EMK: une los puntos medios de los escalones */
+  el('path', { d: path(m.pr.map((p) => [P.sx((p.desde + p.hasta) / 2), P.sy(p.d)])), class: 'cur', stroke: 'var(--rojo)' }, gc);
+  const ult = m.pr[m.pr.length - 1];
+  tx(gI, P.sx((ult.desde + ult.hasta) / 2) + 6, P.sy(ult.d) + 18, 'EfMK', { style: 'fill:var(--rojo);font-style:normal' });
+  /* tipo de interés */
+  el('line', { x1: P.x0, y1: P.sy(s.r), x2: P.x0 + P.w, y2: P.sy(s.r), class: 'cur', stroke: 'var(--azul)', 'stroke-width': 1.8 }, gc);
+  tx(gI, P.x0 + P.w - 4, P.sy(s.r) - 6, 'r', { 'text-anchor': 'end', style: 'fill:var(--azul)' });
+  el('line', { x1: P.sx(m.I), y1: P.sy(s.r), x2: P.sx(m.I), y2: P.y0 + P.h, class: 'guia' }, gI);
+  el('circle', { cx: P.sx(m.I), cy: P.sy(s.r), r: 6, class: 'pto', fill: 'var(--punto)' }, gI);
+  tx(gI, P.sx(m.I) + 6, P.y0 + P.h + 46, 'I^*', { 'text-anchor': 'middle', style: 'font-size:13px' });
+  const lec = document.getElementById('lec-inversion');
+  const pj = m.pr.map((p) => `<tr class="${p.d > s.r ? 'si' : ''}"><td>${p.j}</td><td>${f2(p.R)}</td><td>${f1(p.C)}</td><td>${f1(p.d)} %</td><td>${p.d > s.r ? 'sí' : 'no'}</td></tr>`).join('');
+  lec.innerHTML = `
+    <div class="formas">
+      <span class="lbl">Forma general · en color, lo que puedes mover</span>
+      ${TX(String.raw`C_j = \sum_{t=1}^{\infty} \frac{R_j}{(1+\delta_j^*)^t} = \frac{R_j}{\delta_j^*}\ \Rightarrow\ \delta_j^* = \frac{${MV('a')}\,R_j}{10\,(1 + ${MV(String.raw`\theta`)}\,(j-1))}`)}
+      ${TX(String.raw`\text{se invierte en } j \iff \delta_j^* > ${MV('r')},\qquad I^* = \sum_{\delta_j^* > ${MV('r')}} C_j`)}
+      <span class="lbl" style="margin-top:6px">Con tus valores</span>
+      ${TX(String.raw`I^* = ${fT(m.I, 1)}\ \ (${m.n}\ \text{proyectos}),\qquad I \approx ${fT(m.I0, 1)} - ${fT(m.b, 2)}\cdot r`)}
+    </div>
+    <table class="tabla-proy"><thead><tr><th>Proyecto</th><th>R<sub>j</sub></th><th>C<sub>j</sub></th><th>δ<sub>j</sub>*</th><th>¿Se hace?</th></tr></thead><tbody>${pj}</tbody></table>`;
+  montar(lec);
+  refrescarValores('in', IN, { r: 1, a: 2, th: 3 });
+  PINTAR.inversion();
+}
+function explicarIN(A, B) {
+  const a = mIN(A), b = mIN(B), p = [], cambia = new Set(['decision']);
+  if (Math.abs(A.r - B.r) > 1e-9) {
+    cambia.add('r');
+    p.push(`Has ${B.r > A.r ? 'subido' : 'bajado'} el tipo de interés de ${f1(A.r)} % a ${f1(B.r)} %. Los empresarios comparan cada proyecto con el tipo: solo se hacen los que tienen una EMK mayor. Pasan de ${a.n} a ${b.n} proyectos y la inversión de ${f1(a.I)} a ${f1(b.I)}.`);
+    p.push(`Es el movimiento a lo largo de la curva EMK, que es la función de demanda de inversión. Su pendiente es el parámetro b de I = I₀ − b·r: ahora, b ≈ ${f2(b.b)}. Cuanto más vertical la curva (b menor), menos mueve el tipo la inversión.`);
+  } else if (Math.abs(A.a - B.a) > 1e-9) {
+    cambia.add('animal'); cambia.add('emk');
+    p.push(`Has ${B.a > A.a ? 'mejorado' : 'empeorado'} las expectativas: los rendimientos esperados de todos los proyectos se multiplican por ${f2(B.a)}. La curva EMK se desplaza ${B.a > A.a ? 'hacia arriba' : 'hacia abajo'} y, al mismo tipo de ${f1(B.r)} %, la inversión pasa de ${f1(a.I)} a ${f1(b.I)}.`);
+    p.push('Son los animal spirits: para Keynes las expectativas sobre los rendimientos futuros son subjetivas y cambiantes, y con mercado de valores dependen de la anticipación del optimismo o pesimismo de los demás (el «concurso de belleza»). Por eso la inversión es inestable y es la variable que mueve el ciclo.');
+  } else if (Math.abs(A.th - B.th) > 1e-9) {
+    cambia.add('razones'); cambia.add('emk');
+    p.push(`Has ${B.th > A.th ? 'aumentado' : 'reducido'} la presión sobre el precio de oferta de los bienes de capital: θ pasa de ${f3(A.th)} a ${f3(B.th)}. Cada proyecto adicional es ${B.th > A.th ? 'más caro' : 'menos caro'}, así que la EMK ${B.th > A.th ? 'cae más deprisa' : 'cae más despacio'} de un proyecto al siguiente y la curva se desplaza ${B.th > A.th ? 'hacia abajo' : 'hacia arriba'} en su tramo final. La sensibilidad b de la recta ajustada pasa de ${f2(a.b)} a ${f2(b.b)}. La inversión pasa de ${f1(a.I)} a ${f1(b.I)}.`);
+    p.push('Es la segunda de las dos razones de Keynes para que la EMK baje al aumentar la inversión: la primera es que el rendimiento esperado cae al aumentar la oferta de ese tipo de capital; la segunda, que la presión sobre las instalaciones que lo producen sube su precio de oferta.');
+  } else return null;
+  return { titulo: `${{ r: 'r', a: 'Animal spirits', th: 'θ' }[['r', 'a', 'th'].find((x) => Math.abs(A[x] - B[x]) > 1e-9)]}: ${fmt(A[['r', 'a', 'th'].find((x) => Math.abs(A[x] - B[x]) > 1e-9)], 2)} → ${fmt(B[['r', 'a', 'th'].find((x) => Math.abs(A[x] - B[x]) > 1e-9)], 2)}`, p, cambia };
+}
+function inicialIN() {
+  const m = mIN(IN);
+  return { titulo: 'Punto de partida', cambia: new Set(), p: [
+    `Con r = ${f1(IN.r)} %, se hacen los ${m.n} proyectos cuya eficiencia marginal supera el tipo, y la inversión es I* = ${f1(m.I)}. Ordenar los proyectos de mayor a menor EMK da la curva EfMK, de pendiente negativa.`,
+    'Mueve r para recorrer la curva, y los animal spirits o θ para desplazarla o inclinarla.'] };
+}
+PINTAR.inversion = () => {
+  const m = mIN(IN);
+  pintarConceptos('con-inversion', [
+    { k: 'emk', n: 'Eficiencia marginal del capital (δ)', d: 'Para Keynes, la tasa de descuento que hace que el valor presente de los rendimientos esperados de un bien de capital durante su vida iguale su precio de oferta. Es una TIR.', f: String.raw`C = \sum_t \frac{R_t}{(1+\delta)^t}`, ref: '3A4 §1. 3. 2. 1. 3 · Keynes, Teoría General, cap. 11, secc. I' },
+    { k: 'razones', n: 'Por qué baja la EMK al invertir más', d: 'Keynes da dos razones: el rendimiento esperado cae al aumentar la oferta de ese tipo de capital, y la presión sobre las instalaciones que lo producen sube su precio de oferta. El tema lo atribuye a la PMagK decreciente, que es solo parte de la primera.', v: `θ = ${f3(IN.th)}`, ref: 'Keynes, Teoría General, cap. 11, secc. I' },
+    { k: 'decision', n: 'Decisión de inversión', d: 'Se invierte en todo proyecto cuya EMK supere el tipo de interés, que es exógeno para la decisión. La curva EMK es la función de demanda de inversión.', f: String.raw`\delta_j^* > r`, v: `${m.n} proyectos, I* = ${f1(m.I)}`, ref: '3A4 §1. 3. 2. 1. 3' },
+    { k: 'r', n: 'Relación con I = I₀ − b·r', d: 'La pendiente de la curva EMK es la sensibilidad b de la inversión al tipo. El tema sostiene que para Keynes b es muy reducida (curva muy vertical) y la inversión depende sobre todo de los animal spirits.', f: String.raw`I = I_0 - b\,r`, v: `b ≈ ${f2(m.b)}`, ref: '3A4 §1. 3. 2. 1. 3' },
+    { k: 'animal', n: 'Animal spirits', d: 'Expectativas exógenas de los empresarios sobre los rendimientos futuros, altamente volátiles. Desplazan la curva EMK.', v: `× ${f2(IN.a)}`, ref: '3A4 §1. 3. 2. 1. 3' },
+    { k: 'belleza', n: 'Concurso de belleza', d: 'Con mercado de valores, la valoración de las inversiones la fijan operadores que atienden a lo que creen que preferirá el resto del mercado más que a los rendimientos a largo plazo. La curva EMK se desliga de los ingresos futuros.', ref: '3A4 §1. 3. 2. 1. 3 · Teoría General, cap. 12' },
+  ], ULT.inversion || new Set());
+};
+
 /* ===================================================================== pestañas */
-const TABS = ['trabajo', 'bienes', 'dinero'];
+const TABS = ['trabajo', 'bienes', 'inversion', 'dinero'];
 function abrir(k) {
   for (const n of TABS) { document.getElementById('tab-' + n).setAttribute('aria-selected', String(n === k)); document.getElementById('v-' + n).hidden = n !== k; }
 }
 for (const n of TABS) document.getElementById('tab-' + n).addEventListener('click', () => abrir(n));
-dibujarTrabajo(); dibujarBienes(); dibujarDinero(); kListo = true;
-mostrarPorque('trabajo', inicialTB()); mostrarPorque('bienes', inicialBI()); mostrarPorque('dinero', inicialDI());
+dibujarTrabajo(); dibujarBienes(); dibujarIN(); dibujarDinero(); kListo = true;
+mostrarPorque('trabajo', inicialTB()); mostrarPorque('bienes', inicialBI()); mostrarPorque('dinero', inicialDI()); mostrarPorque('inversion', inicialIN());
 const desdeHash = () => abrir(TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'trabajo');
 desdeHash();
 window.addEventListener('hashchange', desdeHash);
