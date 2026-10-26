@@ -5,6 +5,7 @@ Gráficos interactivos del temario TCEE para insertar en Obsidian con un `<ifram
 - `edgeworth.html` — caja de Edgeworth (3A21). Configuraciones: `#walras`, `#neg`, `#sim`, `#eff`.
 - `tecnologia.html` — tecnología de la empresa (3A11). Vistas: `#corto`, `#largo`.
 - `keynes.html` — Keynes: trabajo, bienes y dinero (3A4). Vistas: `#trabajo`, `#bienes`, `#dinero`.
+- `marshall.html` — Marshall: periodos de oferta y cuasi-rentas (3A3). Plazo inicial: `#mc`, `#cp`, `#lp`, `#mlp`.
 
 Parámetros: `?compacto=1` oculta la cabecera; `?tema=claro|oscuro` fuerza el tema.
 

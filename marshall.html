@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+/* Parámetros: ?tema=claro|oscuro (fuerza el tema), ?compacto=1 (oculta la cabecera, para insertar en Obsidian) */
+(function () { try {
+  var q = new URLSearchParams(location.search), t = q.get('tema');
+  if (t === 'oscuro' || t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  if (t === 'claro' || t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  if (q.get('compacto')) document.documentElement.classList.add('compacto');
+} catch (e) {} })();
+</script>
+<style>
+html, body { margin: 0; }
+body { font-family: system-ui, sans-serif; font-size: 14px; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.compacto header { display: none !important; }
+.compacto body { padding-block: 8px 24px !important; }
+</style>
+<title>Marshall: periodos de oferta</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script>
+window.MathJax = {
+  tex: { packages: { '[+]': ['html'] } },
+  svg: { fontCache: 'local' },
+  options: { enableAssistiveMml: false },
+  startup: { typeset: false, ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => { try { document.head.appendChild(MathJax.svgStylesheet()); } catch (e) {} window.__mjListo = true; if (window.montar) window.montar(document.body); }); } },
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.min.js"></script>
+<style>
+/* Layout: lámina de pizarra a la izquierda (SVG), lectura y mandos a la derecha; una columna en móvil. Dos pestañas: corto y largo plazo. */
+:root {
+  --bg: #fbfaf7; --fg: #1d2230; --muted: #5f6676; --line: #d9dbe2; --panel: #f1f2f5;
+  --azul: #2E5C8A; --naranja: #D9671E; --verde: #548235; --rojo: #C00000; --gris: #7F7F7F; --punto: #1F3864;
+  --z1: rgba(192,0,0,.07); --z2: rgba(84,130,53,.10); --z3: rgba(127,127,127,.12);
+  --f-math: "STIX Two Text", "STIXGeneral", "Cambria Math", "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+header { display: flex; flex-direction: column; gap: 4px; }
+.eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-math); font-weight: 600; font-size: 32px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.intro { color: var(--muted); max-width: 70ch; margin: 0; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tabs button, .chips button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--fg); cursor: pointer; }
+.tabs button[aria-selected="true"], .chips button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.mirar { font-size: 13.5px; max-width: 80ch; margin: 0; padding-left: 12px; border-left: 2px solid var(--line); }
+
+.vista { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+@media (min-width: 960px) { .vista { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } }
+.figs { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.figs .controles { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+svg.lamina { width: 100%; max-width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+svg text { fill: var(--fg); }
+.m { font-family: var(--f-math); font-style: italic; font-size: 15px; }
+.r { font-family: var(--f-body); font-style: normal; font-size: 11.5px; letter-spacing: .04em; }
+.eje { stroke: var(--fg); stroke-width: 1.3; fill: none; }
+.tick { stroke: var(--fg); stroke-width: 1; }
+.tlab { font-family: var(--f-body); font-size: 11px; fill: var(--muted) !important; }
+.guia { stroke: var(--gris); stroke-width: .9; stroke-dasharray: 4 4; fill: none; }
+.cur { fill: none; stroke-width: 2.4; }
+.cur-fina { fill: none; stroke-width: 1.1; opacity: .55; }
+.tang { fill: none; stroke-width: 1.6; }
+.rayo { fill: none; stroke-width: 1.4; stroke-dasharray: 6 4; }
+.pto { stroke: var(--bg); stroke-width: 1.5; }
+.drag { cursor: grab; }
+.drag:active { cursor: grabbing; }
+.z1 { fill: var(--z1); } .z2 { fill: var(--z2); } .z3 { fill: var(--z3); }
+
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.lectura { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.lectura .f { font-family: var(--f-math); font-style: italic; font-size: 16px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 2px 22px; font-variant-numeric: tabular-nums; }
+.kv div { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
+.kv b { font-weight: 500; }
+.lectura .msg { margin-top: 4px; }
+.etapa { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px; border: 1px solid currentColor; }
+.e1 { color: var(--rojo); } .e2 { color: var(--verde); } .e3 { color: var(--muted); }
+.controles { display: flex; flex-direction: column; gap: 6px; }
+.fila { display: grid; grid-template-columns: minmax(8.5em, 12em) minmax(0, 1fr) 3.6em; align-items: center; gap: 8px; }
+.fila input[type=range] { width: 100%; accent-color: var(--azul); }
+.val { text-align: right; font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ayuda { color: var(--muted); font-size: 12.5px; }
+.nota { font-size: 12.5px; color: var(--muted); max-width: 80ch; margin: 0; }
+sub, sup { font-size: 72%; }
+.porque { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.porque .eti, .sec-eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.porque h3 { font-family: var(--f-math); font-size: 19px; font-weight: 600; margin: 0; }
+.porque p { margin: 0; }
+.porque details { margin-top: 4px; }
+.porque summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.porque .prev { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.ctl-ayuda { margin: -2px 0 6px; font-size: 12.5px; color: var(--muted); }
+.sec { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.sec h2 { font-family: var(--f-math); font-size: 22px; font-weight: 600; margin: 0; }
+.conceptos { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.concepto { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.concepto.cambia { border-color: var(--rojo); background: var(--z1); }
+.concepto .cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.concepto h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.concepto p { margin: 0; font-size: 13px; }
+.concepto .formula { font-family: var(--f-math); font-style: italic; font-size: 15px; overflow-x: auto; }
+.concepto .valor { font-variant-numeric: tabular-nums; }
+.concepto .ref { color: var(--muted); font-size: 11.5px; }
+.formas { display: flex; flex-direction: column; gap: 3px; }
+.formas .lbl { font-family: var(--f-body); font-style: normal; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.formas .ec { font-family: var(--f-math); font-style: italic; font-size: 16px; overflow-x: auto; }
+.formas .fijo { font-family: var(--f-body); font-style: normal; font-size: 12.5px; color: var(--muted); }
+.tex { display: inline-block; max-width: 100%; vertical-align: middle; }
+.tex[data-d="1"] { display: block; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.tex:not([data-ok]) { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; }
+.tex mjx-container { margin: 0 !important; }
+.tex[data-d="1"] mjx-container { text-align: left !important; }
+.tex g.mv { color: var(--azul); fill: var(--azul); stroke: var(--azul); }
+.formas .tex[data-d="1"] { font-size: 112%; }
+.mod { color: var(--azul); font-weight: 600; border-bottom: 1px dotted currentColor; }
+.chip-cambia { font-size: 11px; color: var(--rojo); border: 1px solid currentColor; border-radius: 999px; padding: 0 7px; white-space: nowrap; }
+</style>
+<style>
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer; }
+.vista.ancha { grid-template-columns: 1fr !important; }
+.panel.dos { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 960px) { .panel.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.panel.dos .col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.chips button:disabled, input:disabled { opacity: .4; cursor: not-allowed; }
+.figs .controles .chips { margin: 2px 0 4px; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TCEE · Parte A) · 3A3 · Los economistas neoclásicos · Marshall</div>
+    <h1>Marshall: el tiempo en la oferta</h1>
+    <p class="intro">Los cuatro periodos del §2. 1. 3 del tema y las cuasi-rentas del §2. 1. 4, con la industria (IND) a la izquierda y la empresa representativa (EMP) a la derecha. Desplaza la demanda y cambia de plazo: el recuadro «Qué ha cambiado y por qué» explica cada cambio y abajo tienes la ficha de cada concepto.</p>
+  </header>
+
+  <section class="vista-wrap">
+    <p class="mirar">Parte del equilibrio de largo plazo E<sub>0</sub>. Sube ΔD para simular un aumento de la demanda y pasa del muy corto al largo plazo: el mismo shock sube mucho el precio cuando la oferta es fija y cada vez menos a medida que la oferta puede responder. Marca «Ver los plazos a la vez» para tenerlos juntos.</p>
+    <div class="vista ancha" style="margin-top:12px">
+      <div class="figs">
+        <svg class="lamina" id="svg-m" role="img" aria-label="Industria y empresa representativa según el plazo"></svg>
+        <div class="controles">
+          <div class="chips" id="chips-per" role="group" aria-label="Plazo"></div>
+          <div class="fila"><label>ΔD (desplazamiento de la demanda)</label><input id="md-dA" data-k="dA" type="range" min="-180" max="180" step="2" value="0"><span class="val" id="md-dA-v"></span></div>
+          <p class="ctl-ayuda">Unidades más (o menos) demandadas a cada precio. También puedes arrastrar el punto de la D en el panel IND.</p>
+          <div class="fila"><label>B (pendiente de la demanda)</label><input id="md-B" data-k="B" type="range" min="25" max="80" step="1" value="40"><span class="val" id="md-B-v"></span></div>
+          <p class="ctl-ayuda">Cuánto cae la cantidad demandada por cada unidad que sube P. La demanda inicial gira sobre E<sub>0</sub>.</p>
+          <div class="chips" id="chips-tipo" role="group" aria-label="Tipo de costes a largo plazo"></div>
+          <div class="fila"><label>Intensidad de las economías o deseconomías externas</label><input id="md-g" data-k="g" type="range" min="0" max="2" step="0.05" value="1"><span class="val" id="md-g-v"></span></div>
+          <p class="ctl-ayuda">Solo a largo plazo con costes crecientes o decrecientes: cuánto se desplazan los costes de cada empresa cuando crece la producción de la industria.</p>
+          <div class="fila"><label>τ (progreso técnico)</label><input id="md-tau" data-k="tau" type="range" min="0" max="3" step="0.05" value="0"><span class="val" id="md-tau-v"></span></div>
+          <p class="ctl-ayuda">Solo en el muy largo plazo: baja todas las curvas de costes de la empresa en τ.</p>
+          <label class="check"><input id="md-comp" type="checkbox"> Ver los plazos a la vez en la industria</label>
+        </div>
+      </div>
+      <div class="panel dos">
+        <div class="porque" id="porque-m" aria-live="polite"></div>
+        <div class="col">
+          <div class="lectura" id="lec-m"></div>
+          <p class="nota">Simplificaciones de este gráfico: todas las empresas son iguales a la representativa, con CT(q) = CF + a·q − b·q² + c·q³ (CF = 20, a = 10, b = 2, c = 0,2); en E<sub>0</sub> hay n<sub>0</sub> = 100 empresas. La demanda es lineal. Las economías y deseconomías externas desplazan en vertical los costes de cada empresa sin cambiar su escala mínima eficiente q*, y el progreso técnico del muy largo plazo se reduce a bajar los costes en τ. En la industria uso Q y en la empresa q.</p>
+        </div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-m"></div></div>
+  </section>
+</div>
+
+<script>
+'use strict';
+const NS = 'http://www.w3.org/2000/svg';
+const fmt = (v, d = 2) => Number.isFinite(v)
+  ? v.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—';
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+/* ------------------------------------------------ ecuaciones con MathJax (SVG) */
+const TEXC = new Map();
+const escH = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const TX = (tex) => `<span class="tex" data-d="1">${escH(tex)}</span>`;
+const TI = (tex) => `<span class="tex">${escH(tex)}</span>`;
+const fT = (v, d = 2) => fmt(v, d).replace(/,/g, '{,}');
+const MV = (t) => String.raw`\class{mv}{${t}}`;
+function montar(root) {
+  if (!window.__mjListo || !root) return;
+  root.querySelectorAll('span.tex:not([data-ok])').forEach((s) => {
+    const tex = s.textContent, d = s.dataset.d === '1', key = (d ? 'D' : 'I') + tex;
+    try {
+      let n = TEXC.get(key);
+      if (!n) { n = MathJax.tex2svg(tex, { display: d }); TEXC.set(key, n); if (TEXC.size > 600) TEXC.delete(TEXC.keys().next().value); }
+      s.replaceChildren(n.cloneNode(true)); s.dataset.ok = '1'; s.setAttribute('aria-label', tex);
+    } catch (e) { /* se queda el texto plano */ }
+  });
+}
+window.montar = montar;
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if ((k === 'stroke' || k === 'fill') && String(v).startsWith('var(')) e.style.setProperty(k, v);
+    else e.setAttribute(k, v);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+/* texto matemático: "PMag_L", "x^2" */
+function tx(parent, x, y, txt, attrs = {}) {
+  const t = el('text', Object.assign({ x, y, class: 'm' }, attrs), parent);
+  const re = /([_^])(\{[^}]*\}|.)/g; let last = 0, m;
+  const push = (s, sh) => { if (!s) return; const ts = el('tspan', {}, t);
+    if (sh) { ts.setAttribute('baseline-shift', sh); ts.setAttribute('font-size', '72%'); } ts.textContent = s; };
+  while ((m = re.exec(txt))) { push(txt.slice(last, m.index)); const b = m[2][0] === '{' ? m[2].slice(1, -1) : m[2];
+    push(b, m[1] === '_' ? 'sub' : 'super'); last = re.lastIndex; }
+  push(txt.slice(last));
+  return t;
+}
+function limpiar(g) { while (g.firstChild) g.removeChild(g.firstChild); }
+function path(pts) {
+  let d = '', on = false;
+  for (const p of pts) { if (!p) { on = false; continue; } d += (on ? 'L' : 'M') + p[0].toFixed(2) + ',' + p[1].toFixed(2); on = true; }
+  return d;
+}
+/* panel con escalas lineales */
+function panel(svg, x0, y0, w, h, xr, yr) {
+  const P = { x0, y0, w, h, xr, yr };
+  P.sx = (x) => x0 + (x - xr[0]) / (xr[1] - xr[0]) * w;
+  P.sy = (y) => y0 + h - (y - yr[0]) / (yr[1] - yr[0]) * h;
+  P.ix = (px) => xr[0] + (px - x0) / w * (xr[1] - xr[0]);
+  P.iy = (py) => yr[0] + (y0 + h - py) / h * (yr[1] - yr[0]);
+  const id = 'c' + Math.random().toString(36).slice(2);
+  const cp = el('clipPath', { id }, svg); el('rect', { x: x0, y: y0 - 2, width: w + 2, height: h + 4 }, cp);
+  P.clip = `url(#${id})`;
+  /* curva f(x) cortada al rango */
+  P.curva = (f, a = xr[0], b = xr[1], n = 400) => {
+    const pts = [];
+    for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n, y = f(x);
+      pts.push(Number.isFinite(y) && y >= yr[0] - (yr[1] - yr[0]) && y <= yr[1] + (yr[1] - yr[0]) ? [P.sx(x), P.sy(y)] : null); }
+    return path(pts);
+  };
+  return P;
+}
+function puntoSVG(svg, evt) {
+  const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+/* arrastre con el estado en el <svg> (cada redibujo sustituye los nodos) */
+function habilitarArrastre(svg, redibujar, alSoltar) {
+  svg._drag = null;
+  svg.addEventListener('pointermove', (e) => { if (!svg._drag) return; svg._drag(puntoSVG(svg, e)); redibujar(); });
+  const fin = (e) => { const habia = !!svg._drag; svg._drag = null; try { svg.releasePointerCapture(e.pointerId); } catch (_) {} if (habia && alSoltar) alSoltar(); };
+  svg.addEventListener('pointerup', fin); svg.addEventListener('pointercancel', fin);
+}
+function arrastrable(svg, nodo, mover, alEmpezar) {
+  nodo.classList.add('drag');
+  nodo.addEventListener('pointerdown', (e) => { e.preventDefault(); if (alEmpezar) alEmpezar(); svg._drag = mover; try { svg.setPointerCapture(e.pointerId); } catch (_) {} });
+}
+function ejes(g, P, xlab, ylab, xt, yt, conCero) {
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0 + P.w + 8, y2: P.y0 + P.h, class: 'eje' }, g);
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0, y2: P.y0 - 8, class: 'eje' }, g);
+  el('path', { d: `M${P.x0 + P.w + 8},${P.y0 + P.h - 4}l7,4l-7,4z`, fill: 'var(--fg)' }, g);
+  el('path', { d: `M${P.x0 - 4},${P.y0 - 8}l4,-7l4,7z`, fill: 'var(--fg)' }, g);
+  tx(g, P.x0 + P.w + 14, P.y0 + P.h + 30, xlab, { 'text-anchor': 'end' });
+  tx(g, P.x0 + 8, P.y0 - 4, ylab, { 'text-anchor': 'start' });
+  for (const v of xt || []) { el('line', { x1: P.sx(v), y1: P.y0 + P.h, x2: P.sx(v), y2: P.y0 + P.h + 4, class: 'tick' }, g);
+    el('text', { x: P.sx(v), y: P.y0 + P.h + 15, class: 'tlab', 'text-anchor': 'middle' }, g).textContent = fmt(v, 0); }
+  for (const v of yt || []) { el('line', { x1: P.x0 - 4, y1: P.sy(v), x2: P.x0, y2: P.sy(v), class: 'tick' }, g);
+    el('text', { x: P.x0 - 7, y: P.sy(v) + 4, class: 'tlab', 'text-anchor': 'end' }, g).textContent = fmt(v, 0); }
+  if (conCero) el('line', { x1: P.x0, y1: P.sy(0), x2: P.x0 + P.w, y2: P.sy(0), class: 'eje', 'stroke-width': .8 }, g);
+}
+
+
+/* ===================================================================== utilidades de explicación */
+const f0 = (v) => fmt(v, 0), f1 = (v) => fmt(v, 1), f2 = (v) => fmt(v, 2);
+const HIST = {}, ULT = {};
+const PINTAR = {};
+function mostrarPorque(k, e) {
+  HIST[k] = [e, ...(HIST[k] || [])].slice(0, 6);
+  ULT[k] = e.cambia || new Set();
+  const box = document.getElementById('porque-' + k);
+  const [act, ...prev] = HIST[k];
+  box.innerHTML = `<div class="eti">Qué ha cambiado y por qué</div><h3>${act.titulo}</h3>` + act.p.map((t) => `<p>${t}</p>`).join('') +
+    (prev.length ? `<details><summary>Cambios anteriores (${prev.length})</summary>` + prev.map((h) => `<div class="prev"><b>${h.titulo}</b>${h.p.map((t) => `<p>${t}</p>`).join('')}</div>`).join('') + '</details>' : '');
+  montar(box);
+  PINTAR[k]();
+}
+function pintarConceptos(id, lista, cambia) {
+  const c = document.getElementById(id);
+  c.innerHTML = lista.map((x) => `
+    <article class="concepto${cambia.has(x.k) ? ' cambia' : ''}">
+      <div class="cab"><h4>${x.n}</h4>${cambia.has(x.k) ? '<span class="chip-cambia">ha cambiado</span>' : ''}</div>
+      <p class="def">${x.d}</p>
+      ${x.f ? `<div class="formula">${TX(x.f)}</div>` : ''}
+      ${x.v !== undefined ? `<p class="valor">Ahora: <b>${x.v}</b></p>` : ''}
+      ${x.ref ? `<p class="ref">${x.ref}</p>` : ''}
+    </article>`).join('');
+  montar(c);
+}
+function sesion(k, estado, explicar, redibujar) {
+  let snap = null;
+  return {
+    empezar: () => { if (!snap) snap = JSON.parse(JSON.stringify(estado)); },
+    cerrar: () => { if (!snap) return; const e = explicar(snap, JSON.parse(JSON.stringify(estado))); snap = null; if (e) { if (redibujar) redibujar(); mostrarPorque(k, e); } },
+  };
+}
+
+/* ===================================================================== modelo */
+const CF = 20, ca = 10, cb = 2, cc = 0.2, N0 = 100, PH = 12.5;
+const CMag = (q, d = 0) => ca + d - 2 * cb * q + 3 * cc * q * q;
+const CMeV = (q, d = 0) => ca + d - cb * q + cc * q * q;
+const CMeT = (q, d = 0) => CMeV(q, d) + CF / q;
+const QV = cb / (2 * cc), PV = CMeV(QV);            /* mínimo del CMeV: q = 5, P = 5 */
+const QS = (() => { let lo = 1, hi = 15; for (let i = 0; i < 90; i++) { const m = (lo + hi) / 2; if (CMag(m) < CMeT(m)) lo = m; else hi = m; } return (lo + hi) / 2; })();
+const P0 = CMeT(QS), Q0 = N0 * QS;                  /* E0: equilibrio de largo plazo */
+const qOferta = (P, d = 0) => (P < PV + d - 1e-12 ? 0 : (2 * cb + Math.sqrt(Math.max(0, 4 * cb * cb - 12 * cc * (ca + d - P)))) / (6 * cc));
+const SIGNO = { const: 0, crec: 1, decr: -1 };
+const NOMBRE = { mc: 'muy corto plazo', cp: 'corto plazo', lp: 'largo plazo', mlp: 'muy largo plazo' };
+const NOMBREC = { mc: 'Muy corto plazo', cp: 'Corto plazo', lp: 'Largo plazo', mlp: 'Muy largo plazo' };
+const TIPO = { const: 'constantes', crec: 'crecientes', decr: 'decrecientes' };
+
+const M = { per: 'cp', dA: 0, B: 40, tipo: 'const', g: 1, tau: 0, comp: false };
+const A0 = (s) => Q0 + s.B * P0;
+const A1 = (s) => A0(s) + s.dA;
+const QD = (P, s, base) => (base ? A0(s) : A1(s)) - s.B * P;
+const PD = (Q, s, base) => ((base ? A0(s) : A1(s)) - Q) / s.B;
+const pend = (s) => SIGNO[s.tipo] * s.g * 0.003;   /* pendiente de la oferta l/p (P por unidad de Q) */
+const PSlp = (Q, s, tau) => P0 - tau + pend(s) * (Q - Q0);
+const QScp = (P) => N0 * qOferta(P);
+
+function eqMC(s) { const P = Math.max(0, PD(Q0, s)); return { P, Q: Q0, n: N0, q: QS, d: 0 }; }
+function eqCP(s) {
+  const f = (P) => QD(P, s) - QScp(P);
+  if (f(PV - 1e-9) > 0 && f(PV + 1e-9) < 0) { const Q = QD(PV, s); return { P: PV, Q, n: N0, q: Q / N0, d: 0, cierre: true }; }
+  let lo = 0, hi = 40;
+  for (let i = 0; i < 100; i++) { const m = (lo + hi) / 2; if (f(m) > 0) lo = m; else hi = m; }
+  const P = (lo + hi) / 2, q = qOferta(P); return { P, Q: N0 * q, n: N0, q, d: 0 };
+}
+function eqLP(s, tau) {
+  const k = pend(s), Q = (A1(s) - s.B * (P0 - tau) + s.B * k * Q0) / (1 + s.B * k), P = PSlp(Q, s, tau);
+  return { P, Q, n: Q / QS, q: QS, d: P - P0 };
+}
+function todo(s) {
+  const r = { mc: eqMC(s), cp: eqCP(s), lp: eqLP(s, 0), mlp: eqLP(s, s.tau) };
+  for (const k of ['mc', 'cp']) { const e = r[k]; e.cv = CMeV(e.q); e.ct = CMeT(e.q); e.cuasi = (e.P - e.cv) * e.q; e.ben = (e.P - e.ct) * e.q; }
+  for (const k of ['lp', 'mlp']) { const e = r[k]; e.cv = CMeV(e.q, e.d); e.ct = CMeT(e.q, e.d); e.cuasi = NaN; e.ben = 0; }
+  r.act = r[s.per];
+  return r;
+}
+
+/* ===================================================================== dibujo */
+const svg = document.getElementById('svg-m'); svg.setAttribute('viewBox', '0 0 1022 486');
+const PI = panel(svg, 62, 40, 390, 370, [0, 1400], [0, 18]);
+const PE = panel(svg, 572, 40, 390, 370, [0, 10], [0, 18]);
+const g = el('g', {}, svg);
+const SM = sesion('m', M, explicar, () => dibujar());
+habilitarArrastre(svg, () => dibujar(), () => SM.cerrar());
+
+function chips(id, lista, campo) {
+  const c = document.getElementById(id);
+  for (const [k, t] of lista) {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.k = k; b.textContent = t;
+    b.addEventListener('click', () => { if (M[campo] === k) return; SM.empezar(); M[campo] = k; dibujar(); SM.cerrar(); });
+    c.appendChild(b);
+  }
+}
+chips('chips-per', [['mc', 'Muy corto plazo'], ['cp', 'Corto plazo'], ['lp', 'Largo plazo'], ['mlp', 'Muy largo plazo']], 'per');
+chips('chips-tipo', [['const', 'Costes constantes'], ['crec', 'Costes crecientes'], ['decr', 'Costes decrecientes']], 'tipo');
+document.querySelectorAll('input[type=range][id^="md-"]').forEach((inp) => {
+  const k = inp.dataset.k; inp.value = M[k];
+  inp.addEventListener('input', () => { SM.empezar(); M[k] = parseFloat(inp.value); dibujar(); });
+  inp.addEventListener('change', SM.cerrar);
+});
+document.getElementById('md-comp').addEventListener('change', (e) => { SM.empezar(); M.comp = e.target.checked; dibujar(); SM.cerrar(); });
+
+const etq = (x, y, t, color, extra = {}) => tx(g, x, y, t, Object.assign({ style: `fill:${color}` }, extra));
+function punto(P, x, y, r, color) { return el('circle', { cx: P.sx(x), cy: P.sy(y), r, class: 'pto', fill: color }, g); }
+function guias(P, x, y, conX = true, conY = true) {
+  if (conX) el('line', { x1: P.sx(x), y1: P.sy(y), x2: P.sx(x), y2: P.y0 + P.h, class: 'guia' }, g);
+  if (conY) el('line', { x1: P.x0, y1: P.sy(y), x2: P.sx(x), y2: P.sy(y), class: 'guia' }, g);
+}
+function curvaS(P, s, per, cls, gc) {
+  const col = 'var(--rojo)';
+  if (per === 'mc') el('line', { x1: P.sx(Q0), y1: P.y0 - 2, x2: P.sx(Q0), y2: P.y0 + P.h, class: cls, stroke: col }, gc);
+  else if (per === 'cp') {
+    el('path', { d: path(Array.from({ length: 301 }, (_, i) => { const p = PV + (18.5 - PV) * i / 300; return [P.sx(QScp(p)), P.sy(p)]; })), class: cls, stroke: col }, gc);
+    el('line', { x1: P.x0, y1: P.sy(PV), x2: P.sx(QScp(PV)), y2: P.sy(PV), class: 'guia', style: 'stroke:var(--rojo)' }, gc);
+  } else el('path', { d: P.curva((Q) => PSlp(Q, s, per === 'mlp' ? s.tau : 0), 0, 1400), class: cls, stroke: col }, gc);
+}
+const SUB = { mc: 'mc', cp: 'cp', lp: 'lp', mlp: 'mlp' };
+
+function dibujar() {
+  limpiar(g);
+  const s = M, R = todo(s), e = R.act;
+  /* --------------------------------------------------- IND */
+  ejes(g, PI, 'Q', 'P', [0, 400, 800, 1200], [0, 5, 10, 15]);
+  el('text', { x: PI.x0 + PI.w / 2, y: 18, class: 'r', 'text-anchor': 'middle' }, g).textContent = 'IND · INDUSTRIA';
+  const gi = el('g', { 'clip-path': PI.clip }, g);
+  if (Math.abs(s.dA) > 1e-9) el('path', { d: PI.curva((Q) => PD(Q, s, true), 0, 1400), class: 'rayo', stroke: 'var(--azul)' }, gi);
+  el('path', { d: PI.curva((Q) => PD(Q, s), 0, 1400), class: 'cur', stroke: 'var(--azul)' }, gi);
+  if (s.comp) {
+    for (const k of ['mc', 'cp', 'lp'].concat(s.tau > 0 ? ['mlp'] : [])) if (k !== s.per) curvaS(PI, s, k, 'cur-fina', gi);
+  }
+  curvaS(PI, s, s.per, 'cur', gi);
+  // etiquetas de curvas
+  const yD = Math.min(16.8, PD(40, s));
+  const dx1 = s.dA >= 0 ? 8 : -28;
+  etq(PI.sx(Math.max(20, QD(16.8, s))) + dx1, PI.sy(16.8) + 4, Math.abs(s.dA) > 1e-9 ? 'D_1' : 'D_0', 'var(--azul)');
+  if (Math.abs(s.dA) > 1e-9) etq(PI.sx(Math.max(20, QD(16.8, s, true))) + (s.dA >= 0 ? -28 : 8), PI.sy(16.8) + 4, 'D_0', 'var(--azul)', { opacity: 0.7 });
+  const labS = { mc: ['S_{mc}', PI.sx(Q0) + 6, PI.y0 + 12], cp: ['S_{cp}', PI.sx(QScp(16.5)) + 6, PI.sy(16.5) + 4], lp: ['S_{lp}', PI.sx(1330), PI.sy(PSlp(1330, s, 0)) - 8], mlp: ['S_{mlp}', PI.sx(1300), PI.sy(PSlp(1300, s, s.tau)) + 18] };
+  const ks = s.comp ? ['mc', 'cp', 'lp'].concat(s.tau > 0 || s.per === 'mlp' ? ['mlp'] : []) : [s.per];
+  for (const k of ks) { const [t, x, y] = labS[k]; etq(x, y, t, 'var(--rojo)', k === s.per ? {} : { opacity: 0.65, style: 'fill:var(--rojo);font-size:13px' }); }
+  // E0
+  punto(PI, Q0, P0, 4.5, 'var(--gris)');
+  etq(PI.sx(Q0) - 22, PI.sy(P0) + 18, 'E_0', 'var(--muted)', { style: 'fill:var(--muted);font-size:13px' });
+  const etP = [];
+  if (s.comp) {
+    for (const k of ks) { if (k === s.per) continue; const r = R[k]; punto(PI, r.Q, r.P, 3.8, 'var(--naranja)'); el('line', { x1: PI.sx(r.Q), y1: PI.sy(r.P), x2: PI.x0 + PI.w + 12, y2: PI.sy(r.P), class: 'guia', style: 'stroke:var(--naranja)' }, g);
+      etP.push([r.P, `P_{${SUB[k]}}`, 'font-size:12px;fill:var(--naranja)']); }
+  }
+  guias(PI, e.Q, e.P);
+  // precio que enlaza con la empresa
+  el('line', { x1: PI.sx(e.Q), y1: PI.sy(e.P), x2: PE.x0 + PE.w, y2: PE.sy(e.P), class: 'guia', style: 'stroke:var(--fg);opacity:.45' }, g);
+  punto(PI, e.Q, e.P, 6.5, 'var(--punto)');
+  etP.push([e.P, `P_{${SUB[s.per]}}`, 'font-size:14px;font-weight:600']);
+  if (Math.abs(e.P - P0) > 0.05) { el('line', { x1: PI.sx(Q0), y1: PI.sy(P0), x2: PI.x0 + PI.w + 12, y2: PI.sy(P0), class: 'guia', style: 'opacity:.6' }, g); etP.push([P0, 'P_0', 'font-size:12px;fill:var(--muted)']); }
+  /* etiquetas de precio en el hueco entre paneles, sin solaparse */
+  etP.sort((u, v) => v[0] - u[0]);
+  let ult = -1e9;
+  for (const [P, t, st] of etP) { const y = Math.max(PI.sy(P) - 7, ult + 14); ult = y; tx(g, PI.x0 + PI.w + 18, y, t, { style: st }); }
+  // asa arrastrable de la demanda
+  const qh = QD(PH, s);
+  const h = el('circle', { cx: PI.sx(qh), cy: PI.sy(PH), r: 7.5, fill: 'var(--bg)', stroke: 'var(--azul)', 'stroke-width': 2.5 }, g);
+  h.appendChild(el('title', {})).textContent = 'Arrastra para desplazar la demanda';
+  const hz = el('circle', { cx: PI.sx(qh), cy: PI.sy(PH), r: 18, fill: 'transparent' }, g);
+  for (const n of [h, hz]) arrastrable(svg, n, (pt) => { const Q = PI.ix(pt.x); M.dA = clamp(Math.round((Q - QD(PH, M, true)) / 2) * 2, -180, 180); }, () => SM.empezar());
+
+  /* --------------------------------------------------- EMP */
+  ejes(g, PE, 'q', 'P', [0, 2, 4, 6, 8, 10], [0, 5, 10, 15]);
+  el('text', { x: PE.x0 + PE.w / 2, y: 18, class: 'r', 'text-anchor': 'middle' }, g).textContent = 'EMP · EMPRESA REPRESENTATIVA';
+  const ge = el('g', { 'clip-path': PE.clip }, g);
+  const d = e.d, fina = s.per === 'mc';
+  // áreas (corto plazo): cuasi-renta y beneficio / pérdida
+  if (s.per === 'cp' && e.q > 0.01) {
+    const x0 = PE.x0, x1 = PE.sx(e.q);
+    el('rect', { x: x0, y: PE.sy(e.P), width: x1 - x0, height: Math.max(0, PE.sy(e.cv) - PE.sy(e.P)), class: 'z2' }, ge);
+    const top = Math.max(e.P, e.ct), bot = Math.min(e.P, e.ct);
+    el('rect', { x: x0, y: PE.sy(top), width: x1 - x0, height: Math.max(0, PE.sy(bot) - PE.sy(top)), fill: e.ben >= 0 ? 'none' : 'var(--z1)', stroke: e.ben >= 0 ? 'var(--verde)' : 'var(--rojo)', 'stroke-width': 1.2, 'stroke-dasharray': e.ben >= 0 ? '5 3' : 'none' }, ge);
+    el('line', { x1: x0, y1: PE.sy(e.ct), x2: x1, y2: PE.sy(e.ct), class: 'guia' }, ge);
+    el('line', { x1: x0, y1: PE.sy(e.cv), x2: x1, y2: PE.sy(e.cv), class: 'guia' }, ge);
+  }
+  el('path', { d: PE.curva((q) => CMeV(q, d), 0.05, 10), class: fina ? 'cur-fina' : 'cur', stroke: 'var(--naranja)' }, ge);
+  el('path', { d: PE.curva((q) => CMeT(q, d), 0.4, 10), class: fina ? 'cur-fina' : 'cur', stroke: 'var(--punto)' }, ge);
+  el('path', { d: PE.curva((q) => CMag(q, d), 0, 10), class: fina ? 'cur-fina' : 'cur', stroke: 'var(--rojo)' }, ge);
+  if (s.per === 'cp') { // oferta c/p resaltada: CMag desde el mínimo del CMeV
+    el('path', { d: PE.curva((q) => CMag(q), QV, 10), fill: 'none', stroke: 'var(--rojo)', 'stroke-width': 5, opacity: 0.25 }, ge);
+    el('line', { x1: PE.x0 + 1, y1: PE.sy(0), x2: PE.x0 + 1, y2: PE.sy(PV), stroke: 'var(--rojo)', 'stroke-width': 5, opacity: 0.25 }, ge);
+  }
+  if ((s.per === 'lp' || s.per === 'mlp') && Math.abs(d) > 0.02) {
+    el('path', { d: PE.curva((q) => CMeT(q), 0.4, 10), class: 'rayo', stroke: 'var(--punto)', opacity: 0.6 }, ge);
+  }
+  if (s.per === 'mc') el('line', { x1: PE.sx(QS), y1: PE.y0 - 2, x2: PE.sx(QS), y2: PE.y0 + PE.h, class: 'cur', stroke: 'var(--rojo)' }, ge);
+  // demanda horizontal de la empresa (precio aceptante)
+  el('line', { x1: PE.x0, y1: PE.sy(e.P), x2: PE.x0 + PE.w, y2: PE.sy(e.P), class: 'cur', stroke: 'var(--azul)', 'stroke-width': 1.8 }, ge);
+  // etiquetas
+  const yl = (f, q) => PE.sy(Math.min(17.3, f(q)));
+  etq(PE.sx(8.75) + 4, yl((q) => CMag(q, d), 8.75) + (fina ? 0 : 0), 'CMag', 'var(--rojo)', { style: 'fill:var(--rojo);font-size:14px' + (fina ? ';opacity:.6' : '') });
+  etq(PE.sx(9.35), PE.sy(CMeT(9.35, d)) - 8, 'CMeT', 'var(--punto)', { style: 'fill:var(--punto);font-size:14px' + (fina ? ';opacity:.6' : '') });
+  etq(PE.sx(9.35), PE.sy(CMeV(9.35, d)) + 18, 'CMeV', 'var(--naranja)', { style: 'fill:var(--naranja);font-size:14px' + (fina ? ';opacity:.6' : '') });
+  const yT = PE.sy(CMeT(9.35, d)) - 8, yV = PE.sy(CMeV(9.35, d)) + 18;
+  const yDP = [PE.sy(e.P) - 8, PE.sy(e.P) + 20].sort((u, v) => Math.min(Math.abs(v - yT), Math.abs(v - yV)) - Math.min(Math.abs(u - yT), Math.abs(u - yV)))[0];
+  etq(PE.x0 + PE.w + 6, PE.sy(e.P) + 5, 'd = P', 'var(--azul)', { style: 'fill:var(--azul);font-size:14px' });
+  if (s.per === 'mc') etq(PE.sx(QS) + 6, PE.y0 + 12, 'S_{mc}', 'var(--rojo)');
+  if (s.per === 'cp') {
+    if (e.q > 0.01) {
+      const mid = PE.x0 + (PE.sx(e.q) - PE.x0) / 2;
+      const yC = (PE.sy(e.cv) + PE.sy(Math.max(e.P, e.ct))) / 2;
+      el('text', { x: mid, y: (PE.sy(e.cv) + PE.sy(Math.min(e.P, e.ct))) / 2 + 4, class: 'r', 'text-anchor': 'middle', style: 'fill:var(--verde);font-weight:600' }, g).textContent = e.ben >= 0 ? 'CF' : 'CUASI-RENTA';
+      if (Math.abs(e.P - e.ct) > 0.45) el('text', { x: mid, y: (PE.sy(e.P) + PE.sy(e.ct)) / 2 + 4, class: 'r', 'text-anchor': 'middle', style: `fill:var(--${e.ben >= 0 ? 'verde' : 'rojo'});font-weight:600` }, g).textContent = e.ben >= 0 ? 'RENTA ECONÓMICA' : 'PÉRDIDA';
+      void yC;
+    }
+    tx(g, PE.sx(QV), PE.y0 + PE.h + 32, 'q_{cierre}', { 'text-anchor': 'middle', style: 'font-size:12px;fill:var(--muted)' });
+    el('line', { x1: PE.sx(QV), y1: PE.sy(PV), x2: PE.sx(QV), y2: PE.y0 + PE.h, class: 'guia' }, g);
+    punto(PE, QV, PV, 3.5, 'var(--naranja)');
+  }
+  guias(PE, e.q, e.P, true, false);
+  punto(PE, e.q, e.P, 6.5, 'var(--punto)');
+  tx(g, PE.sx(e.q), PE.y0 + PE.h + 46, s.per === 'mc' ? 'q_0' : (s.per === 'cp' ? 'q_1' : 'q^*'), { 'text-anchor': 'middle', style: 'font-size:13px' });
+  if (s.per !== 'cp' || Math.abs(e.q - QS) > 0.25) { el('line', { x1: PE.sx(QS), y1: PE.sy(CMeT(QS, d)), x2: PE.sx(QS), y2: PE.y0 + PE.h, class: 'guia' }, g); }
+
+  lectura(R);
+  refrescar();
+  PINTAR.m();
+}
+
+function refrescar() {
+  document.querySelectorAll('input[type=range][id^="md-"]').forEach((inp) => {
+    const k = inp.dataset.k; inp.value = M[k];
+    document.getElementById(inp.id + '-v').textContent = k === 'dA' ? (M.dA > 0 ? '+' : '') + fmt(M.dA, 0) : fmt(M[k], k === 'B' ? 0 : 2);
+  });
+  document.querySelectorAll('#chips-per button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === M.per)));
+  document.querySelectorAll('#chips-tipo button').forEach((b) => { b.setAttribute('aria-pressed', String(b.dataset.k === M.tipo)); b.disabled = !(M.per === 'lp' || M.per === 'mlp' || M.comp); });
+  document.getElementById('md-g').disabled = M.tipo === 'const' || !(M.per === 'lp' || M.per === 'mlp' || M.comp);
+  document.getElementById('md-tau').disabled = M.per !== 'mlp';
+  document.getElementById('md-comp').checked = M.comp;
+}
+
+function lectura(R) {
+  const s = M, e = R.act;
+  const dD = MV(String.raw`\Delta D`), Bm = MV('B'), sm = MV('s'), tm = MV(String.raw`\tau`);
+  const sV = pend(s);
+  let ec = '', val = '';
+  if (s.per === 'mc') {
+    ec = String.raw`Q^S = Q_0\ \ \Rightarrow\ \ P_{mc} = \frac{A_0 + ${dD} - Q_0}{${Bm}}`;
+    val = String.raw`P_{mc} = \frac{${fT(A0(s), 0)} ${s.dA < 0 ? '-' : '+'} ${fT(Math.abs(s.dA), 0)} - ${fT(Q0, 0)}}{${fT(s.B, 0)}} = ${fT(e.P)}`;
+  } else if (s.per === 'cp') {
+    ec = String.raw`Q^S = n_0\cdot q(P),\qquad P = \mathrm{CMag}(q)\ \text{ si } P \ge \min \mathrm{CMeV}`;
+    val = String.raw`${fT(A0(s) + s.dA, 0)} - ${fT(s.B, 0)}\,P = 100\cdot q(P)\ \Rightarrow\ P_{cp} = ${fT(e.P)},\ \ q_1 = ${fT(e.q)}`;
+  } else {
+    ec = String.raw`P = \min \mathrm{CMeT} = P_0 ${s.per === 'mlp' ? '- ' + tm + ' ' : ''}+ ${sm}\,(Q - Q_0),\qquad n = \frac{Q}{q^*}`;
+    val = String.raw`P_{${s.per}} = ${fT(P0)}${s.per === 'mlp' ? ' - ' + fT(s.tau) : ''} ${sV < 0 ? '-' : '+'} ${fT(Math.abs(sV), 3)}\cdot(${fT(e.Q, 0)} - ${fT(Q0, 0)}) = ${fT(e.P)}`;
+  }
+  const lec = document.getElementById('lec-m');
+  lec.innerHTML = `
+    <div class="formas">
+      <span class="lbl">Forma general · en color, lo que puedes mover</span>
+      ${TX(String.raw`Q^D = A_0 + ${dD} - ${Bm}\,P`)}
+      ${TX(String.raw`\mathrm{CT}(q) = \mathrm{CF} + a\,q - b\,q^2 + c\,q^3`)}
+      ${TX(String.raw`\mathrm{CMag} = a - 2b\,q + 3c\,q^2,\qquad \mathrm{CMeV} = a - b\,q + c\,q^2`)}
+      ${TX(String.raw`\mathrm{CMeT} = \mathrm{CMeV} + \frac{\mathrm{CF}}{q}`)}
+      <span class="lbl" style="margin-top:6px">Equilibrio en el ${NOMBRE[s.per]}</span>
+      ${TX(ec)}
+      <span class="lbl" style="margin-top:6px">Con tus valores</span>
+      ${TX(val)}
+      ${s.per === 'cp' && e.q > 0 ? TX(String.raw`\text{cuasi-renta} = (P - \mathrm{CMeV})\,q = (${fT(e.P)} - ${fT(e.cv)})\cdot ${fT(e.q)} = ${fT(e.cuasi)}`) : ''}
+    </div>
+    <div class="kv">
+      <div><span>Plazo</span><b>${NOMBREC[s.per]}</b></div><div><span>Precio P</span><b>${f2(e.P)} <span class="ayuda">(P<sub>0</sub> = ${f2(P0)})</span></b></div>
+      <div><span>Cantidad de la industria Q</span><b>${f0(e.Q)}</b></div><div><span>Empresas n</span><b>${s.per === 'lp' || s.per === 'mlp' ? f1(e.n) : N0 + ' (fijo)'}</b></div>
+      <div><span>Producción por empresa q</span><b>${f2(e.q)}</b></div><div><span>CMeV(q) · CMeT(q)</span><b>${f2(e.cv)} · ${f2(e.ct)}</b></div>
+      <div><span>${s.per === 'mc' ? 'Ingreso P·q<sub>0</sub> por empresa' : 'Cuasi-renta por empresa'}</span><b>${s.per === 'cp' ? f1(e.cuasi) : (s.per === 'mc' ? f1(e.P * e.q) + ' *' : '— (todo variable)')}</b></div>
+      <div><span>${e.ben >= -1e-9 ? 'Renta económica' : 'Pérdida'} por empresa</span><b>${f1(Math.abs(e.ben) < 0.05 ? 0 : Math.abs(e.ben))}</b></div>
+    </div>
+    ${s.per === 'mc' ? '<p class="ayuda" style="margin:0">* En el periodo de mercado todo el coste está ya incurrido: el ingreso P·q<sub>0</sub> entero remunera lo que ya se puso. La pérdida o renta se mide frente al CMeT de q<sub>0</sub>.</p>' : ''}`;
+  montar(lec);
+}
+
+/* ===================================================================== explicaciones */
+function comparar(R, s) {
+  const up = s.dA > 0;
+  const tr = `muy corto ${f2(R.mc.P)}, corto ${f2(R.cp.P)} y largo ${f2(R.lp.P)}${s.tau > 0 ? `; muy largo ${f2(R.mlp.P)}` : ''}`;
+  let t = `Con este ΔD el precio sería: ${tr} (P<sub>0</sub> = ${f2(P0)}). `;
+  if (s.tipo === 'decr' && s.g > 0) t += `Cuanto más largo el plazo, menos pesa la demanda en el precio; con costes decrecientes, a largo plazo el precio incluso ${up ? 'baja' : 'sube'} respecto a P<sub>0</sub>, porque ${up ? 'al crecer la industria bajan sus costes' : 'al encogerse la industria suben sus costes'}: manda el coste de producción. `;
+  else t += `Cuanto más largo el plazo, menos ${up ? 'sube' : 'baja'} el precio y más se ajusta la cantidad: en el corto manda la demanda; en el largo, el coste de producción. Es la conclusión de Marshall. `;
+  return t;
+}
+function textoPeriodo(s, R) {
+  const e = R[s.per], p = [];
+  if (s.per === 'mc') {
+    p.push(`Periodo de mercado: la producción ya está hecha y la oferta es fija en Q<sub>0</sub> = ${f0(Q0)}. La oferta de la industria es vertical y la demanda determina íntegramente el precio: P = ${f2(e.P)}. La empresa vende su q<sub>0</sub> = ${f2(QS)} a ese precio, cubra o no sus costes, que ya no puede cambiar.`);
+  } else if (s.per === 'cp') {
+    p.push(`Con la tecnología y la planta fijas, cada una de las ${N0} empresas solo puede variar la producción con los factores variables. Produce donde P = CMag mientras el precio cubra el CMeV (mínimo en P = ${f2(PV)}): por eso la oferta de la empresa es el tramo de CMag por encima del mínimo del CMeV, y la de la industria, su suma horizontal. El precio lo fijan oferta y demanda: P = ${f2(e.P)}, con q<sub>1</sub> = ${f2(e.q)} por empresa.`);
+    if (e.q > 0) p.push(`La cuasi-renta, (P − CMeV)·q = ${f1(e.cuasi)}, es lo que queda para remunerar los factores fijos, que cuestan CF = ${CF}. ${e.ben > 0.05 ? `Como la supera, hay una renta económica de ${f1(e.ben)}.` : e.ben < -0.05 ? `No llega: la empresa pierde ${f1(-e.ben)}, pero sigue produciendo porque cubre el coste variable; si cerrara perdería el CF entero.` : 'La cubre justo: no hay renta económica.'}`);
+    if (e.cierre) p.push('El precio ha llegado al mínimo del CMeV: es el umbral de cierre. Por debajo, las empresas dejarían de producir.');
+  } else {
+    const t = TIPO[s.tipo];
+    p.push(`Todos los factores son variables: entran o salen empresas hasta que desaparece la renta económica y cada empresa produce en el mínimo de su CMeT, q* = ${f2(QS)}. Hay ${f1(e.n)} empresas (eran ${N0}) y la industria produce Q = ${f0(e.Q)} a P = ${f2(e.P)}.`);
+    p.push(s.tipo === 'const' || s.g === 0 ? 'Con costes constantes, la entrada de empresas no cambia los costes de cada una: la oferta de largo plazo es horizontal al nivel del mínimo del CMeT y el precio vuelve a P<sub>0</sub>; solo cambia la cantidad.'
+      : s.tipo === 'crec' ? `Con costes crecientes, al crecer la industria suben los costes de cada empresa (las curvas de la empresa se desplazan ${f2(e.d)} hacia arriba), así que la oferta de largo plazo es creciente.`
+        : `Con costes decrecientes, al crecer la industria bajan los costes de cada empresa (economías externas: las curvas se desplazan ${f2(-e.d)} hacia abajo), así que la oferta de largo plazo es decreciente.`);
+    if (s.per === 'mlp') p.push(`En el muy largo plazo además cambia la tecnología: con τ = ${f2(s.tau)} todas las curvas de costes bajan y con ellas la oferta, hasta P = ${f2(e.P)}.`);
+    void t;
+  }
+  return p;
+}
+function explicar(A, B) {
+  const R = todo(B), Ra = todo(A), e = R[B.per], a = Ra[A.per], p = [], cambia = new Set(['eq']);
+  if (A.per !== B.per) {
+    cambia.add(B.per);
+    if (B.per === 'cp' || A.per === 'cp') cambia.add('Scp');
+    if (B.per === 'cp') cambia.add('cuasi');
+    if (B.per === 'lp' || B.per === 'mlp') cambia.add('costes');
+    p.push(...textoPeriodo(B, R));
+    if (Math.abs(B.dA) > 0.5) p.push(`Frente al ${NOMBRE[A.per]}, el precio pasa de ${f2(a.P)} a ${f2(e.P)} y la cantidad de ${f0(a.Q)} a ${f0(e.Q)}. ` + comparar(R, B));
+    else p.push('Sin desplazamiento de la demanda, E<sub>0</sub> es equilibrio en todos los plazos. Mueve ΔD para ver las diferencias.');
+    return { titulo: `${NOMBREC[A.per]} → ${NOMBRE[B.per]}`, p, cambia };
+  }
+  if (Math.abs(A.dA - B.dA) > 1e-9) {
+    cambia.add('D'); cambia.add('tiempo');
+    const up = B.dA > A.dA;
+    p.push(`Has desplazado la demanda de la industria hacia la ${up ? 'derecha' : 'izquierda'}: ΔD pasa de ${f0(A.dA)} a ${f0(B.dA)} unidades a cada precio. En el ${NOMBRE[B.per]}, el precio pasa de ${f2(a.P)} a ${f2(e.P)} y la cantidad de ${f0(a.Q)} a ${f0(e.Q)}.`);
+    if (B.per === 'mc') p.push('Con la oferta fija, todo el ajuste es en precio.');
+    if (B.per === 'cp') { cambia.add('cuasi'); p.push(`Cada empresa se mueve a lo largo de su CMag: q pasa de ${f2(a.q)} a ${f2(e.q)}. La cuasi-renta pasa de ${f1(a.cuasi)} a ${f1(e.cuasi)}: con los factores fijos, es el precio del bien el que determina su remuneración.`); cambia.add('relevancia'); }
+    if (B.per === 'lp' || B.per === 'mlp') { cambia.add('costes'); p.push(`El número de empresas pasa de ${f1(a.n)} a ${f1(e.n)}: el ajuste se hace por entrada y salida. Con todos los factores variables, son sus remuneraciones (los costes) las que determinan el precio.`); cambia.add('relevancia'); }
+    if (Math.abs(B.dA) > 0.5) p.push(comparar(R, B));
+    return { titulo: `ΔD: ${f0(A.dA)} → ${f0(B.dA)}`, p, cambia };
+  }
+  if (Math.abs(A.B - B.B) > 1e-9) {
+    cambia.add('D');
+    p.push(`Has cambiado la pendiente de la demanda, B, de ${f0(A.B)} a ${f0(B.B)}. La demanda inicial gira sobre E<sub>0</sub>: con B ${B.B > A.B ? 'mayor es más plana (más elástica)' : 'menor es más inclinada (menos elástica)'}, así que el mismo ΔD mueve ${B.B > A.B ? 'menos' : 'más'} el precio. En el ${NOMBRE[B.per]}, P pasa de ${f2(a.P)} a ${f2(e.P)}.`);
+    if (B.per === 'mc') p.push(`En el muy corto plazo el cambio de precio es exactamente ΔD/B = ${f2(B.dA / B.B)}.`);
+    return { titulo: `B: ${f0(A.B)} → ${f0(B.B)}`, p, cambia };
+  }
+  if (A.tipo !== B.tipo || Math.abs(A.g - B.g) > 1e-9) {
+    cambia.add('costes');
+    if (B.tipo === 'decr') cambia.add('internas');
+    if (A.tipo !== B.tipo) p.push(`Pasas a costes ${TIPO[B.tipo]} en la industria. ${B.tipo === 'const' ? 'La oferta de largo plazo es horizontal.' : B.tipo === 'crec' ? 'Al crecer la industria se encarecen los factores (deseconomías externas): la oferta de largo plazo es creciente.' : 'Al crecer la industria bajan los costes de cada empresa (economías externas): la oferta de largo plazo es decreciente.'}`);
+    else p.push(`Has cambiado la intensidad de las ${B.tipo === 'crec' ? 'deseconomías' : 'economías'} externas de ${f2(A.g)} a ${f2(B.g)}: la pendiente de la oferta de largo plazo pasa de ${fmt(pend(A), 4)} a ${fmt(pend(B), 4)}.`);
+    if (B.per === 'lp' || B.per === 'mlp') p.push(`El equilibrio pasa de P = ${f2(a.P)}, Q = ${f0(a.Q)} a P = ${f2(e.P)}, Q = ${f0(e.Q)}.`);
+    else p.push(`Solo afecta al largo plazo, que ves con «Ver los plazos a la vez»: P<sub>lp</sub> pasa de ${f2(Ra.lp.P)} a ${f2(R.lp.P)}.`);
+    if (B.tipo === 'decr') p.push('Aquí los costes bajan por economías externas, que desplazan las curvas de cada empresa sin cambiar su forma, y por eso son compatibles con la competencia perfecta. Con economías internas (el CMe de cada empresa decreciente con su propia producción), la empresa crecería sin límite: es el problema que el tema señala en Marshall.');
+    return { titulo: A.tipo !== B.tipo ? `Costes ${TIPO[A.tipo]} → ${TIPO[B.tipo]}` : `Intensidad: ${f2(A.g)} → ${f2(B.g)}`, p, cambia };
+  }
+  if (Math.abs(A.tau - B.tau) > 1e-9) {
+    cambia.add('mlp');
+    p.push(`Has ${B.tau > A.tau ? 'aumentado' : 'reducido'} el progreso técnico de τ = ${f2(A.tau)} a τ = ${f2(B.tau)}. En el muy largo plazo la tecnología deja de estar dada: las curvas de costes de la empresa ${B.tau > A.tau ? 'bajan' : 'suben'} y la oferta de la industria se desplaza con ellas. El precio pasa de ${f2(a.P)} a ${f2(e.P)} y la cantidad de ${f0(a.Q)} a ${f0(e.Q)}.`);
+    return { titulo: `τ: ${f2(A.tau)} → ${f2(B.tau)}`, p, cambia };
+  }
+  if (A.comp !== B.comp) {
+    cambia.add('tiempo');
+    p.push(B.comp ? `Ves a la vez las ofertas de la industria en cada plazo: vertical en el muy corto, la suma de los CMag en el corto y la de largo plazo. ` + (Math.abs(B.dA) > 0.5 ? comparar(R, B) : 'Mueve ΔD para ver cómo se separan los precios.') : 'Vuelves a ver solo el plazo elegido.');
+    return { titulo: B.comp ? 'Los plazos a la vez' : 'Un solo plazo', p, cambia };
+  }
+  return null;
+}
+function inicial() {
+  return { titulo: 'Punto de partida', cambia: new Set(), p: [
+    `Partes del equilibrio de largo plazo E<sub>0</sub>: ${N0} empresas producen cada una q* = ${f2(QS)} en el mínimo de su CMeT, P<sub>0</sub> = ${f2(P0)}, y la industria produce Q<sub>0</sub> = ${f0(Q0)}. No hay renta económica.`,
+    'Sube ΔD para simular un aumento de la demanda y cambia de plazo con los botones de debajo del gráfico.'] };
+}
+
+PINTAR.m = () => {
+  const R = todo(M), e = R.act;
+  pintarConceptos('con-m', [
+    { k: 'ind', n: 'Industria y empresa representativa', d: 'Industria: conjunto de empresas que producen la misma mercancía. Empresa representativa: la que tiene acceso normal a la tecnología disponible en la industria. Aquí todas son iguales a ella.', ref: '3A3 §2. 1. 3' },
+    { k: 'mc', n: 'Muy corto plazo (periodo de mercado)', d: 'La oferta es fija y la demanda determina íntegramente el precio.', f: String.raw`Q^S = Q_0`, v: `P<sub>mc</sub> = ${f2(R.mc.P)}`, ref: '3A3 §2. 1. 3' },
+    { k: 'cp', n: 'Corto plazo', d: 'Tecnología dada y dotación de algunos factores fija: hay coste fijo y coste variable. Se puede variar el volumen de producción, pero no el tamaño de la planta. El precio se determina por oferta y demanda.', v: `P<sub>cp</sub> = ${f2(R.cp.P)}`, ref: '3A3 §2. 1. 3' },
+    { k: 'Scp', n: 'Curva de oferta a corto plazo', d: 'En competencia perfecta, el tramo de CMag por encima del mínimo del CMeV. La empresa produce mientras cubra el coste variable, aunque tenga pérdidas.', f: String.raw`P = \mathrm{CMag}(q),\quad P \ge \min \mathrm{CMeV}`, v: `mín CMeV = ${f2(PV)} en q = ${f2(QV)}`, ref: '3A3 §2. 1. 3 y 3A16' },
+    { k: 'cuasi', n: 'Cuasi-renta', d: 'Remuneración de los factores fijos en el corto plazo: lo que se obtiene por encima de los costes variables. «Cuasi» porque desaparece a largo plazo, cuando todos los factores son variables.', f: String.raw`(P - \mathrm{CMeV})\cdot q`, v: M.per === 'cp' ? f1(R.cp.cuasi) : 'solo en el corto plazo', ref: '3A3 §2. 1. 4' },
+    { k: 'renta', n: 'Renta económica', d: 'Aparece si lo obtenido excede la remuneración de los factores variables y también la de los fijos.', f: String.raw`(P - \mathrm{CMeT})\cdot q > 0`, v: M.per === 'cp' ? (R.cp.ben > 0.05 ? f1(R.cp.ben) : 'no hay') : 'no hay', ref: '3A3 §2. 1. 4' },
+    { k: 'lp', n: 'Largo plazo', d: 'Tecnología dada pero todos los factores variables: todo es coste variable. Entran o salen empresas hasta que cada una produce en el mínimo de su CMeT.', f: String.raw`P = \min \mathrm{CMeT}`, v: `P<sub>lp</sub> = ${f2(R.lp.P)}, n = ${f1(R.lp.n)}`, ref: '3A3 §2. 1. 3' },
+    { k: 'costes', n: 'Costes constantes, crecientes o decrecientes', d: 'Según cómo cambien los costes de cada empresa al crecer la industria, la oferta de largo plazo es horizontal, creciente o decreciente.', f: String.raw`P = P_0 + s\,(Q - Q_0)`, v: `costes ${TIPO[M.tipo]}, s = ${fmt(pend(M), 4)}`, ref: '3A3 §2. 1. 3' },
+    { k: 'internas', n: 'Economías internas y externas', d: 'Internas: el CMe baja con la producción de la propia empresa. Externas: baja con la producción agregada de la industria. Los costes decrecientes por economías internas chocan con la competencia perfecta.', ref: '3A3 §2. 1. 3' },
+    { k: 'mlp', n: 'Muy largo plazo', d: 'Se pueden variar la tecnología y toda la dotación de factores productivos.', v: M.tau > 0 ? `P<sub>mlp</sub> = ${f2(R.mlp.P)} con τ = ${f2(M.tau)}` : 'sin progreso técnico (τ = 0)', ref: '3A3 §2. 1. 3' },
+    { k: 'tiempo', n: 'El tiempo y el precio', d: 'Cuanto más largo el periodo, más influye el coste de producción (la oferta) sobre el precio; cuanto más corto, más influye la demanda.', ref: '3A3 §2. 1. 3' },
+    { k: 'relevancia', n: 'Precios y remuneraciones', d: 'A corto y muy corto plazo, con la oferta de factores casi fija, el precio del bien determina la remuneración de los factores. A largo y muy largo plazo, las remuneraciones determinan el precio.', ref: '3A3 §2. 1. 4' },
+    { k: 'eq', n: 'Equilibrio parcial', d: 'Punto de cruce marshalliano: corte de las curvas de oferta y demanda del mercado de un bien.', v: `P = ${f2(e.P)}, Q = ${f0(e.Q)}`, ref: '3A3 §2. 1. 5' },
+    { k: 'D', n: 'Curva de demanda', d: 'Precio máximo que los individuos están dispuestos a pagar por cada cantidad del bien. La empresa, precio-aceptante, ve una demanda horizontal al precio de mercado.', f: String.raw`Q^D = A_0 + \Delta D - B\,P`, v: `ΔD = ${f0(M.dA)}, B = ${f0(M.B)}`, ref: '3A3 §2. 1. 5' },
+  ], ULT.m || new Set());
+};
+
+/* ===================================================================== arranque */
+const desdeHash = () => { const h = location.hash.slice(1); if (NOMBRE[h]) { M.per = h; dibujar(); } };
+if (NOMBRE[location.hash.slice(1)]) M.per = location.hash.slice(1);
+dibujar();
+mostrarPorque('m', inicial());
+window.addEventListener('hashchange', desdeHash);
+
+</script>
+
+</body>
+</html>
