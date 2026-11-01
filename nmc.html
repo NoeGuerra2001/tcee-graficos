@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+/* Parámetros: ?tema=claro|oscuro (fuerza el tema), ?compacto=1 (oculta la cabecera, para insertar en Obsidian) */
+(function () { try {
+  var q = new URLSearchParams(location.search), t = q.get('tema');
+  if (t === 'oscuro' || t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  if (t === 'claro' || t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  if (q.get('compacto')) document.documentElement.classList.add('compacto');
+} catch (e) {} })();
+</script>
+<style>
+html, body { margin: 0; }
+body { font-family: system-ui, sans-serif; font-size: 14px; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.compacto header { display: none !important; }
+.compacto body { padding-block: 8px 24px !important; }
+</style>
+<title>Nueva Macroeconomía Clásica</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script>
+window.MathJax = {
+  tex: { packages: { '[+]': ['html'] } },
+  svg: { fontCache: 'local' },
+  options: { enableAssistiveMml: false },
+  startup: { typeset: false, ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => { try { document.head.appendChild(MathJax.svgStylesheet()); } catch (e) {} window.__mjListo = true; if (window.montar) window.montar(document.body); }); } },
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.min.js"></script>
+<style>
+/* Layout: lámina de pizarra a la izquierda (SVG), lectura y mandos a la derecha; una columna en móvil. Dos pestañas: corto y largo plazo. */
+:root {
+  --bg: #fbfaf7; --fg: #1d2230; --muted: #5f6676; --line: #d9dbe2; --panel: #f1f2f5;
+  --azul: #2E5C8A; --naranja: #D9671E; --verde: #548235; --rojo: #C00000; --gris: #7F7F7F; --punto: #1F3864;
+  --z1: rgba(192,0,0,.07); --z2: rgba(84,130,53,.10); --z3: rgba(127,127,127,.12);
+  --f-math: "STIX Two Text", "STIXGeneral", "Cambria Math", "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+header { display: flex; flex-direction: column; gap: 4px; }
+.eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-math); font-weight: 600; font-size: 32px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.intro { color: var(--muted); max-width: 70ch; margin: 0; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tabs button, .chips button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--fg); cursor: pointer; }
+.tabs button[aria-selected="true"], .chips button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.mirar { font-size: 13.5px; max-width: 80ch; margin: 0; padding-left: 12px; border-left: 2px solid var(--line); }
+
+.vista { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+@media (min-width: 960px) { .vista { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } }
+.figs { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.figs .controles { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+svg.lamina { width: 100%; max-width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+svg text { fill: var(--fg); }
+.m { font-family: var(--f-math); font-style: italic; font-size: 15px; }
+.r { font-family: var(--f-body); font-style: normal; font-size: 11.5px; letter-spacing: .04em; }
+.eje { stroke: var(--fg); stroke-width: 1.3; fill: none; }
+.tick { stroke: var(--fg); stroke-width: 1; }
+.tlab { font-family: var(--f-body); font-size: 11px; fill: var(--muted) !important; }
+.guia { stroke: var(--gris); stroke-width: .9; stroke-dasharray: 4 4; fill: none; }
+.cur { fill: none; stroke-width: 2.4; }
+.cur-fina { fill: none; stroke-width: 1.1; opacity: .55; }
+.tang { fill: none; stroke-width: 1.6; }
+.rayo { fill: none; stroke-width: 1.4; stroke-dasharray: 6 4; }
+.pto { stroke: var(--bg); stroke-width: 1.5; }
+.drag { cursor: grab; }
+.drag:active { cursor: grabbing; }
+.z1 { fill: var(--z1); } .z2 { fill: var(--z2); } .z3 { fill: var(--z3); }
+
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.lectura { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.lectura .f { font-family: var(--f-math); font-style: italic; font-size: 16px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 2px 22px; font-variant-numeric: tabular-nums; }
+.kv div { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
+.kv b { font-weight: 500; }
+.lectura .msg { margin-top: 4px; }
+.etapa { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px; border: 1px solid currentColor; }
+.e1 { color: var(--rojo); } .e2 { color: var(--verde); } .e3 { color: var(--muted); }
+.controles { display: flex; flex-direction: column; gap: 6px; }
+.fila { display: grid; grid-template-columns: minmax(8.5em, 12em) minmax(0, 1fr) 3.6em; align-items: center; gap: 8px; }
+.fila input[type=range] { width: 100%; accent-color: var(--azul); }
+.val { text-align: right; font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ayuda { color: var(--muted); font-size: 12.5px; }
+.nota { font-size: 12.5px; color: var(--muted); max-width: 80ch; margin: 0; }
+sub, sup { font-size: 72%; }
+.porque { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.porque .eti, .sec-eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.porque h3 { font-family: var(--f-math); font-size: 19px; font-weight: 600; margin: 0; }
+.porque p { margin: 0; }
+.porque details { margin-top: 4px; }
+.porque summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.porque .prev { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.ctl-ayuda { margin: -2px 0 6px; font-size: 12.5px; color: var(--muted); }
+.sec { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.sec h2 { font-family: var(--f-math); font-size: 22px; font-weight: 600; margin: 0; }
+.conceptos { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.concepto { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.concepto.cambia { border-color: var(--rojo); background: var(--z1); }
+.concepto .cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.concepto h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.concepto p { margin: 0; font-size: 13px; }
+.concepto .formula { font-family: var(--f-math); font-style: italic; font-size: 15px; overflow-x: auto; }
+.concepto .valor { font-variant-numeric: tabular-nums; }
+.concepto .ref { color: var(--muted); font-size: 11.5px; }
+.formas { display: flex; flex-direction: column; gap: 3px; }
+.formas .lbl { font-family: var(--f-body); font-style: normal; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.formas .ec { font-family: var(--f-math); font-style: italic; font-size: 16px; overflow-x: auto; }
+.formas .fijo { font-family: var(--f-body); font-style: normal; font-size: 12.5px; color: var(--muted); }
+.tex { display: inline-block; max-width: 100%; vertical-align: middle; }
+.tex[data-d="1"] { display: block; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.tex:not([data-ok]) { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; }
+.tex mjx-container { margin: 0 !important; }
+.tex[data-d="1"] mjx-container { text-align: left !important; }
+.tex g.mv { color: var(--azul); fill: var(--azul); stroke: var(--azul); }
+.formas .tex[data-d="1"] { font-size: 112%; }
+.mod { color: var(--azul); font-weight: 600; border-bottom: 1px dotted currentColor; }
+.chip-cambia { font-size: 11px; color: var(--rojo); border: 1px solid currentColor; border-radius: 999px; padding: 0 7px; white-space: nowrap; }
+</style>
+<style>
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer; }
+.vista.ancha { grid-template-columns: 1fr !important; }
+.panel.dos { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 960px) { .panel.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.panel.dos .col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.chips button:disabled, input:disabled { opacity: .4; cursor: not-allowed; }
+.figs .controles .chips { margin: 2px 0 4px; }
+@media (min-width: 960px) { .figs .controles { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; row-gap: 8px; align-items: center; } .figs .controles > .aviso, .figs .controles > .chips, .figs .controles > .ctl-ayuda { grid-column: 1 / -1; } }
+.tabs { gap: 6px; }
+.lecturas2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 720px) { .lecturas2 { grid-template-columns: 1fr 1fr; } }
+.kv-panel { background: var(--panel); border-radius: 10px; padding: 8px 12px; grid-template-columns: 1fr !important; font-size: 13px; }
+.kv-tit { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); justify-content: flex-start !important; }
+.aviso { border: 1px solid var(--naranja); color: var(--naranja); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+.cadena { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.cadena .eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.cadena p { margin: 0; }
+a.term { color: inherit; text-decoration: underline dotted; text-underline-offset: 2px; cursor: pointer; }
+.concepto.destello { animation: destello 1.6s ease-out; }
+@keyframes destello { 0% { box-shadow: 0 0 0 3px var(--azul); } 100% { box-shadow: 0 0 0 0 transparent; } }
+[hidden] { display: none !important; }
+.tabla-reg { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+.tabla-reg th, .tabla-reg td { border: 1px solid var(--line); padding: 5px 7px; text-align: center; }
+.tabla-reg th { font-weight: 500; color: var(--muted); }
+.tabla-reg td.act { background: var(--fg); color: var(--bg); font-weight: 600; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TCEE · Parte A) · 3A6 · La Nueva Macroeconomía Clásica</div>
+    <h1>La Nueva Macroeconomía Clásica</h1>
+    <p class="intro">Cuatro modelos del tema: la oferta agregada de Lucas con la extracción de señales (§2), la inconsistencia dinámica de Kydland-Prescott y Barro-Gordon (§3. 1. 2), la equivalencia ricardiana (§3. 2. 1) y el ciclo real (§4. 2). Mueve los mandos de debajo del gráfico: el recuadro «Qué ha cambiado y por qué» explica cada cambio y abajo tienes la ficha de cada concepto.</p>
+  </header>
+  <div class="tabs" role="tablist" aria-label="Modelo" id="tabs"></div>
+  <section class="vista-wrap">
+    <p class="mirar" id="mirar"></p>
+    <div class="figs" style="margin-top:12px">
+      <svg class="lamina" id="svg-n" role="img" aria-label="Modelos de la Nueva Macroeconomía Clásica"></svg>
+      <div class="controles">
+        <div class="chips" id="chips-extra" role="group"></div>
+        <div class="fila" data-ctl="dm"><label>Δm (expansión monetaria)</label><input id="nm-dm" data-k="dm" type="range" min="-2" max="2" step="0.05"><span class="val" id="nm-dm-v"></span></div>
+        <div class="fila" data-ctl="sz"><label>σ²<sub>pi</sub> (varianza de los shocks específicos)</label><input id="nm-sz" data-k="sz" type="range" min="0.1" max="4" step="0.05"><span class="val" id="nm-sz-v"></span></div>
+        <div class="fila" data-ctl="sp"><label>σ²<sub>p</sub> (varianza de los shocks agregados)</label><input id="nm-sp" data-k="sp" type="range" min="0.1" max="8" step="0.05"><span class="val" id="nm-sp-v"></span></div>
+        <div class="fila" data-ctl="beta"><label>β (reacción de los empresarios)</label><input id="nm-beta" data-k="beta" type="range" min="0" max="3" step="0.05"><span class="val" id="nm-beta-v"></span></div>
+        <div class="fila" data-ctl="alfa"><label>α (peso de la inflación en la pérdida)</label><input id="nm-alfa" data-k="alfa" type="range" min="0.2" max="4" step="0.05"><span class="val" id="nm-alfa-v"></span></div>
+        <div class="fila" data-ctl="ust"><label>u<sup>N</sup> − u* (ambición de empleo)</label><input id="nm-ust" data-k="ust" type="range" min="0" max="3" step="0.05"><span class="val" id="nm-ust-v"></span></div>
+        <div class="fila" data-ctl="bpc"><label>β (pendiente de la curva de Phillips)</label><input id="nm-bpc" data-k="bpc" type="range" min="0.3" max="2" step="0.05"><span class="val" id="nm-bpc-v"></span></div>
+        <div class="fila" data-ctl="ronda"><label>Rondas (A → B → C → D → … → E)</label><input id="nm-ronda" data-k="ronda" type="range" min="0" max="10" step="1"><span class="val" id="nm-ronda-v"></span></div>
+        <div class="fila" data-ctl="dT"><label>ΔT (bajada de impuestos hoy, con deuda)</label><input id="nm-dT" data-k="dT" type="range" min="0" max="20" step="0.5"><span class="val" id="nm-dT-v"></span></div>
+        <div class="fila" data-ctl="phi"><label>Parte de la deuda que pagarán otros (sin altruismo)</label><input id="nm-phi" data-k="phi" type="range" min="0" max="1" step="0.05"><span class="val" id="nm-phi-v"></span></div>
+        <div class="fila" data-ctl="psi"><label>Ilusión de deuda (parte de los impuestos futuros que no se ve)</label><input id="nm-psi" data-k="psi" type="range" min="0" max="1" step="0.05"><span class="val" id="nm-psi-v"></span></div>
+        <div class="fila" data-ctl="rh"><label>Tipo al que se endeudan los hogares, r<sub>h</sub> (%)</label><input id="nm-rh" data-k="rh" type="range" min="5" max="25" step="0.5"><span class="val" id="nm-rh-v"></span></div>
+        <label class="check" data-ctl="liq"><input id="nm-liq" type="checkbox"><span>Restricción de liquidez: el hogar no puede endeudarse</span></label>
+        <div class="fila" data-ctl="rho"><label>ρ<sub>A</sub> (persistencia del shock)</label><input id="nm-rho" data-k="rho" type="range" min="0" max="1" step="0.01"><span class="val" id="nm-rho-v"></span></div>
+        <div class="fila" data-ctl="rhoe"><label>Persistencia que creen los agentes</label><input id="nm-rhoe" data-k="rhoe" type="range" min="0" max="1" step="0.01"><span class="val" id="nm-rhoe-v"></span></div>
+        <div class="fila" data-ctl="eta"><label>η (elasticidad intertemporal del trabajo)</label><input id="nm-eta" data-k="eta" type="range" min="0" max="3" step="0.05"><span class="val" id="nm-eta-v"></span></div>
+        <div class="fila" data-ctl="vel"><label>Velocidad de ajuste del capital</label><input id="nm-vel" data-k="vel" type="range" min="0.1" max="1" step="0.05"><span class="val" id="nm-vel-v"></span></div>
+        <p class="ctl-ayuda" id="ayuda-ctl"></p>
+      </div>
+    </div>
+    <div class="vista ancha" style="margin-top:14px">
+      <div class="panel dos">
+        <div class="col"><div class="porque" id="porque-n" aria-live="polite"></div></div>
+        <div class="col"><div class="lectura" id="lec-n"></div><p class="nota" id="nota"></p></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-n"></div></div>
+  </section>
+</div>
+
+<script>
+'use strict';
+const NS = 'http://www.w3.org/2000/svg';
+const fmt = (v, d = 2) => Number.isFinite(v)
+  ? v.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—';
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+/* ------------------------------------------------ ecuaciones con MathJax (SVG) */
+const TEXC = new Map();
+const escH = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const TX = (tex) => `<span class="tex" data-d="1">${escH(tex)}</span>`;
+const TI = (tex) => `<span class="tex">${escH(tex)}</span>`;
+const fT = (v, d = 2) => fmt(v, d).replace(/,/g, '{,}');
+const MV = (t) => String.raw`\class{mv}{${t}}`;
+function montar(root) {
+  if (!window.__mjListo || !root) return;
+  root.querySelectorAll('span.tex:not([data-ok])').forEach((s) => {
+    const tex = s.textContent, d = s.dataset.d === '1', key = (d ? 'D' : 'I') + tex;
+    try {
+      let n = TEXC.get(key);
+      if (!n) { n = MathJax.tex2svg(tex, { display: d }); TEXC.set(key, n); if (TEXC.size > 600) TEXC.delete(TEXC.keys().next().value); }
+      s.replaceChildren(n.cloneNode(true)); s.dataset.ok = '1'; s.setAttribute('aria-label', tex);
+    } catch (e) { /* se queda el texto plano */ }
+  });
+}
+window.montar = montar;
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if ((k === 'stroke' || k === 'fill') && String(v).startsWith('var(')) e.style.setProperty(k, v);
+    else e.setAttribute(k, v);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+/* texto matemático: "PMag_L", "x^2" */
+function tx(parent, x, y, txt, attrs = {}) {
+  const t = el('text', Object.assign({ x, y, class: 'm' }, attrs), parent);
+  const re = /([_^])(\{[^}]*\}|.)/g; let last = 0, m;
+  const push = (s, sh) => { if (!s) return; const ts = el('tspan', {}, t);
+    if (sh) { ts.setAttribute('baseline-shift', sh); ts.setAttribute('font-size', '72%'); } ts.textContent = s; };
+  while ((m = re.exec(txt))) { push(txt.slice(last, m.index)); const b = m[2][0] === '{' ? m[2].slice(1, -1) : m[2];
+    push(b, m[1] === '_' ? 'sub' : 'super'); last = re.lastIndex; }
+  push(txt.slice(last));
+  return t;
+}
+function limpiar(g) { while (g.firstChild) g.removeChild(g.firstChild); }
+function path(pts) {
+  let d = '', on = false;
+  for (const p of pts) { if (!p) { on = false; continue; } d += (on ? 'L' : 'M') + p[0].toFixed(2) + ',' + p[1].toFixed(2); on = true; }
+  return d;
+}
+/* panel con escalas lineales */
+function panel(svg, x0, y0, w, h, xr, yr) {
+  const P = { x0, y0, w, h, xr, yr };
+  P.sx = (x) => x0 + (x - xr[0]) / (xr[1] - xr[0]) * w;
+  P.sy = (y) => y0 + h - (y - yr[0]) / (yr[1] - yr[0]) * h;
+  P.ix = (px) => xr[0] + (px - x0) / w * (xr[1] - xr[0]);
+  P.iy = (py) => yr[0] + (y0 + h - py) / h * (yr[1] - yr[0]);
+  const id = 'c' + Math.random().toString(36).slice(2);
+  const cp = el('clipPath', { id }, svg); el('rect', { x: x0, y: y0 - 2, width: w + 2, height: h + 4 }, cp);
+  P.clip = `url(#${id})`;
+  /* curva f(x) cortada al rango */
+  P.curva = (f, a = xr[0], b = xr[1], n = 400) => {
+    const pts = [];
+    for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n, y = f(x);
+      pts.push(Number.isFinite(y) && y >= yr[0] - (yr[1] - yr[0]) && y <= yr[1] + (yr[1] - yr[0]) ? [P.sx(x), P.sy(y)] : null); }
+    return path(pts);
+  };
+  return P;
+}
+function puntoSVG(svg, evt) {
+  const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+/* arrastre con el estado en el <svg> (cada redibujo sustituye los nodos) */
+function habilitarArrastre(svg, redibujar, alSoltar) {
+  svg._drag = null;
+  svg.addEventListener('pointermove', (e) => { if (!svg._drag) return; svg._drag(puntoSVG(svg, e)); redibujar(); });
+  const fin = (e) => { const habia = !!svg._drag; svg._drag = null; try { svg.releasePointerCapture(e.pointerId); } catch (_) {} if (habia && alSoltar) alSoltar(); };
+  svg.addEventListener('pointerup', fin); svg.addEventListener('pointercancel', fin);
+}
+function arrastrable(svg, nodo, mover, alEmpezar) {
+  nodo.classList.add('drag');
+  nodo.addEventListener('pointerdown', (e) => { e.preventDefault(); if (alEmpezar) alEmpezar(); svg._drag = mover; try { svg.setPointerCapture(e.pointerId); } catch (_) {} });
+}
+function ejes(g, P, xlab, ylab, xt, yt, conCero) {
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0 + P.w + 8, y2: P.y0 + P.h, class: 'eje' }, g);
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0, y2: P.y0 - 8, class: 'eje' }, g);
+  el('path', { d: `M${P.x0 + P.w + 8},${P.y0 + P.h - 4}l7,4l-7,4z`, fill: 'var(--fg)' }, g);
+  el('path', { d: `M${P.x0 - 4},${P.y0 - 8}l4,-7l4,7z`, fill: 'var(--fg)' }, g);
+  tx(g, P.x0 + P.w + 14, P.y0 + P.h + 30, xlab, { 'text-anchor': 'end' });
+  tx(g, P.x0 + 8, P.y0 - 4, ylab, { 'text-anchor': 'start' });
+  for (const v of xt || []) { el('line', { x1: P.sx(v), y1: P.y0 + P.h, x2: P.sx(v), y2: P.y0 + P.h + 4, class: 'tick' }, g);
+    el('text', { x: P.sx(v), y: P.y0 + P.h + 15, class: 'tlab', 'text-anchor': 'middle' }, g).textContent = fmt(v, 0); }
+  for (const v of yt || []) { el('line', { x1: P.x0 - 4, y1: P.sy(v), x2: P.x0, y2: P.sy(v), class: 'tick' }, g);
+    el('text', { x: P.x0 - 7, y: P.sy(v) + 4, class: 'tlab', 'text-anchor': 'end' }, g).textContent = fmt(v, 0); }
+  if (conCero) el('line', { x1: P.x0, y1: P.sy(0), x2: P.x0 + P.w, y2: P.sy(0), class: 'eje', 'stroke-width': .8 }, g);
+}
+
+
+/* ===================================================================== utilidades */
+const f1 = (v) => fmt(v, 1), f2 = (v) => fmt(v, 2), f3 = (v) => fmt(v, 3);
+const sg = (v, d = 2) => (v > 0 ? '+' : '') + fmt(v, d);
+const HIST = {}, ULT = {}, PINTAR = {};
+function mostrarPorque(k, e) {
+  HIST[k] = [e, ...(HIST[k] || [])].slice(0, 6); ULT[k] = e.cambia || new Set();
+  const box = document.getElementById('porque-' + k), [act, ...prev] = HIST[k];
+  box.innerHTML = `<div class="eti">Qué ha cambiado y por qué</div><h3>${act.titulo}</h3>` + act.p.map((t) => `<p>${t}</p>`).join('') +
+    (prev.length ? `<details><summary>Cambios anteriores (${prev.length})</summary>` + prev.map((h) => `<div class="prev"><b>${h.titulo}</b>${h.p.map((t) => `<p>${t}</p>`).join('')}</div>`).join('') + '</details>' : '');
+  montar(box); PINTAR[k]();
+}
+function pintarConceptos(id, lista, cambia) {
+  const c = document.getElementById(id);
+  c.innerHTML = lista.map((x) => `
+    <article class="concepto${cambia.has(x.k) ? ' cambia' : ''}">
+      <div class="cab"><h4>${x.n}</h4>${cambia.has(x.k) ? '<span class="chip-cambia">ha cambiado</span>' : ''}</div>
+      <p class="def">${x.d}</p>
+      ${x.f ? `<div class="formula">${TX(x.f)}</div>` : ''}
+      ${x.v !== undefined ? `<p class="valor">Ahora: <b>${x.v}</b></p>` : ''}
+      ${x.ref ? `<p class="ref">${x.ref}</p>` : ''}
+    </article>`).join('');
+  montar(c);
+}
+function sesion(k, estado, explicar, redibujar) {
+  let snap = null;
+  return {
+    empezar: () => { if (!snap) snap = JSON.parse(JSON.stringify(estado)); },
+    cerrar: () => { if (!snap) return; const e = explicar(snap, JSON.parse(JSON.stringify(estado))); snap = null; if (e) { if (redibujar) redibujar(); mostrarPorque(k, e); } },
+  };
+}
+
+/* ===================================================================== estado */
+const TABS = [['lucas', 'OA de Lucas · §2'], ['bg', 'Inconsistencia dinámica · §3. 1. 2'], ['ricardo', 'Equivalencia ricardiana · §3. 2. 1'], ['rbc', 'Ciclo real · §4. 2']];
+const NOM = Object.fromEntries(TABS);
+const S = { tab: 'lucas',
+  dm: 1, sz: 1, sp: 1, beta: 1, antic: false,
+  alfa: 1, ust: 2, bpc: 1, ronda: 0, modo: 'disc',
+  dT: 10, phi: 0, psi: 0, rh: 5, liq: false,
+  rho: 0.5, rhoe: 0.5, eta: 1, vel: 0.35 };
+const MIRAR = {
+  lucas: 'Una expansión monetaria desplaza la DA. Si es una sorpresa, los productores no saben si su precio ha subido por un shock específico o por uno agregado y la economía se mueve a lo largo de la OA (A → B). Si está anticipada, ajustan p<sup>e</sup> y solo suben los precios (A → C). Sube σ²<sub>p</sub>, o pulsa «Sorprender otra vez», para ver cómo cae θ.',
+  bg: 'La autoridad promete inflación nula (A). Sube las rondas: una vez fijadas las expectativas, le compensa sorprender (B); el sector privado ajusta sus expectativas (C), vuelve a sorprender (D)… hasta E, el único punto sin incentivo a sorprender. Compara con la regla, los agentes racionales y el banquero conservador.',
+  ricardo: 'El Estado baja hoy los impuestos ΔT y lo financia con deuda que devolverá mañana con intereses. Con todos los supuestos de Barro el consumo no cambia: la restricción presupuestaria es la misma. Activa cada crítica del tema para ver cuánto deja de cumplirse.',
+  rbc: 'Un shock de productividad de un 1 % en el periodo 1. Compara un shock transitorio con uno permanente, y uno transitorio que los agentes toman por permanente. El panel izquierdo muestra productividad, empleo y producción; el derecho, capital e inversión.',
+};
+const svg = document.getElementById('svg-n'); svg.setAttribute('viewBox', '0 0 1000 480');
+const g = el('g', {}, svg);
+const SN = sesion('n', S, explicar, () => dibujar());
+let PL, PR;
+function paneles(rL, rR) { limpiar(g); limpiar(svg); svg.appendChild(g); PL = panel(svg, 62, 36, 380, 370, rL[0], rL[1]); PR = panel(svg, 580, 36, 380, 370, rR[0], rR[1]); }
+const linea = (pts, attrs, parent) => el('path', Object.assign({ d: path(pts) }, attrs), parent || g);
+const rot = (P, x, y, t, color, extra = {}) => tx(g, P.sx(x), P.sy(y), t, Object.assign({ style: `fill:${color}` }, extra));
+function pto(P, x, y, et, o = {}) {
+  if (![x, y].every(Number.isFinite)) return;
+  el('circle', o.hueco ? { cx: P.sx(x), cy: P.sy(y), r: o.r || 5.5, fill: 'var(--bg)', stroke: 'var(--punto)', 'stroke-width': 1.8 } : { cx: P.sx(x), cy: P.sy(y), r: o.r || 6, class: 'pto', fill: o.fill || 'var(--punto)' }, g);
+  if (et) tx(g, P.sx(x) + (o.dx ?? 8), P.sy(y) + (o.dy ?? -8), et, { style: `font-size:${o.fs || 14}px;font-style:normal;font-weight:600;fill:var(--punto)` });
+}
+function hguia(P, x, y, et) { el('line', { x1: P.x0, y1: P.sy(y), x2: P.sx(x), y2: P.sy(y), class: 'guia' }, g); if (et) tx(g, P.x0 + 5, P.sy(y) - 4, et, { style: 'font-size:12px' }); }
+function vguia(P, x, y, et) { el('line', { x1: P.sx(x), y1: P.sy(y), x2: P.sx(x), y2: P.y0 + P.h, class: 'guia' }, g); if (et) tx(g, P.sx(x), P.y0 + P.h + 30, et, { 'text-anchor': 'middle', style: 'font-size:12px' }); }
+const titulo = (P, t) => { el('text', { x: P.x0 + P.w / 2, y: 18, class: 'r', 'text-anchor': 'middle' }, g).textContent = t; };
+const clip = (P) => el('g', { 'clip-path': P.clip }, g);
+const curva = (P, fn, a, b, attrs, n = 300) => { const pts = []; for (let j = 0; j <= n; j++) { const x = a + (b - a) * j / n, y = fn(x); pts.push(Number.isFinite(y) ? [P.sx(x), P.sy(y)] : null); } return linea(pts, attrs, clip(P)); };
+const ticks = (a, b, st) => { const t = []; for (let v = a; v <= b + 1e-9; v += st) t.push(Math.round(v * 100) / 100); return t; };
+function flecha(P, x1, y1, x2, y2) {
+  const X1 = P.sx(x1), Y1 = P.sy(y1), X2 = P.sx(x2), Y2 = P.sy(y2), L = Math.hypot(X2 - X1, Y2 - Y1); if (L < 16) return;
+  const ux = (X2 - X1) / L, uy = (Y2 - Y1) / L, xb = X2 - ux * 10, yb = Y2 - uy * 10;
+  el('line', { x1: X1 + ux * 9, y1: Y1 + uy * 9, x2: xb, y2: yb, stroke: 'var(--punto)', 'stroke-width': 1.6 }, g);
+  el('path', { d: `M${xb + ux * 2},${yb + uy * 2}l${-ux * 9 - uy * 4.5},${-uy * 9 + ux * 4.5}l${uy * 9},${-ux * 9}z`, fill: 'var(--punto)' }, g);
+}
+
+function dibujar() { ({ lucas: dibLucas, bg: dibBG, ricardo: dibRic, rbc: dibRBC })[S.tab](); refrescar(); PINTAR.n(); }
+
+/* ===================================================================== 1. OA de Lucas (§2) */
+const LU = { yN: 5, p0: 1, m0: 6 };
+const theta = (s) => s.sz / (s.sz + s.sp);
+function mLU(s) {
+  const th = theta(s), tb = th * s.beta, m1 = LU.m0 + s.dm;
+  const pB = (m1 - LU.yN + tb * LU.p0) / (1 + tb), yB = m1 - pB;       /* sorpresa: p^e = p0 */
+  const pC = m1 - LU.yN, yC = LU.yN;                                     /* anticipada: p^e = p */
+  return { th, tb, m1, pB, yB, pC, yC, efecto: tb / (1 + tb) };
+}
+function dibLucas() {
+  paneles([[2, 8], [-1, 3.5]], [[0, 8], [0, 100]]);
+  const s = S, m = mLU(s), mov = Math.abs(s.dm) > 1e-9;
+  titulo(PL, 'OFERTA Y DEMANDA AGREGADAS (EN LOGARITMOS)'); ejes(g, PL, 'y', 'p', ticks(2, 8, 1), ticks(-1, 3, 1), true);
+  /* OA a largo plazo y OA con sorpresas */
+  el('line', { x1: PL.sx(LU.yN), y1: PL.y0, x2: PL.sx(LU.yN), y2: PL.y0 + PL.h, class: 'cur', stroke: 'var(--naranja)' }, clip(PL));
+  rot(PL, LU.yN + 0.08, 3.3, 'OA sin sorpresas', 'var(--naranja)', { style: 'fill:var(--naranja);font-size:12px' });
+  const OA = (pe) => (y) => pe + (y - LU.yN) / Math.max(m.tb, 1e-6);
+  if (m.tb > 1e-6) { curva(PL, OA(LU.p0), 2, 8, { class: 'cur', stroke: 'var(--naranja)', 'stroke-width': 2 }); { const yy = Math.min(7.6, LU.yN + m.tb * (3.1 - LU.p0)); rot(PL, yy + 0.1, OA(LU.p0)(yy) - 0.1, 'OA_0', 'var(--naranja)'); } }
+  if (mov && s.antic && m.tb > 1e-6) { curva(PL, OA(m.pC), 2, 8, { class: 'rayo', stroke: 'var(--naranja)' }); rot(PL, 6.9, Math.min(3.3, OA(m.pC)(6.9)) + 0.15, 'OA_1', 'var(--naranja)'); }
+  curva(PL, (y) => LU.m0 - y, 2, 8, { class: 'cur', stroke: 'var(--verde)' }); rot(PL, 6.3, LU.m0 - 6.3 - 0.35, 'DA_0', 'var(--verde)');
+  if (mov) { curva(PL, (y) => m.m1 - y, 2, 8, { class: 'rayo', stroke: 'var(--verde)' }); rot(PL, Math.min(7.5, m.m1 - 2.9 + 0.2), 2.9 - (m.m1 - 7.5 > 2.9 ? 0 : 0), 'DA_1', 'var(--verde)'); }
+  hguia(PL, LU.yN, LU.p0, 'p_0'); vguia(PL, LU.yN, LU.p0, 'y_{TNP}');
+  pto(PL, LU.yN, LU.p0, 'A', { dx: -18 });
+  if (mov) {
+    const fin = s.antic ? { y: m.yC, p: m.pC } : { y: m.yB, p: m.pB };
+    pto(PL, m.yB, m.pB, 'B', s.antic ? { hueco: true, r: 5 } : {});
+    pto(PL, m.yC, m.pC, 'C', s.antic ? { dx: -18 } : { hueco: true, r: 5, dx: -18 });
+    flecha(PL, LU.yN, LU.p0, fin.y, fin.p);
+    hguia(PL, fin.y, fin.p, 'p_1'); if (!s.antic) vguia(PL, m.yB, m.pB, 'y_1');
+  }
+  /* θ frente a σ²_p */
+  titulo(PR, 'θ SEGÚN LA VARIANZA DE LOS SHOCKS AGREGADOS'); ejes(g, PR, 'σ²_p', 'θ (%)', ticks(0, 8, 1), [0, 25, 50, 75, 100]);
+  curva(PR, (v) => 100 * s.sz / (s.sz + v), 0, 8, { class: 'cur', stroke: 'var(--azul)' });
+  rot(PR, 5.6, 100 * s.sz / (s.sz + 6.2) + 6, `θ con σ²_pi = ${f2(s.sz)}`, 'var(--azul)', { style: 'fill:var(--azul);font-size:12px' });
+  pto(PR, s.sp, 100 * m.th, ''); hguia(PR, s.sp, 100 * m.th, 'θ'); vguia(PR, s.sp, 100 * m.th, '');
+  const lec = document.getElementById('lec-n');
+  lec.innerHTML = `<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\theta = \frac{${MV(String.raw`\sigma^2_{p_i}`)}}{${MV(String.raw`\sigma^2_{p_i}`)} + ${MV(String.raw`\sigma^2_p`)}}`)}
+    ${TX(String.raw`y_t = y_{TNP} + \theta\,${MV(String.raw`\beta`)}\,(p_t - p_t^e),\qquad y_t^d = m_t + ${MV(String.raw`\Delta m`)} - p_t`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`\theta = ${fT(m.th, 3)},\quad \theta\beta = ${fT(m.tb, 3)},\quad \text{sorpresa: } \Delta y = \frac{\theta\beta}{1+\theta\beta}\,\Delta m = ${fT(m.efecto * s.dm, 3)}`)}</div>
+    <div class="kv"><div><span>Sorpresa (A → B): y · p</span><b>${f2(m.yB)} · ${f2(m.pB)}</b></div><div><span>Anticipada (A → C): y · p</span><b>${f2(m.yC)} · ${f2(m.pC)}</b></div>
+    <div><span>Parte de Δm que va a la renta</span><b>${fmt(100 * m.efecto, 0)} %</b></div><div><span>Parte que va a precios</span><b>${fmt(100 * (1 - m.efecto), 0)} %</b></div></div>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = 'Variables en logaritmos, con y<sub>TNP</sub> = 5, p<sub>0</sub> = 1 y m<sub>0</sub> = 6, y velocidad del dinero constante (v<sub>t</sub> = 0). La curva de la derecha es la idea que Lucas contrastó entre países: donde la inflación es más variable, la producción responde menos a la demanda nominal.';
+}
+
+/* ===================================================================== 2. Barro-Gordon (§3. 1. 2) */
+const BGc = { uN: 5, pis: 0 };
+function respuesta(pe, s, alfa) {          /* inflación óptima de la autoridad dadas las expectativas */
+  const b = s.bpc, us = BGc.uN - s.ust;
+  const pi = (alfa * BGc.pis + b * (BGc.uN - us) + b * b * pe) / (alfa + b * b);
+  return { pi, u: BGc.uN + b * (pe - pi) };
+}
+const piE = (s, alfa) => BGc.pis + (s.bpc / alfa) * s.ust;
+function secuencia(s) {
+  const pts = [{ u: BGc.uN, pi: BGc.pis, pe: BGc.pis, et: 'A' }]; let pe = BGc.pis; const L = 'BCDFGHIJKLMNOPQRSTUVW';
+  for (let k = 0; k < s.ronda; k++) {
+    const r = respuesta(pe, s, s.alfa); pts.push({ u: r.u, pi: r.pi, pe, et: L[2 * k] || '' });
+    pe = r.pi; pts.push({ u: BGc.uN, pi: pe, pe, et: L[2 * k + 1] || '' });
+  }
+  return pts;
+}
+const perdida = (u, pi, s, alfa) => Math.pow(u - (BGc.uN - s.ust), 2) + alfa * Math.pow(pi - BGc.pis, 2);
+function dibBG() {
+  paneles([[0, 8], [0, 6]], [[0, 10], [0, 6]]);
+  const s = S, us = BGc.uN - s.ust, pE = piE(s, s.alfa), aB = 2.5 * s.alfa, pR = piE(s, aB);
+  titulo(PL, 'CURVAS DE PHILLIPS Y PÉRDIDA SOCIAL'); ejes(g, PL, 'u', 'π', ticks(0, 8, 1), ticks(0, 6, 1));
+  const CP = (pe) => (u) => pe - (u - BGc.uN) / s.bpc;
+  const elipse = (L, alfa, attrs) => { const pts = []; for (let j = 0; j <= 200; j++) { const t = 2 * Math.PI * j / 200; pts.push([PL.sx(us + Math.sqrt(L) * Math.cos(t)), PL.sy(BGc.pis + Math.sqrt(L / alfa) * Math.sin(t))]); } linea(pts, attrs, clip(PL)); };
+  el('line', { x1: PL.sx(BGc.uN), y1: PL.y0, x2: PL.sx(BGc.uN), y2: PL.y0 + PL.h, class: 'cur', stroke: 'var(--naranja)' }, clip(PL));
+  rot(PL, BGc.uN + 0.1, 5.7, 'CP_{l/p}', 'var(--naranja)', { style: 'fill:var(--naranja);font-size:12px' });
+  pto(PL, us, BGc.pis, '', { hueco: true, r: 4 }); tx(g, PL.sx(us), PL.y0 + PL.h + 30, 'u^*', { 'text-anchor': 'middle', style: 'font-size:12px' });
+  const pts = s.modo === 'disc' ? secuencia(s) : [{ u: BGc.uN, pi: BGc.pis, pe: 0, et: 'A' }];
+  const pes = [...new Set(pts.map((q) => Math.round(q.pe * 1e6) / 1e6))];
+  pes.forEach((pe, j) => { curva(PL, CP(pe), 0, 8, { class: j === pes.length - 1 ? 'cur' : 'cur-fina', style: 'stroke:var(--verde)' + (j === pes.length - 1 ? '' : ';opacity:.55;stroke-width:1.4') }); });
+  rot(PL, 0.15, CP(0)(0.15) - 0.25, 'CP(π^e = 0)', 'var(--verde)', { style: 'fill:var(--verde);font-size:12px' });
+  /* E y su curva de Phillips */
+  if (s.modo !== 'regla') {
+    curva(PL, CP(pE), 0, 8, { class: s.modo === 'racional' ? 'cur' : 'rayo', stroke: 'var(--verde)' }); rot(PL, 0.15, CP(pE)(0.15) + 0.15, 'CP(π^e = π_E)', 'var(--verde)', { style: 'fill:var(--verde);font-size:12px' });
+    elipse(perdida(BGc.uN, pE, s, s.alfa), s.alfa, { class: 'cur-fina', style: 'stroke:var(--rojo);stroke-width:1.5' });
+    pto(PL, BGc.uN, pE, 'E', s.modo === 'racional' ? {} : { hueco: true, r: 5 }); hguia(PL, BGc.uN, pE, 'π_E');
+  }
+  if (s.modo === 'rogoff') { curva(PL, CP(pR), 0, 8, { class: 'cur', stroke: 'var(--verde)' }); elipse(perdida(BGc.uN, pR, s, aB), aB, { class: 'cur-fina', style: 'stroke:var(--rojo);stroke-width:1.5;stroke-dasharray:5 3' }); pto(PL, BGc.uN, pR, "E'", { dx: 8, dy: 16 }); }
+  if (s.modo === 'disc') {
+    const b1 = pts[1]; if (b1) elipse(perdida(b1.u, b1.pi, s, s.alfa), s.alfa, { class: 'cur-fina', style: 'stroke:var(--rojo);stroke-width:1.5' });
+    for (let j = 1; j < pts.length; j++) flecha(PL, pts[j - 1].u, pts[j - 1].pi, pts[j].u, pts[j].pi);
+    pts.forEach((q, j) => { if (j > 0) pto(PL, q.u, q.pi, j <= 3 ? q.et : '', { r: 4.5, dx: q.u < BGc.uN - 0.01 ? -16 : 8 }); });
+  }
+  elipse(perdida(BGc.uN, BGc.pis, s, s.alfa), s.alfa, { class: 'cur-fina', style: 'stroke:var(--rojo);stroke-width:1.2;opacity:.6' });
+  pto(PL, BGc.uN, BGc.pis, 'A', { dx: 8, dy: -6 });
+  vguia(PL, BGc.uN, 0, 'u^N');
+  /* derecha: inflación y pérdida por ronda */
+  titulo(PR, 'INFLACIÓN EN CADA RONDA'); ejes(g, PR, 'ronda', 'π', ticks(0, 10, 1), ticks(0, 6, 1));
+  el('line', { x1: PR.x0, y1: PR.sy(pE), x2: PR.x0 + PR.w, y2: PR.sy(pE), class: 'guia', style: 'stroke:var(--rojo)' }, g); tx(g, PR.x0 + PR.w - 4, PR.sy(pE) - 5, 'π_E', { 'text-anchor': 'end', style: 'font-size:12px;fill:var(--rojo)' });
+  const ser = s.modo === 'disc' ? pts.filter((q, j) => j % 2 === 1).map((q) => q.pi) : s.modo === 'regla' ? Array(s.ronda).fill(0) : Array(Math.max(1, s.ronda)).fill(s.modo === 'rogoff' ? pR : pE);
+  ser.forEach((v, j) => el('rect', { x: PR.sx(j + 1) - 10, y: PR.sy(v), width: 20, height: Math.max(0, PR.sy(0) - PR.sy(v)), class: 'z1', style: 'stroke:var(--rojo)' }, g));
+  const fin = s.modo === 'disc' ? pts[pts.length - 1] : s.modo === 'regla' ? { u: BGc.uN, pi: 0 } : { u: BGc.uN, pi: s.modo === 'rogoff' ? pR : pE };
+  const lec = document.getElementById('lec-n');
+  lec.innerHTML = `<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\min L(\pi_t, u_t) = (u_t - u_t^*)^2 + ${MV(String.raw`\alpha`)}\,(\pi_t - \pi_t^*)^2`)}
+    ${TX(String.raw`\text{s.a. } u_t = u_t^N + ${MV(String.raw`\beta`)}\,\bigl(E[\pi_t] - \pi_t\bigr)`)}
+    ${TX(String.raw`\text{discreción: } \pi_E = \pi^* + \frac{${MV(String.raw`\beta`)}}{${MV(String.raw`\alpha`)}}\,${MV(String.raw`(u^N - u^*)`)}`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`\pi_E = 0 + \frac{${fT(s.bpc)}}{${fT(s.alfa)}}\cdot ${fT(s.ust)} = ${fT(pE)},\qquad L_A = ${fT(perdida(BGc.uN, 0, s, s.alfa))},\quad L_E = ${fT(perdida(BGc.uN, pE, s, s.alfa))}`)}</div>
+    <div class="kv"><div><span>Punto actual</span><b>u = ${f2(fin.u)}, π = ${f2(fin.pi)}</b></div><div><span>Pérdida en el punto actual</span><b>${f2(perdida(fin.u, fin.pi, s, s.alfa))}</b></div>
+    <div><span>Sesgo inflacionista π<sub>E</sub></span><b>${f2(pE)}</b></div><div><span>Con banquero conservador (α × 2,5)</span><b>${f2(pR)}</b></div></div>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = 'Objetivo de inflación π* = 0 y tasa natural u<sup>N</sup> = 5; el objetivo de paro u* está por debajo de u<sup>N</sup>, que es lo que crea la tentación. En la secuencia, el sector privado ajusta sus expectativas a la inflación del periodo anterior, como narra el tema; con expectativas racionales lo anticipa y se va directamente a E. Las curvas de pérdida son elipses centradas en (u*, π*).';
+}
+
+/* ===================================================================== 3. Equivalencia ricardiana (§3. 2. 1) */
+const RI = { Y1: 80, Y2: 140, T1: 20, T2: 20, rg: 0.05, bet: 1 / 1.05 };
+function mRI(s) {
+  const rh = s.rh / 100, dT2 = (1 + RI.rg) * s.dT, perc = (1 - s.phi) * (1 - s.psi) * dT2;
+  const y1 = RI.Y1 - RI.T1 + s.dT, y2v = RI.Y2 - RI.T2 - dT2, y2p = RI.Y2 - RI.T2 - perc;
+  const W0 = (RI.Y1 - RI.T1) + (RI.Y2 - RI.T2) / (1 + RI.rg), W1 = y1 + y2p / (1 + rh);
+  const opt = (W, R, e1) => { let c1 = W / (1 + RI.bet); if (s.liq && c1 > e1) c1 = e1; return c1; };
+  const c10 = opt(W0, 1 + RI.rg, RI.Y1 - RI.T1), c11 = opt(W1, 1 + rh, y1);
+  const c20 = (W0 - c10) * (1 + RI.rg), c21 = (W1 - c11) * (1 + rh);
+  return { rh, dT2, perc, y1, y2v, y2p, W0, W1, c10, c11, c20, c21, dC: c11 - c10, dSp: s.dT - (c11 - c10), dSg: -s.dT };
+}
+function dibRic() {
+  paneles([[0, 160], [0, 200]], [[0, 4], [-25, 25]]);
+  const s = S, m = mRI(s), e0 = [RI.Y1 - RI.T1, RI.Y2 - RI.T2], e1 = [m.y1, m.y2v];
+  titulo(PL, 'CONSUMO EN DOS PERIODOS'); ejes(g, PL, 'C_1', 'C_2', ticks(0, 160, 40), ticks(0, 200, 50));
+  const recta = (W, R, attrs) => curva(PL, (c1) => (W - c1) * R, 0, 160, attrs);
+  recta(m.W0, 1 + RI.rg, { class: 'cur', stroke: 'var(--azul)' }); rot(PL, 8, (m.W0 - 8) * (1 + RI.rg) + 4, 'restricción', 'var(--azul)', { style: 'fill:var(--azul);font-size:12px' });
+  if (Math.abs(m.W1 - m.W0) > 0.05 || Math.abs(m.rh - RI.rg) > 1e-9) recta(m.W1, 1 + m.rh, { class: 'rayo', stroke: 'var(--azul)' });
+  if (s.liq) { el('line', { x1: PL.sx(e0[0]), y1: PL.y0, x2: PL.sx(e0[0]), y2: PL.y0 + PL.h, class: 'guia', style: 'stroke:var(--rojo)' }, g); if (s.dT > 0) el('line', { x1: PL.sx(m.y1), y1: PL.y0, x2: PL.sx(m.y1), y2: PL.y0 + PL.h, class: 'guia', style: 'stroke:var(--rojo);stroke-dasharray:2 3' }, g); tx(g, PL.sx(m.y1) + 4, PL.y0 + 14, 'C₁ ≤ Y₁ − T₁', { style: 'font-size:11px;fill:var(--rojo);font-style:normal' }); }
+  const U = Math.log(m.c11) + RI.bet * Math.log(m.c21);
+  curva(PL, (c1) => Math.exp((U - Math.log(c1)) / RI.bet), 20, 160, { class: 'cur-fina', style: 'stroke:var(--rojo);stroke-width:1.5' });
+  pto(PL, e0[0], e0[1], 'D₀', { r: 4.5, dx: -24, dy: 14 });
+  if (s.dT > 0) { pto(PL, e1[0], e1[1], 'D₁', { r: 4.5, dx: 6, dy: 16 }); flecha(PL, e0[0], e0[1], e1[0], e1[1]); }
+  if (Math.abs(m.dC) > 0.05) pto(PL, m.c10, m.c20, 'C₀', { hueco: true, r: 5, dx: -24 });
+  pto(PL, m.c11, m.c21, Math.abs(m.dC) > 0.05 ? 'C₁' : 'C', {});
+  hguia(PL, m.c11, m.c21, ''); vguia(PL, m.c11, m.c21, '');
+  /* barras de ahorro */
+  titulo(PR, 'QUÉ CAMBIA HOY (PERIODO 1)'); ejes(g, PR, '', '', [], ticks(-25, 25, 5), true);
+  const barras = [['ΔC₁', m.dC, 'var(--azul)'], ['ΔS privado', m.dSp, 'var(--verde)'], ['ΔS público', m.dSg, 'var(--rojo)'], ['ΔS nacional', m.dSp + m.dSg, 'var(--punto)']];
+  barras.forEach(([t, v, c], j) => {
+    const x = PR.sx(j + 0.5) - 24, y0 = PR.sy(0), y1 = PR.sy(v);
+    el('rect', { x, y: Math.min(y0, y1), width: 48, height: Math.abs(y1 - y0), style: `fill:${c};opacity:.8` }, g);
+    el('text', { x: x + 24, y: PR.y0 + PR.h + 18, class: 'r', 'text-anchor': 'middle', style: 'font-size:11px' }, g).textContent = t;
+    el('text', { x: x + 24, y: (v >= 0 ? y1 - 6 : y1 + 14), class: 'r', 'text-anchor': 'middle', style: 'font-size:11px' }, g).textContent = sg(v, 1);
+  });
+  const lec = document.getElementById('lec-n');
+  lec.innerHTML = `<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`C_1 + \frac{C_2}{1+r} = (Y_1 - T_1 + ${MV(String.raw`\Delta T`)}) + \frac{Y_2 - T_2 - (1+r)\,${MV(String.raw`\Delta T`)}}{1+r}`)}
+    ${TX(String.raw`\text{con críticas: } W = Y_1 - T_1 + \Delta T + \frac{Y_2 - T_2 - (1-${MV(String.raw`\phi`)})(1-${MV(String.raw`\psi`)})(1+r)\,\Delta T}{1+${MV('r_h')}}`)}
+    ${TX(String.raw`\max\ \ln C_1 + \beta\ln C_2\ \Rightarrow\ C_1 = \frac{W}{1+\beta}${s.liq ? String.raw`,\quad C_1 \le Y_1 - T_1 + \Delta T` : ''}`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`W_0 = ${fT(m.W0, 1)},\ W_1 = ${fT(m.W1, 1)};\quad C_1: ${fT(m.c10, 1)} \to ${fT(m.c11, 1)}`)}</div>
+    <div class="kv"><div><span>Bajada de impuestos hoy</span><b>${f1(s.dT)}</b></div><div><span>Subida de impuestos mañana</span><b>${f1(m.dT2)}</b></div>
+    <div><span>ΔC₁</span><b>${sg(m.dC, 1)}</b></div><div><span>Equivalencia ricardiana</span><b>${Math.abs(m.dC) < 0.05 ? 'se cumple' : `falla (${fmt(100 * m.dC / Math.max(s.dT, 1e-9), 0)} % de ΔT se consume)`}</b></div></div>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = 'Renta Y₁ = 80 e Y₂ = 140, impuestos T₁ = T₂ = 20 y tipo r = 5 % para el Estado; utilidad logarítmica con β = 1/1,05. La deuda se devuelve con intereses en el periodo 2, así que el gasto público no cambia: lo que se mueve es solo el calendario de los impuestos.';
+}
+
+/* ===================================================================== 4. Ciclo real (§4. 2) */
+const RB = { a: 0.36, kap: 0.1, del: 0.1, T: 20 };
+function serieRBC(s) {
+  const A = [], L = [], K = [0], Y = [], I = [];
+  for (let t = 0; t <= RB.T; t++) A.push(t === 0 ? 0 : t === 1 ? 1 : A[t - 1] * s.rho);
+  for (let t = 0; t <= RB.T; t++) {
+    const a = A[t], ea = s.rhoe * a;
+    L.push(s.eta * (a - ea) + RB.kap * a);
+    const kst = ea; K.push(K[t] + s.vel * (kst - K[t]));
+    Y.push(RB.a * K[t] + (1 - RB.a) * (a + L[t]));
+    I.push((K[t + 1] - K[t]) / RB.del + K[t]);
+  }
+  return { A, L, K: K.slice(0, RB.T + 1), Y, I };
+}
+function dibRBC() {
+  paneles([[0, 20], [-0.5, 1.6]], [[0, 20], [-4, 6]]);
+  const s = S, r = serieRBC(s), ts = r.A.map((_, t) => t);
+  const serie = (P, v, c, et, dash, j = 3) => { linea(ts.map((t) => [P.sx(t), P.sy(v[t])]), { class: 'cur', stroke: c, 'stroke-dasharray': dash || 'none', 'stroke-width': 2 }, clip(P)); tx(g, P.sx(ts[j]) + 6, P.sy(v[j]) - 8, et, { style: `fill:${c};font-size:13px` }); };
+  titulo(PL, 'PRODUCTIVIDAD, EMPLEO Y PRODUCCIÓN (DESVIACIÓN, %)'); ejes(g, PL, 't', '%', ticks(0, 20, 5), [-0.5, 0, 0.5, 1, 1.5], true);
+  serie(PL, r.A, 'var(--gris)', 'Ã_t', '6 4', 1); serie(PL, r.L, 'var(--verde)', 'L_t', null, 4); serie(PL, r.Y, 'var(--rojo)', 'Y_t', null, 7);
+  titulo(PR, 'CAPITAL E INVERSIÓN (DESVIACIÓN, %)'); ejes(g, PR, 't', '%', ticks(0, 20, 5), ticks(-4, 6, 2), true);
+  serie(PR, r.K, 'var(--azul)', 'K_t', null, 8); serie(PR, r.I, 'var(--naranja)', 'I_t', null, 1);
+  const mY = Math.max(...r.Y), tY = r.Y.indexOf(mY), cuenta = (v) => v.filter((x, t) => t > 1 && Math.abs(x) > 0.05).length;
+  const lec = document.getElementById('lec-n');
+  lec.innerHTML = `<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`Y_t = K_t^{\alpha}(A_tL_t)^{1-\alpha},\qquad \ln A_t = \bar A + g\,t + \tilde A_t,\quad \tilde A_t = ${MV(String.raw`\rho_A`)}\,\tilde A_{t-1} + \varepsilon_{At}`)}
+    ${TX(String.raw`\frac{L_1^S}{L_2^S} = f\Bigl(\overset{+}{\tfrac{w_1}{w_2}},\ \overset{+}{r},\ \overset{-}{\delta}\Bigr)\ \Rightarrow\ \hat L_t = ${MV(String.raw`\eta`)}\,(\tilde A_t - ${MV(String.raw`\rho^e`)}\tilde A_t) + \kappa\,\tilde A_t`)}
+    ${TX(String.raw`\hat K_{t+1} = \hat K_t + ${MV('s')}\,(\rho^e\tilde A_t - \hat K_t),\qquad \hat Y_t = \alpha\hat K_t + (1-\alpha)(\tilde A_t + \hat L_t)`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`\rho_A = ${fT(s.rho)},\ \rho^e = ${fT(s.rhoe)}:\quad \hat L_1 = ${fT(r.L[1], 3)},\ \ \max \hat Y = ${fT(mY, 3)}\ (t = ${tY})`)}</div>
+    <div class="kv"><div><span>Periodos con producción por encima (> 0,05 %)</span><b>${cuenta(r.Y)}</b></div><div><span>Periodos con productividad por encima</span><b>${cuenta(r.A)}</b></div>
+    <div><span>Empleo en t = 1</span><b>${sg(r.L[1], 3)} %</b></div><div><span>Inversión mínima</span><b>${sg(Math.min(...r.I), 2)} %</b></div></div>`;
+  montar(lec);
+  document.getElementById('nota').innerHTML = 'Esquema ilustrativo en desviaciones logarítmicas, no la solución de un DSGE calibrado: α = 0,36, efecto intratemporal neto κ = 0,1 (el de sustitución algo mayor que el de renta) y depreciación δ = 0,1. El capital deseado sigue a la productividad esperada y se ajusta poco a poco: es el mecanismo de persistencia del tema. En Kydland y Prescott (1982) ese papel lo hace el «time to build».';
+}
+
+/* ===================================================================== mandos */
+const CTL = { lucas: ['dm', 'sz', 'sp', 'beta'], bg: ['alfa', 'ust', 'bpc', 'ronda'], ricardo: ['dT', 'phi', 'psi', 'rh', 'liq'], rbc: ['rho', 'rhoe', 'eta', 'vel'] };
+const AYUDA = {
+  lucas: 'θ es la probabilidad que el productor asigna a que la subida de su precio sea específica. Depende solo de las dos varianzas.',
+  bg: 'α alto: autoridad «dura», que pesa mucho la inflación. u^N − u*: cuánto quiere bajar el paro de su tasa natural.',
+  ricardo: 'Con φ = ψ = 0, r_h = 5 % y sin restricción de liquidez se cumplen todos los supuestos de Barro (1974).',
+  rbc: 'ρ_A = 1 es un shock permanente. Si los agentes creen otra persistencia distinta de la real, se equivocan en la inversión.',
+};
+function construir() {
+  const tabs = document.getElementById('tabs');
+  for (const [k, t] of TABS) { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.k = k; b.textContent = t; b.addEventListener('click', () => abrir(k, true)); tabs.appendChild(b); }
+  document.querySelectorAll('input[type=range][id^="nm-"]').forEach((inp) => {
+    const k = inp.dataset.k;
+    inp.addEventListener('input', () => { SN.empezar(); S[k] = parseFloat(inp.value); if (k === 'rho' && S.vinculo) S.rhoe = S.rho; dibujar(); });
+    inp.addEventListener('change', SN.cerrar);
+  });
+  document.getElementById('nm-liq').addEventListener('change', (e) => { SN.empezar(); S.liq = e.target.checked; dibujar(); SN.cerrar(); });
+}
+function chipsExtra() {
+  const c = document.getElementById('chips-extra'); c.innerHTML = '';
+  const add = (t, act, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.setAttribute('aria-pressed', String(act)); b.addEventListener('click', () => { SN.empezar(); fn(); dibujar(); SN.cerrar(); chipsExtra(); }); c.appendChild(b); };
+  if (S.tab === 'lucas') { add('Política sorpresa', !S.antic, () => { S.antic = false; }); add('Política anticipada', S.antic, () => { S.antic = true; }); add('Sorprender otra vez (σ²_p + 1)', false, () => { S.sp = Math.min(8, S.sp + 1); S.antic = false; }); }
+  if (S.tab === 'bg') { add('Discreción, paso a paso', S.modo === 'disc', () => { S.modo = 'disc'; }); add('Regla creíble (A)', S.modo === 'regla', () => { S.modo = 'regla'; }); add('Agentes racionales (E directamente)', S.modo === 'racional', () => { S.modo = 'racional'; }); add('Banquero conservador (Rogoff)', S.modo === 'rogoff', () => { S.modo = 'rogoff'; }); }
+  if (S.tab === 'rbc') { add('Transitorio (ρ = 0,5)', S.rho === 0.5 && S.rhoe === 0.5, () => { Object.assign(S, { rho: 0.5, rhoe: 0.5 }); }); add('Permanente (ρ = 1)', S.rho === 1 && S.rhoe === 1, () => { Object.assign(S, { rho: 1, rhoe: 1 }); }); add('Transitorio tomado por permanente', S.rho === 0.5 && S.rhoe === 1, () => { Object.assign(S, { rho: 0.5, rhoe: 1 }); }); }
+  if (S.tab === 'ricardo') { add('Todos los supuestos de Barro', S.phi === 0 && S.psi === 0 && S.rh === 5 && !S.liq, () => { Object.assign(S, { phi: 0, psi: 0, rh: 5, liq: false }); }); }
+}
+function abrir(k, conExplicacion) {
+  S.tab = k;
+  document.querySelectorAll('#tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.k === k)));
+  document.getElementById('mirar').innerHTML = MIRAR[k];
+  chipsExtra(); dibujar();
+  if (conExplicacion) mostrarPorque('n', inicial(k));
+}
+function refrescar() {
+  const act = new Set(CTL[S.tab]);
+  document.querySelectorAll('[data-ctl]').forEach((n) => { n.hidden = !act.has(n.dataset.ctl); });
+  document.querySelectorAll('input[type=range][id^="nm-"]').forEach((inp) => { const k = inp.dataset.k; inp.value = S[k]; document.getElementById(inp.id + '-v').textContent = fmt(S[k], ['ronda'].includes(k) ? 0 : k === 'rh' || k === 'dT' ? 1 : 2); });
+  document.getElementById('nm-liq').checked = S.liq;
+  document.getElementById('nm-ronda').disabled = S.modo !== 'disc';
+  document.getElementById('ayuda-ctl').textContent = AYUDA[S.tab];
+}
+
+/* ===================================================================== explicaciones */
+function inicial(k) {
+  const s = S;
+  if (k === 'lucas') { const m = mLU(s); return { titulo: NOM.lucas, cambia: new Set(['theta', 'oa']), p: [MIRAR.lucas, `Ahora θ = ${f3(m.th)}: de una sorpresa monetaria, el ${fmt(100 * m.efecto, 0)} % va a la renta y el resto a precios. Si está anticipada, todo va a precios.`] }; }
+  if (k === 'bg') return { titulo: NOM.bg, cambia: new Set(['inconsistencia']), p: [MIRAR.bg, `Con estos parámetros el sesgo inflacionista es π_E = ${f2(piE(s, s.alfa))}.`] };
+  if (k === 'ricardo') return { titulo: NOM.ricardo, cambia: new Set(['ricardo']), p: [MIRAR.ricardo] };
+  return { titulo: NOM.rbc, cambia: new Set(['shock']), p: [MIRAR.rbc] };
+}
+function explicar(A, B) {
+  const p = [], cambia = new Set();
+  const keys = { lucas: ['dm', 'sz', 'sp', 'beta', 'antic'], bg: ['alfa', 'ust', 'bpc', 'ronda', 'modo'], ricardo: ['dT', 'phi', 'psi', 'rh', 'liq'], rbc: ['rho', 'rhoe', 'eta', 'vel'] }[B.tab];
+  const k = keys.find((x) => (typeof A[x] === 'number' ? Math.abs(A[x] - B[x]) > 1e-9 : A[x] !== B[x]));
+  if (!k) return null;
+  const NK = { dm: 'Δm', sz: 'σ²_pi', sp: 'σ²_p', beta: 'β', alfa: 'α', ust: 'u^N − u*', bpc: 'β', ronda: 'Rondas', dT: 'ΔT', phi: 'φ', psi: 'ψ', rh: 'r_h', rho: 'ρ_A', rhoe: 'ρ^e', eta: 'η', vel: 'Velocidad de ajuste' };
+  const dd = k === 'ronda' ? 0 : 2, t = `${NK[k] || k}: ${typeof A[k] === 'number' ? fmt(A[k], dd) : A[k]} → ${typeof B[k] === 'number' ? fmt(B[k], dd) : B[k]}`;
+  if (B.tab === 'lucas') {
+    const a = mLU(A), b = mLU(B);
+    if (k === 'antic' || k === 'dm') {
+      cambia.add('anticipada');
+      p.push(k === 'dm' ? `La oferta monetaria cambia en Δm = ${f2(B.dm)} y la DA se desplaza.` : (B.antic ? 'Pasas a una política anticipada.' : 'Pasas a una política sorpresa.'));
+      p.push(B.antic ? `Los agentes, con expectativas racionales, conocen la política y su efecto: p<sup>e</sup> sube con el precio, la OA se desplaza hacia arriba y la economía va de A a C. La renta no se mueve de y<sub>TNP</sub>; p sube ${f2(b.pC - LU.p0)}, lo mismo que m. Es la proposición de ineficacia de la política monetaria sistemática (Sargent y Wallace).` : `Cada productor ve subir su precio p<sub>it</sub> pero no el nivel general: es el problema de extracción de señales. Atribuye la subida a un shock específico con probabilidad θ = ${f3(b.th)} y aumenta la producción. La economía va de A a B por la OA: y sube ${f2(b.yB - LU.yN)} y p ${f2(b.pB - LU.p0)}. Es temporal: cuando los agentes ven que el shock era agregado, corrigen p<sup>e</sup> y vuelven a y<sub>TNP</sub>.`);
+    } else {
+      cambia.add('theta'); cambia.add('oa');
+      p.push(`Has cambiado ${{ sz: 'σ²<sub>pi</sub>', sp: 'σ²<sub>p</sub>', beta: 'β' }[k]} de ${f2(A[k])} a ${f2(B[k])}. θ pasa de ${f3(a.th)} a ${f3(b.th)} y la pendiente de la OA con sorpresas, 1/(θβ), ${b.tb < a.tb ? 'aumenta' : 'disminuye'}: de cada sorpresa monetaria va a la renta el ${fmt(100 * b.efecto, 0)} % (antes, ${fmt(100 * a.efecto, 0)} %).`);
+      if (k === 'sp' && B.sp > A.sp) { cambia.add('degradacion'); p.push('Es la degradación de la información del tema: cuanto más interviene el banco central, más variable es el nivel de precios, menos confían los productores en que su precio refleje un cambio relativo y menos efecto real tiene la siguiente sorpresa. Un gobierno que intenta explotar la curva de Phillips una y otra vez acaba sin efectos.'); }
+    }
+    return { titulo: t.replace('antic: false → true', 'Anticipada').replace('antic: true → false', 'Sorpresa'), p, cambia };
+  }
+  if (B.tab === 'bg') {
+    cambia.add('inconsistencia');
+    const pE = piE(B, B.alfa);
+    if (k === 'modo') {
+      if (B.modo === 'regla') { cambia.add('reglas'); p.push('Con una regla vinculante y creíble, la autoridad no puede reoptimizar: la economía se queda en A, con inflación nula y paro natural. Es la solución de Kydland y Prescott: reglas mejor que discreción.'); }
+      else if (B.modo === 'racional') p.push(`Con expectativas racionales el sector privado anticipa toda la secuencia y fija desde el principio π<sup>e</sup> = π<sub>E</sub> = ${f2(pE)}. La economía va directamente a E: inflación alta y el mismo paro natural. A no es un equilibrio perfecto en subjuegos, porque la promesa de inflación nula no es creíble.`);
+      else if (B.modo === 'rogoff') { cambia.add('rogoff'); p.push(`Delegación de Rogoff (1985): se encarga la política a un banquero independiente que pesa más la inflación que la sociedad (α × 2,5). El sesgo inflacionista baja de ${f2(pE)} a ${f2(piE(B, 2.5 * B.alfa))} con el mismo paro natural.`); }
+      else p.push('Vuelves a la secuencia de discreción: sube las rondas.');
+    } else if (k === 'ronda') {
+      const pts = secuencia(B), q = pts[pts.length - 1];
+      p.push(B.ronda === 0 ? 'Vuelves a A.' : B.ronda === 1 ? `Fijadas las expectativas en π<sup>e</sup> = 0, a la autoridad le compensa sorprender: con salarios fijos, más inflación reduce el salario real y el paro. Elige B (u = ${f2(pts[1].u)}, π = ${f2(pts[1].pi)}), donde su curva de pérdida es tangente a la curva de Phillips. Después el sector privado incorpora esa inflación a sus expectativas y la curva de Phillips sube: C.` : `Tras ${B.ronda} rondas la inflación es ${f2(q.pi)} y el paro vuelve a u<sup>N</sup>. Cada sorpresa eleva las expectativas y la curva de Phillips, hasta E (π<sub>E</sub> = ${f2(pE)}), donde la ganancia de sorprender ya no compensa: subóptimo, pero dinámicamente consistente.`);
+    } else {
+      p.push(`Has cambiado ${{ alfa: 'α', ust: 'u<sup>N</sup> − u*', bpc: 'β' }[k]} de ${f2(A[k])} a ${f2(B[k])}. El sesgo inflacionista π<sub>E</sub> = (β/α)(u<sup>N</sup> − u*) pasa de ${f2(piE(A, A.alfa))} a ${f2(pE)}. ${k === 'alfa' ? (B.alfa > A.alfa ? 'Una autoridad más «dura» tiene menos incentivo a sorprender.' : 'Una autoridad más «blanda» tiene más incentivo a sorprender.') : k === 'ust' ? 'Cuanto más quiere bajar el paro de su tasa natural, mayor la tentación.' : 'Con una curva de Phillips más sensible, cada punto de inflación sorpresa baja más el paro y la tentación crece.'}`);
+    }
+    return { titulo: k === 'modo' ? { disc: 'Discreción', regla: 'Regla creíble', racional: 'Agentes racionales', rogoff: 'Banquero conservador' }[B.modo] : t, p, cambia };
+  }
+  if (B.tab === 'ricardo') {
+    const a = mRI(A), b = mRI(B); cambia.add('ricardo');
+    const nom = { dT: 'la bajada de impuestos', phi: 'la parte de la deuda que pagarán otros', psi: 'la ilusión de deuda', rh: 'el tipo de los hogares', liq: 'la restricción de liquidez' }[k];
+    p.push(`Has cambiado ${nom}. Con la rebaja, el consumo de hoy es ${f1(b.c11)}; sin ella sería ${f1(b.c10)}: ΔC₁ = ${sg(b.dC, 1)} (antes del cambio, ${sg(a.dC, 1)}).`);
+    if (Math.abs(b.dC) < 0.05) p.push(`Se cumple la equivalencia ricardiana: los hogares ven la bajada de impuestos como impuestos diferidos (${f1(b.dT2)} mañana) y no como riqueza neta. Ahorran toda la rebaja: el ahorro privado sube ${f1(b.dSp)} y compensa la caída del público, así que el ahorro nacional no cambia.`);
+    else {
+      const por = [];
+      const racionado = B.liq && b.c11 >= b.y1 - 1e-6;
+      if (racionado) por.push('el hogar está racionado en el crédito y gasta la rebaja porque necesita el efectivo ya (mientras lo esté, las demás críticas no añaden nada)');
+      if (!racionado && B.phi > 0) por.push(`parte de la deuda (${fmt(100 * B.phi, 0)} %) la pagarán generaciones futuras con las que no hay altruismo`);
+      if (!racionado && B.psi > 0) por.push('padecen ilusión de deuda y no ven parte de los impuestos futuros');
+      if (!racionado && B.rh > 5) por.push(`el Estado se financia más barato (5 %) que los hogares (${f1(B.rh)} %), así que endeudarse por ellos aumenta su riqueza`);
+      p.push(`Falla la equivalencia porque ${por.join('; ')}. El ahorro privado solo sube ${f1(b.dSp)} frente a la caída del público de ${f1(-b.dSg)}: el ahorro nacional cae ${f1(-(b.dSp + b.dSg))}.`);
+    }
+    if (k === 'liq') cambia.add('liquidez');
+    return { titulo: k === 'liq' ? (B.liq ? 'Restricción de liquidez' : 'Sin restricción de liquidez') : t, p, cambia };
+  }
+  const a = serieRBC(A), b = serieRBC(B); cambia.add('shock');
+  if (k === 'rho' || k === 'rhoe') {
+    cambia.add('persistencia');
+    if (B.rho === 1 && B.rhoe === 1) p.push(`Shock permanente: el salario de hoy y el de mañana suben en la misma proporción, así que no hay sustitución intertemporal del trabajo. El empleo solo sube por el efecto intratemporal neto (sustitución frente a renta): ${f3(b.L[1])} %. La producción sube de forma permanente y la inversión acompaña la acumulación de capital.`);
+    else if (B.rhoe > B.rho + 0.05) { cambia.add('error'); p.push(`Los agentes creen que el shock es más persistente (${f2(B.rhoe)}) de lo que es (${f2(B.rho)}). Invierten como si la productividad fuera a seguir alta: cuando cae, sobra capital y la inversión se vuelve negativa (mínimo ${f2(Math.min(...b.I))} %). Es el caso que el tema señala: el exceso de capacidad lleva a desinversión y recesión.`); }
+    else p.push(`Shock con persistencia ρ<sub>A</sub> = ${f2(B.rho)}: el salario de hoy sube más que el de mañana, y los trabajadores trabajan más hoy (sustitución intertemporal): el empleo sube ${f3(b.L[1])} % en t = 1. Cuando el shock se disipa, vuelven a demandar ocio; no hay desempleo involuntario, solo ocio elegido.`);
+  } else if (k === 'eta') { cambia.add('intertemporal'); p.push(`Con η = ${f2(B.eta)}, el empleo en t = 1 pasa de ${f3(a.L[1])} % a ${f3(b.L[1])} %. Para que un shock transitorio mueva mucho el empleo hace falta una elasticidad intertemporal alta, y esa es una de las críticas del tema: la evidencia empírica la encuentra baja.`); }
+  else { cambia.add('persistencia'); p.push(`Con una velocidad de ajuste de ${f2(B.vel)}, el capital tarda más o menos en llegar a su nivel deseado. Cuanto más lento el ajuste, más se alarga el efecto del shock sobre la producción: ${b.Y.filter((x, t) => t > 1 && Math.abs(x) > 0.05).length} periodos por encima frente a ${a.Y.filter((x, t) => t > 1 && Math.abs(x) > 0.05).length}. Es el mecanismo de persistencia.`); }
+  return { titulo: t, p, cambia };
+}
+
+/* ===================================================================== fichas */
+PINTAR.n = () => {
+  const s = S, fichas = {
+    lucas: [
+      { k: 'islas', n: 'Islas de Phelps', d: 'Economía de mercados locales aislados en información: cada productor conoce al instante el precio de su producto, pero no el nivel general de precios ni la oferta monetaria.', ref: '3A6 §2' },
+      { k: 'theta', n: 'Extracción de señales y θ', d: 'Ante una subida de su precio, el productor estima la probabilidad θ de que sea un shock específico (precio relativo) y no agregado. θ es la parte de la varianza total que se debe a los precios relativos.', f: String.raw`\theta = \frac{\sigma^2_{p_i}}{\sigma^2_{p_i} + \sigma^2_p}`, v: f3(theta(s)), ref: '3A6 §2' },
+      { k: 'oa', n: 'Curva de oferta agregada de Lucas', d: 'La producción solo se separa de su nivel natural cuando el nivel de precios sorprende a los agentes. Si θ = 0, β = 0 o no hay error de expectativas, no hay desviación.', f: String.raw`y_t = y_{TNP} + \theta\beta\,(p_t - p_t^e)`, ref: '3A6 §2. 1' },
+      { k: 'da', n: 'Demanda agregada', d: 'Teoría cuantitativa en logaritmos con velocidad constante: relación inversa entre precios y cantidad demandada para un stock de dinero dado.', f: String.raw`y_t^d = m_t - p_t`, ref: '3A6 §2. 2' },
+      { k: 'anticipada', n: 'Política anticipada y sorpresa', d: 'Anticipada: los agentes ajustan expectativas y contratos y solo suben los precios. Sorpresa: la economía se mueve a lo largo de la OA, con efectos reales temporales.', ref: '3A6 §2 y §3. 1. 1' },
+      { k: 'degradacion', n: 'Degradación de la información', d: 'Cuanto más interviene el banco central, mayor la varianza de los precios agregados y menor θ: la política pierde efecto real y la OA se empina.', v: `σ²_p = ${f2(s.sp)}`, ref: '3A6 §2 y §4. 1' },
+    ],
+    bg: [
+      { k: 'inconsistencia', n: 'Inconsistencia dinámica', d: 'Una política es dinámicamente inconsistente si su compromiso no es creíble porque, llegado el momento, no es óptimo mantenerla. Con discreción se acaba en E: más inflación con el mismo paro.', f: String.raw`\pi_E = \pi^* + \frac{\beta}{\alpha}(u^N - u^*)`, v: f2(piE(s, s.alfa)), ref: '3A6 §3. 1. 2' },
+      { k: 'perdida', n: 'Función de pérdida social', d: 'Penaliza cuadráticamente las desviaciones del paro y de la inflación de sus objetivos. α mide cuánto pesa la inflación: gobierno «duro» (α alto) o «blando» (α bajo).', f: String.raw`L = (u_t - u_t^*)^2 + \alpha(\pi_t - \pi_t^*)^2`, v: `α = ${f2(s.alfa)}`, ref: '3A6 §3. 1. 2' },
+      { k: 'phillips', n: 'Curva de Phillips con expectativas', d: 'El paro solo baja de su tasa natural si la inflación supera a la esperada.', f: String.raw`u_t = u_t^N + \beta\,(E[\pi_t] - \pi_t)`, ref: '3A6 §3. 1. 2' },
+      { k: 'reglas', n: 'Reglas, reputación y delegación', d: 'Soluciones del tema: reglas vinculantes (Kydland y Prescott), reputación en un juego repetido (Barro y Gordon, 1983) y delegación en un banco central independiente y más conservador (Rogoff, 1985).', ref: '3A6 §3. 1. 2' },
+      { k: 'rogoff', n: 'Banquero conservador', d: 'Un banco central que pesa la inflación más que la sociedad reduce el sesgo inflacionista sin coste en paro a largo plazo.', v: `π con α × 2,5: ${f2(piE(s, 2.5 * s.alfa))}`, ref: '3A6 §3. 1. 2' },
+    ],
+    ricardo: [
+      { k: 'ricardo', n: 'Teorema de la equivalencia ricardiana', d: 'Con agentes racionales, mercados de capitales perfectos, impuestos de suma fija y altruismo entre generaciones, financiar el gasto con deuda o con impuestos es equivalente: la deuda se ve como impuestos diferidos, no como riqueza neta.', ref: '3A6 §3. 2. 1 · Barro, «Are Government Bonds Net Wealth?», 1974' },
+      { k: 'liquidez', n: 'Restricción de liquidez', d: 'Quien no puede endeudarse no puede suavizar el consumo: una rebaja de impuestos hoy sí aumenta su consumo.', ref: '3A6 §3. 2. 1' },
+      { k: 'altruismo', n: 'Horizonte finito sin altruismo', d: 'Si parte de la deuda la pagarán generaciones futuras y los agentes no se preocupan por ellas, la deuda sí es riqueza para los de hoy.', v: `φ = ${f2(s.phi)}`, ref: '3A6 §3. 2. 1' },
+      { k: 'diferencial', n: 'Diferencial de tipos e ilusión de deuda', d: 'Si el Estado se endeuda más barato que los hogares, o si estos no ven todos los impuestos futuros, la deuda aumenta su riqueza percibida.', v: `r_h = ${f1(s.rh)} %, ψ = ${f2(s.psi)}`, ref: '3A6 §3. 2. 1' },
+    ],
+    rbc: [
+      { k: 'shock', n: 'Shock de productividad', d: 'La tecnología crece a una tasa g alrededor de la cual oscila un componente aleatorio AR(1). ρ<sub>A</sub> mide su persistencia.', f: String.raw`\tilde A_t = \rho_A\tilde A_{t-1} + \varepsilon_{At}`, v: `ρ_A = ${f2(s.rho)}`, ref: '3A6 §4. 2' },
+      { k: 'intertemporal', n: 'Sustitución intertemporal del trabajo', d: 'La oferta de trabajo relativa entre periodos depende del salario relativo, el tipo de interés y la tasa de descuento (Lucas y Rapping). Un shock transitorio sube el salario de hoy frente al de mañana y se trabaja más hoy.', f: String.raw`\frac{L_1^S}{L_2^S} = f\Bigl(\tfrac{w_1}{w_2},\ r,\ \delta\Bigr)`, v: `η = ${f2(s.eta)}`, ref: '3A6 §4. 2' },
+      { k: 'persistencia', n: 'Mecanismo de persistencia', d: 'El capital se ajusta poco a poco a su nivel deseado, así que el efecto del shock se prolonga más allá del propio shock. En el tema, por costes de ajuste cuadráticos; en Kydland y Prescott (1982), por el «time to build».', v: `velocidad ${f2(s.vel)}`, ref: '3A6 §4. 2' },
+      { k: 'error', n: 'Confundir transitorio con permanente', d: 'Si los agentes toman un shock transitorio por permanente, invierten de más: aparece exceso de capacidad, desinversión y recesión.', ref: '3A6 §4. 2' },
+      { k: 'eficiencia', n: 'El ciclo es eficiente', d: 'Expansiones y recesiones son respuestas óptimas de los agentes a los shocks: no hacen falta políticas de estabilización y no hay desempleo involuntario.', ref: '3A6 §4. 3 (numerado dentro del §4. 2)' },
+    ],
+  };
+  pintarConceptos('con-n', fichas[s.tab], ULT.n || new Set());
+};
+
+/* ===================================================================== arranque */
+construir();
+const TAB0 = NOM[location.hash.slice(1)] ? location.hash.slice(1) : 'lucas';
+abrir(TAB0, false);
+mostrarPorque('n', inicial(TAB0));
+window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (NOM[h]) abrir(h, true); });
+
+</script>
+
+</body>
+</html>
