@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+/* Parámetros: ?tema=claro|oscuro (fuerza el tema), ?compacto=1 (oculta la cabecera, para insertar en Obsidian) */
+(function () { try {
+  var q = new URLSearchParams(location.search), t = q.get('tema');
+  if (t === 'oscuro' || t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  if (t === 'claro' || t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  if (q.get('compacto')) document.documentElement.classList.add('compacto');
+} catch (e) {} })();
+</script>
+<style>
+html, body { margin: 0; }
+body { font-family: system-ui, sans-serif; font-size: 14px; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.compacto header { display: none !important; }
+.compacto body { padding-block: 8px 24px !important; }
+</style>
+<title>NEK: primera generación</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script>
+window.MathJax = {
+  tex: { packages: { '[+]': ['html'] } },
+  svg: { fontCache: 'local' },
+  options: { enableAssistiveMml: false },
+  startup: { typeset: false, ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => { try { document.head.appendChild(MathJax.svgStylesheet()); } catch (e) {} window.__mjListo = true; if (window.montar) window.montar(document.body); }); } },
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.min.js"></script>
+<style>
+/* Layout: lámina de pizarra a la izquierda (SVG), lectura y mandos a la derecha; una columna en móvil. Dos pestañas: corto y largo plazo. */
+:root {
+  --bg: #fbfaf7; --fg: #1d2230; --muted: #5f6676; --line: #d9dbe2; --panel: #f1f2f5;
+  --azul: #2E5C8A; --naranja: #D9671E; --verde: #548235; --rojo: #C00000; --gris: #7F7F7F; --punto: #1F3864;
+  --z1: rgba(192,0,0,.07); --z2: rgba(84,130,53,.10); --z3: rgba(127,127,127,.12);
+  --f-math: "STIX Two Text", "STIXGeneral", "Cambria Math", "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+header { display: flex; flex-direction: column; gap: 4px; }
+.eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-math); font-weight: 600; font-size: 32px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.intro { color: var(--muted); max-width: 70ch; margin: 0; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tabs button, .chips button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--fg); cursor: pointer; }
+.tabs button[aria-selected="true"], .chips button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.mirar { font-size: 13.5px; max-width: 80ch; margin: 0; padding-left: 12px; border-left: 2px solid var(--line); }
+
+.vista { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+@media (min-width: 960px) { .vista { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } }
+.figs { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.figs .controles { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+svg.lamina { width: 100%; max-width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+svg text { fill: var(--fg); }
+.m { font-family: var(--f-math); font-style: italic; font-size: 15px; }
+.r { font-family: var(--f-body); font-style: normal; font-size: 11.5px; letter-spacing: .04em; }
+.eje { stroke: var(--fg); stroke-width: 1.3; fill: none; }
+.tick { stroke: var(--fg); stroke-width: 1; }
+.tlab { font-family: var(--f-body); font-size: 11px; fill: var(--muted) !important; }
+.guia { stroke: var(--gris); stroke-width: .9; stroke-dasharray: 4 4; fill: none; }
+.cur { fill: none; stroke-width: 2.4; }
+.cur-fina { fill: none; stroke-width: 1.1; opacity: .55; }
+.tang { fill: none; stroke-width: 1.6; }
+.rayo { fill: none; stroke-width: 1.4; stroke-dasharray: 6 4; }
+.pto { stroke: var(--bg); stroke-width: 1.5; }
+.drag { cursor: grab; }
+.drag:active { cursor: grabbing; }
+.z1 { fill: var(--z1); } .z2 { fill: var(--z2); } .z3 { fill: var(--z3); }
+
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.lectura { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.lectura .f { font-family: var(--f-math); font-style: italic; font-size: 16px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 2px 22px; font-variant-numeric: tabular-nums; }
+.kv div { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
+.kv b { font-weight: 500; }
+.lectura .msg { margin-top: 4px; }
+.etapa { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px; border: 1px solid currentColor; }
+.e1 { color: var(--rojo); } .e2 { color: var(--verde); } .e3 { color: var(--muted); }
+.controles { display: flex; flex-direction: column; gap: 6px; }
+.fila { display: grid; grid-template-columns: minmax(8.5em, 12em) minmax(0, 1fr) 3.6em; align-items: center; gap: 8px; }
+.fila input[type=range] { width: 100%; accent-color: var(--azul); }
+.val { text-align: right; font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ayuda { color: var(--muted); font-size: 12.5px; }
+.nota { font-size: 12.5px; color: var(--muted); max-width: 80ch; margin: 0; }
+sub, sup { font-size: 72%; }
+.porque { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.porque .eti, .sec-eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.porque h3 { font-family: var(--f-math); font-size: 19px; font-weight: 600; margin: 0; }
+.porque p { margin: 0; }
+.porque details { margin-top: 4px; }
+.porque summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.porque .prev { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.ctl-ayuda { margin: -2px 0 6px; font-size: 12.5px; color: var(--muted); }
+.sec { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.sec h2 { font-family: var(--f-math); font-size: 22px; font-weight: 600; margin: 0; }
+.conceptos { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.concepto { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.concepto.cambia { border-color: var(--rojo); background: var(--z1); }
+.concepto .cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.concepto h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.concepto p { margin: 0; font-size: 13px; }
+.concepto .formula { font-family: var(--f-math); font-style: italic; font-size: 15px; overflow-x: auto; }
+.concepto .valor { font-variant-numeric: tabular-nums; }
+.concepto .ref { color: var(--muted); font-size: 11.5px; }
+.formas { display: flex; flex-direction: column; gap: 3px; }
+.formas .lbl { font-family: var(--f-body); font-style: normal; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.formas .ec { font-family: var(--f-math); font-style: italic; font-size: 16px; overflow-x: auto; }
+.formas .fijo { font-family: var(--f-body); font-style: normal; font-size: 12.5px; color: var(--muted); }
+.tex { display: inline-block; max-width: 100%; vertical-align: middle; }
+.tex[data-d="1"] { display: block; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.tex:not([data-ok]) { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; }
+.tex mjx-container { margin: 0 !important; }
+.tex[data-d="1"] mjx-container { text-align: left !important; }
+.tex g.mv { color: var(--azul); fill: var(--azul); stroke: var(--azul); }
+.formas .tex[data-d="1"] { font-size: 112%; }
+.mod { color: var(--azul); font-weight: 600; border-bottom: 1px dotted currentColor; }
+.chip-cambia { font-size: 11px; color: var(--rojo); border: 1px solid currentColor; border-radius: 999px; padding: 0 7px; white-space: nowrap; }
+</style>
+<style>
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer; }
+.vista.ancha { grid-template-columns: 1fr !important; }
+.panel.dos { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 960px) { .panel.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.panel.dos .col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.chips button:disabled, input:disabled { opacity: .4; cursor: not-allowed; }
+.figs .controles .chips { margin: 2px 0 4px; }
+@media (min-width: 960px) { .figs .controles { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; row-gap: 8px; align-items: center; } .figs .controles > .aviso, .figs .controles > .chips, .figs .controles > .ctl-ayuda { grid-column: 1 / -1; } }
+.tabs { gap: 6px; }
+.lecturas2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 720px) { .lecturas2 { grid-template-columns: 1fr 1fr; } }
+.kv-panel { background: var(--panel); border-radius: 10px; padding: 8px 12px; grid-template-columns: 1fr !important; font-size: 13px; }
+.kv-tit { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); justify-content: flex-start !important; }
+.aviso { border: 1px solid var(--naranja); color: var(--naranja); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+.cadena { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.cadena .eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.cadena p { margin: 0; }
+a.term { color: inherit; text-decoration: underline dotted; text-underline-offset: 2px; cursor: pointer; }
+.concepto.destello { animation: destello 1.6s ease-out; }
+@keyframes destello { 0% { box-shadow: 0 0 0 3px var(--azul); } 100% { box-shadow: 0 0 0 0 transparent; } }
+[hidden] { display: none !important; }
+.tabla-reg { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+.tabla-reg th, .tabla-reg td { border: 1px solid var(--line); padding: 5px 7px; text-align: center; }
+.tabla-reg th { font-weight: 500; color: var(--muted); }
+.tabla-reg td.act { background: var(--fg); color: var(--bg); font-weight: 600; }
+</style>
+<style>
+.tabla-reg td.si { color: var(--verde); font-weight: 600; } .tabla-reg td.no { color: var(--rojo); font-weight: 600; }
+#chips-extra[hidden] { display: none !important; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TCEE · Parte A) · 3A7 · Primera generación · §1. 2 a §1. 6</div>
+    <h1>Nueva Economía Keynesiana: primera generación</h1>
+    <p class="intro">Seis piezas del tema: costes de menú (§1. 2. 2), fallos de coordinación de Blanchard y Kiyotaki (§1. 3), racionamiento del crédito (§1. 4. 2. 1), salarios de eficiencia de Solow y de Shapiro y Stiglitz (§1. 4. 3 y Anexos 1-2) y la NAIRU (§1. 6). Mueve los mandos de debajo del gráfico: el recuadro «Qué ha cambiado y por qué» explica cada cambio y abajo tienes la ficha de cada concepto.</p>
+  </header>
+  <div class="tabs" role="tablist" aria-label="Modelo" id="tabs"></div>
+  <section class="vista-wrap">
+    <p class="mirar" id="mirar"></p>
+    <div class="figs" style="margin-top:12px">
+      <svg class="lamina" id="svg-n" role="img" aria-label="Modelos de la primera generación de la NEK"></svg>
+      <div class="controles">
+        <div class="chips" id="chips-extra" role="group"></div>
+                <div class="fila" data-ctl="sd"><label>Caída de la demanda (D₀ → D₁)</label><input id="nm-sd" data-k="sd" type="range" min="0" max="4" step="0.05"><span class="val" id="nm-sd-v"></span></div>
+        <div class="fila" data-ctl="bd"><label>Pendiente de la demanda (más = más poder de mercado)</label><input id="nm-bd" data-k="bd" type="range" min="0.5" max="2" step="0.05"><span class="val" id="nm-bd-v"></span></div>
+        <div class="fila" data-ctl="kc"><label>Pendiente del CMg (rigidez real: menos = más plano)</label><input id="nm-kc" data-k="kc" type="range" min="0" max="1" step="0.05"><span class="val" id="nm-kc-v"></span></div>
+        <div class="fila" data-ctl="z"><label>z (coste de menú)</label><input id="nm-z" data-k="z" type="range" min="0" max="3" step="0.05"><span class="val" id="nm-z-v"></span></div>
+        <div class="fila" data-ctl="H"><label>Horizonte (periodos que dura el shock)</label><input id="nm-H" data-k="H" type="range" min="1" max="6" step="1"><span class="val" id="nm-H-v"></span></div>
+        <div class="fila" data-ctl="x"><label>Caída de M (%)</label><input id="nm-x" data-k="x" type="range" min="0" max="10" step="0.1"><span class="val" id="nm-x-v"></span></div>
+        <div class="fila" data-ctl="th"><label>θ (elasticidad de sustitución)</label><input id="nm-th" data-k="th" type="range" min="2" max="10" step="0.1"><span class="val" id="nm-th-v"></span></div>
+        <div class="fila" data-ctl="phi"><label>φ (cuánto querría bajar su precio: rigidez real)</label><input id="nm-phi" data-k="phi" type="range" min="0.1" max="1" step="0.01"><span class="val" id="nm-phi-v"></span></div>
+        <div class="fila" data-ctl="zb"><label>z (coste de menú, % de los ingresos)</label><input id="nm-zb" data-k="zb" type="range" min="0" max="0.5" step="0.01"><span class="val" id="nm-zb-v"></span></div>
+        <div class="fila" data-ctl="kap"><label>Sensibilidad del impago al tipo (r′, %)</label><input id="nm-kap" data-k="kap" type="range" min="4" max="14" step="0.1"><span class="val" id="nm-kap-v"></span></div>
+        <div class="fila" data-ctl="D0"><label>Demanda de crédito (posición)</label><input id="nm-D0" data-k="D0" type="range" min="40" max="100" step="1"><span class="val" id="nm-D0-v"></span></div>
+        <div class="fila" data-ctl="sl"><label>Fondos que capta el banco por punto de rendimiento</label><input id="nm-sl" data-k="sl" type="range" min="6" max="14" step="0.1"><span class="val" id="nm-sl-v"></span></div>
+        <label class="check" data-ctl="perf"><input id="nm-perf" data-k="perf" type="checkbox"><span>Información perfecta: sin selección adversa ni riesgo moral</span></label>
+        <div class="fila" data-ctl="wb"><label>w̄ (salario alternativo)</label><input id="nm-wb" data-k="wb" type="range" min="0.5" max="3" step="0.05"><span class="val" id="nm-wb-v"></span></div>
+        <div class="fila" data-ctl="be"><label>β (respuesta del esfuerzo al salario)</label><input id="nm-be" data-k="be" type="range" min="0.2" max="0.8" step="0.01"><span class="val" id="nm-be-v"></span></div>
+        <div class="fila" data-ctl="A"><label>A (productividad / demanda)</label><input id="nm-A" data-k="A" type="range" min="0.5" max="1.5" step="0.01"><span class="val" id="nm-A-v"></span></div>
+        <div class="fila" data-ctl="q"><label>q (probabilidad de ser descubierto)</label><input id="nm-q" data-k="q" type="range" min="0.1" max="2" step="0.01"><span class="val" id="nm-q-v"></span></div>
+        <div class="fila" data-ctl="bs"><label>b (destrucción de empleo)</label><input id="nm-bs" data-k="bs" type="range" min="0.02" max="0.3" step="0.005"><span class="val" id="nm-bs-v"></span></div>
+        <div class="fila" data-ctl="eb"><label>ē (desutilidad del esfuerzo)</label><input id="nm-eb" data-k="eb" type="range" min="0.5" max="2" step="0.05"><span class="val" id="nm-eb-v"></span></div>
+        <div class="fila" data-ctl="ad"><label>Demanda de trabajo (posición)</label><input id="nm-ad" data-k="ad" type="range" min="8" max="16" step="0.1"><span class="val" id="nm-ad-v"></span></div>
+        <div class="fila" data-ctl="sub"><label>w̄ (subsidio de desempleo)</label><input id="nm-sub" data-k="sub" type="range" min="0" max="3" step="0.05"><span class="val" id="nm-sub-v"></span></div>
+        <div class="fila" data-ctl="mu"><label>μ (mark-up)</label><input id="nm-mu" data-k="mu" type="range" min="0" max="0.6" step="0.01"><span class="val" id="nm-mu-v"></span></div>
+        <div class="fila" data-ctl="Z"><label>Z (factores institucionales)</label><input id="nm-Z" data-k="Z" type="range" min="-0.1" max="0.3" step="0.005"><span class="val" id="nm-Z-v"></span></div>
+        <div class="fila" data-ctl="al"><label>α (sensibilidad del salario negociado al paro)</label><input id="nm-al" data-k="al" type="range" min="0.5" max="4" step="0.05"><span class="val" id="nm-al-v"></span></div>
+        <div class="fila" data-ctl="PAT"><label>PAT (productividad)</label><input id="nm-PAT" data-k="PAT" type="range" min="0.6" max="1.6" step="0.01"><span class="val" id="nm-PAT-v"></span></div>
+        <div class="fila" data-ctl="h"><label>h (histéresis: peso de los insiders)</label><input id="nm-h" data-k="h" type="range" min="0" max="6" step="0.1"><span class="val" id="nm-h-v"></span></div>
+        <div class="fila" data-ctl="U1"><label>U₋₁ (paro del periodo anterior, %)</label><input id="nm-U1" data-k="U1" type="range" min="0" max="30" step="0.5"><span class="val" id="nm-U1-v"></span></div>
+        <label class="check" data-ctl="sinprod"><input id="nm-sinprod" data-k="sinprod" type="checkbox"><span>SRN sin productividad (W/Pᵉ = 1 − αU + Z): la NAIRU depende de PAT</span></label>
+        <p class="ctl-ayuda" id="ayuda-ctl"></p>
+      </div>
+    </div>
+    <div class="vista ancha" style="margin-top:14px">
+      <div class="panel dos">
+        <div class="col"><div class="porque" id="porque-n" aria-live="polite"></div></div>
+        <div class="col"><div class="lectura" id="lec-n"></div><p class="nota" id="nota"></p></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-n"></div></div>
+  </section>
+</div>
+<script>
+'use strict';
+const NS = 'http://www.w3.org/2000/svg';
+const fmt = (v, d = 2) => Number.isFinite(v)
+  ? v.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—';
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+/* ------------------------------------------------ ecuaciones con MathJax (SVG) */
+const TEXC = new Map();
+const escH = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const TX = (tex) => `<span class="tex" data-d="1">${escH(tex)}</span>`;
+const TI = (tex) => `<span class="tex">${escH(tex)}</span>`;
+const fT = (v, d = 2) => fmt(v, d).replace(/,/g, '{,}');
+const MV = (t) => String.raw`\class{mv}{${t}}`;
+function montar(root) {
+  if (!window.__mjListo || !root) return;
+  root.querySelectorAll('span.tex:not([data-ok])').forEach((s) => {
+    const tex = s.textContent, d = s.dataset.d === '1', key = (d ? 'D' : 'I') + tex;
+    try {
+      let n = TEXC.get(key);
+      if (!n) { n = MathJax.tex2svg(tex, { display: d }); TEXC.set(key, n); if (TEXC.size > 600) TEXC.delete(TEXC.keys().next().value); }
+      s.replaceChildren(n.cloneNode(true)); s.dataset.ok = '1'; s.setAttribute('aria-label', tex);
+    } catch (e) { /* se queda el texto plano */ }
+  });
+}
+window.montar = montar;
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if ((k === 'stroke' || k === 'fill') && String(v).startsWith('var(')) e.style.setProperty(k, v);
+    else e.setAttribute(k, v);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+/* texto matemático: "PMag_L", "x^2" */
+function tx(parent, x, y, txt, attrs = {}) {
+  const t = el('text', Object.assign({ x, y, class: 'm' }, attrs), parent);
+  const re = /([_^])(\{[^}]*\}|.)/g; let last = 0, m;
+  const push = (s, sh) => { if (!s) return; const ts = el('tspan', {}, t);
+    if (sh) { ts.setAttribute('baseline-shift', sh); ts.setAttribute('font-size', '72%'); } ts.textContent = s; };
+  while ((m = re.exec(txt))) { push(txt.slice(last, m.index)); const b = m[2][0] === '{' ? m[2].slice(1, -1) : m[2];
+    push(b, m[1] === '_' ? 'sub' : 'super'); last = re.lastIndex; }
+  push(txt.slice(last));
+  return t;
+}
+function limpiar(g) { while (g.firstChild) g.removeChild(g.firstChild); }
+function path(pts) {
+  let d = '', on = false;
+  for (const p of pts) { if (!p) { on = false; continue; } d += (on ? 'L' : 'M') + p[0].toFixed(2) + ',' + p[1].toFixed(2); on = true; }
+  return d;
+}
+/* panel con escalas lineales */
+function panel(svg, x0, y0, w, h, xr, yr) {
+  const P = { x0, y0, w, h, xr, yr };
+  P.sx = (x) => x0 + (x - xr[0]) / (xr[1] - xr[0]) * w;
+  P.sy = (y) => y0 + h - (y - yr[0]) / (yr[1] - yr[0]) * h;
+  P.ix = (px) => xr[0] + (px - x0) / w * (xr[1] - xr[0]);
+  P.iy = (py) => yr[0] + (y0 + h - py) / h * (yr[1] - yr[0]);
+  const id = 'c' + Math.random().toString(36).slice(2);
+  const cp = el('clipPath', { id }, svg); el('rect', { x: x0, y: y0 - 2, width: w + 2, height: h + 4 }, cp);
+  P.clip = `url(#${id})`;
+  /* curva f(x) cortada al rango */
+  P.curva = (f, a = xr[0], b = xr[1], n = 400) => {
+    const pts = [];
+    for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n, y = f(x);
+      pts.push(Number.isFinite(y) && y >= yr[0] - (yr[1] - yr[0]) && y <= yr[1] + (yr[1] - yr[0]) ? [P.sx(x), P.sy(y)] : null); }
+    return path(pts);
+  };
+  return P;
+}
+function puntoSVG(svg, evt) {
+  const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+/* arrastre con el estado en el <svg> (cada redibujo sustituye los nodos) */
+function habilitarArrastre(svg, redibujar, alSoltar) {
+  svg._drag = null;
+  svg.addEventListener('pointermove', (e) => { if (!svg._drag) return; svg._drag(puntoSVG(svg, e)); redibujar(); });
+  const fin = (e) => { const habia = !!svg._drag; svg._drag = null; try { svg.releasePointerCapture(e.pointerId); } catch (_) {} if (habia && alSoltar) alSoltar(); };
+  svg.addEventListener('pointerup', fin); svg.addEventListener('pointercancel', fin);
+}
+function arrastrable(svg, nodo, mover, alEmpezar) {
+  nodo.classList.add('drag');
+  nodo.addEventListener('pointerdown', (e) => { e.preventDefault(); if (alEmpezar) alEmpezar(); svg._drag = mover; try { svg.setPointerCapture(e.pointerId); } catch (_) {} });
+}
+function ejes(g, P, xlab, ylab, xt, yt, conCero) {
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0 + P.w + 8, y2: P.y0 + P.h, class: 'eje' }, g);
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0, y2: P.y0 - 8, class: 'eje' }, g);
+  el('path', { d: `M${P.x0 + P.w + 8},${P.y0 + P.h - 4}l7,4l-7,4z`, fill: 'var(--fg)' }, g);
+  el('path', { d: `M${P.x0 - 4},${P.y0 - 8}l4,-7l4,7z`, fill: 'var(--fg)' }, g);
+  tx(g, P.x0 + P.w + 14, P.y0 + P.h + 30, xlab, { 'text-anchor': 'end' });
+  tx(g, P.x0 + 8, P.y0 - 4, ylab, { 'text-anchor': 'start' });
+  for (const v of xt || []) { el('line', { x1: P.sx(v), y1: P.y0 + P.h, x2: P.sx(v), y2: P.y0 + P.h + 4, class: 'tick' }, g);
+    el('text', { x: P.sx(v), y: P.y0 + P.h + 15, class: 'tlab', 'text-anchor': 'middle' }, g).textContent = fmt(v, 0); }
+  for (const v of yt || []) { el('line', { x1: P.x0 - 4, y1: P.sy(v), x2: P.x0, y2: P.sy(v), class: 'tick' }, g);
+    el('text', { x: P.x0 - 7, y: P.sy(v) + 4, class: 'tlab', 'text-anchor': 'end' }, g).textContent = fmt(v, 0); }
+  if (conCero) el('line', { x1: P.x0, y1: P.sy(0), x2: P.x0 + P.w, y2: P.sy(0), class: 'eje', 'stroke-width': .8 }, g);
+}
+
+
+/* ===================================================================== marco común (3A7) */
+const f1 = (v) => fmt(v, 1), f2 = (v) => fmt(v, 2), f3 = (v) => fmt(v, 3);
+const sg = (v, d = 2) => (v > 0 ? '+' : '') + fmt(v, d);
+const HIST = {}, ULT = {}, PINTAR = {};
+function mostrarPorque(k, e) {
+  HIST[k] = [e, ...(HIST[k] || [])].slice(0, 6); ULT[k] = e.cambia || new Set();
+  const box = document.getElementById('porque-' + k), [act, ...prev] = HIST[k];
+  box.innerHTML = `<div class="eti">Qué ha cambiado y por qué</div><h3>${act.titulo}</h3>` + act.p.map((t) => `<p>${t}</p>`).join('') +
+    (prev.length ? `<details><summary>Cambios anteriores (${prev.length})</summary>` + prev.map((h) => `<div class="prev"><b>${h.titulo}</b>${h.p.map((t) => `<p>${t}</p>`).join('')}</div>`).join('') + '</details>' : '');
+  montar(box); PINTAR[k]();
+}
+function pintarConceptos(id, lista, cambia) {
+  const c = document.getElementById(id);
+  c.innerHTML = lista.map((x) => `
+    <article class="concepto${cambia.has(x.k) ? ' cambia' : ''}">
+      <div class="cab"><h4>${x.n}</h4>${cambia.has(x.k) ? '<span class="chip-cambia">ha cambiado</span>' : ''}</div>
+      <p class="def">${x.d}</p>
+      ${x.f ? `<div class="formula">${TX(x.f)}</div>` : ''}
+      ${x.v !== undefined ? `<p class="valor">Ahora: <b>${x.v}</b></p>` : ''}
+      ${x.ref ? `<p class="ref">${x.ref}</p>` : ''}
+    </article>`).join('');
+  montar(c);
+}
+function sesion(k, estado, explicar, redibujar) {
+  let snap = null;
+  return {
+    empezar: () => { if (!snap) snap = JSON.parse(JSON.stringify(estado)); },
+    cerrar: () => { if (!snap) return; const e = explicar(snap, JSON.parse(JSON.stringify(estado))); snap = null; if (e) { if (redibujar) redibujar(); mostrarPorque(k, e); } },
+  };
+}
+const svg = document.getElementById('svg-n');
+let g = el('g', {}, svg);
+function lienzo(w, h) { limpiar(svg); svg.setAttribute('viewBox', `0 0 ${w} ${h}`); g = el('g', {}, svg); }
+const linea = (pts, attrs, parent) => el('path', Object.assign({ d: path(pts) }, attrs), parent || g);
+const rot = (P, x, y, t, color, extra = {}) => tx(g, P.sx(x), P.sy(y), t, Object.assign({ style: `fill:${color}` }, extra));
+function pto(P, x, y, et, o = {}) {
+  if (![x, y].every(Number.isFinite)) return;
+  el('circle', o.hueco ? { cx: P.sx(x), cy: P.sy(y), r: o.r || 5.5, fill: 'var(--bg)', stroke: o.color || 'var(--punto)', 'stroke-width': 1.8 } : { cx: P.sx(x), cy: P.sy(y), r: o.r || 6, class: 'pto', fill: o.color || 'var(--punto)' }, g);
+  if (et) tx(g, P.sx(x) + (o.dx ?? 8), P.sy(y) + (o.dy ?? -8), et, { style: `font-size:${o.fs || 14}px;font-style:normal;font-weight:600;fill:${o.color || 'var(--punto)'}` });
+}
+function hguia(P, x, y, et) { el('line', { x1: P.x0, y1: P.sy(y), x2: P.sx(x), y2: P.sy(y), class: 'guia' }, g); if (et) tx(g, P.x0 + 5, P.sy(y) - 4, et, { style: 'font-size:12px' }); }
+function vguia(P, x, y, et, y0) { el('line', { x1: P.sx(x), y1: P.sy(y), x2: P.sx(x), y2: y0 ?? (P.y0 + P.h), class: 'guia' }, g); if (et) tx(g, P.sx(x), (y0 ?? (P.y0 + P.h)) + 30, et, { 'text-anchor': 'middle', style: 'font-size:12px' }); }
+const titulo = (P, t) => { el('text', { x: P.x0 + P.w / 2, y: P.y0 - 16, class: 'r', 'text-anchor': 'middle' }, g).textContent = t; };
+const clip = (P) => el('g', { 'clip-path': P.clip }, g);
+const curva = (P, fn, a, b, attrs, n = 300) => { const pts = []; for (let j = 0; j <= n; j++) { const x = a + (b - a) * j / n, y = fn(x); pts.push(Number.isFinite(y) ? [P.sx(x), P.sy(y)] : null); } return linea(pts, attrs, clip(P)); };
+const serieP = (P, xs, ys, attrs) => linea(xs.map((x, j) => (Number.isFinite(ys[j]) ? [P.sx(x), P.sy(ys[j])] : null)), attrs, clip(P));
+const ticks = (a, b, st) => { const t = []; for (let v = a; v <= b + 1e-9; v += st) t.push(Math.round(v * 1000) / 1000 + 0); return t; };
+function flecha(P, x1, y1, x2, y2, color = 'var(--punto)') {
+  const X1 = P.sx(x1), Y1 = P.sy(y1), X2 = P.sx(x2), Y2 = P.sy(y2), L = Math.hypot(X2 - X1, Y2 - Y1); if (L < 16) return;
+  const ux = (X2 - X1) / L, uy = (Y2 - Y1) / L, xb = X2 - ux * 10, yb = Y2 - uy * 10;
+  el('line', { x1: X1 + ux * 9, y1: Y1 + uy * 9, x2: xb, y2: yb, stroke: color, 'stroke-width': 1.6 }, g);
+  el('path', { d: `M${xb + ux * 2},${yb + uy * 2}l${-ux * 9 - uy * 4.5},${-uy * 9 + ux * 4.5}l${uy * 9},${-ux * 9}z`, fill: color }, g);
+}
+/* ejes con decimales en las marcas */
+function ejesD(P, xlab, ylab, xt, yt, dx = 0, dy = 0, conCero) {
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0 + P.w + 8, y2: P.y0 + P.h, class: 'eje' }, g);
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0, y2: P.y0 - 8, class: 'eje' }, g);
+  el('path', { d: `M${P.x0 + P.w + 8},${P.y0 + P.h - 4}l7,4l-7,4z`, fill: 'var(--fg)' }, g);
+  el('path', { d: `M${P.x0 - 4},${P.y0 - 8}l4,-7l4,7z`, fill: 'var(--fg)' }, g);
+  tx(g, P.x0 + P.w + 14, P.y0 + P.h + 30, xlab, { 'text-anchor': 'end' });
+  tx(g, P.x0 + 8, P.y0 - 4, ylab, { 'text-anchor': 'start' });
+  for (const v of xt || []) { el('line', { x1: P.sx(v), y1: P.y0 + P.h, x2: P.sx(v), y2: P.y0 + P.h + 4, class: 'tick' }, g);
+    el('text', { x: P.sx(v), y: P.y0 + P.h + 15, class: 'tlab', 'text-anchor': 'middle' }, g).textContent = fmt(v, dx); }
+  for (const v of yt || []) { el('line', { x1: P.x0 - 4, y1: P.sy(v), x2: P.x0, y2: P.sy(v), class: 'tick' }, g);
+    el('text', { x: P.x0 - 7, y: P.sy(v) + 4, class: 'tlab', 'text-anchor': 'end' }, g).textContent = fmt(v, dy); }
+  if (conCero) el('line', { x1: P.x0, y1: P.sy(0), x2: P.x0 + P.w, y2: P.sy(0), class: 'eje', 'stroke-width': .8 }, g);
+}
+function biseccion(f, a, b, n = 80) { let fa = f(a); if (fa * f(b) > 0) return NaN; for (let i = 0; i < n; i++) { const m = (a + b) / 2, fm = f(m); if (fa * fm <= 0) b = m; else { a = m; fa = fm; } } return (a + b) / 2; }
+function integra(f, a, b, n = 200) { if (!(b > a)) return 0; let s = 0; const h = (b - a) / n; for (let i = 0; i < n; i++) s += f(a + (i + 0.5) * h); return s * h; }
+function poligono(P, pts, attrs) { return el('path', Object.assign({ d: path(pts.map(([x, y]) => [P.sx(x), P.sy(y)])) + 'Z' }, attrs), clip(P)); }
+
+/* ===================================================================== mandos genéricos */
+function construir() {
+  const tabs = document.getElementById('tabs');
+  for (const [k, t] of TABS) { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.k = k; b.textContent = t; b.addEventListener('click', () => abrir(k, true)); tabs.appendChild(b); }
+  document.querySelectorAll('input[data-k]').forEach((inp) => {
+    const k = inp.dataset.k;
+    if (inp.type === 'range') { inp.addEventListener('input', () => { SN.empezar(); S[k] = parseFloat(inp.value); dibujar(); }); inp.addEventListener('change', SN.cerrar); }
+    else inp.addEventListener('change', (e) => { SN.empezar(); S[k] = e.target.checked; dibujar(); SN.cerrar(); });
+  });
+}
+function refrescar() {
+  const act = new Set(CTL[S.tab]);
+  document.querySelectorAll('[data-ctl]').forEach((n) => { n.hidden = !act.has(n.dataset.ctl); });
+  document.querySelectorAll('input[data-k]').forEach((inp) => {
+    const k = inp.dataset.k;
+    if (inp.type === 'range') { inp.value = S[k]; document.getElementById(inp.id + '-v').textContent = (VALF[k] || ((v) => fmt(v, DEC[k] ?? 2)))(S[k]); }
+    else inp.checked = !!S[k];
+  });
+  document.getElementById('ayuda-ctl').innerHTML = AYUDA[S.tab] || '';
+}
+function chipsExtra() {
+  const c = document.getElementById('chips-extra'); c.innerHTML = '';
+  const add = (t, act, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.setAttribute('aria-pressed', String(act)); b.addEventListener('click', () => { SN.empezar(); fn(); dibujar(); SN.cerrar(); chipsExtra(); }); c.appendChild(b); };
+  if (CHIPS[S.tab]) CHIPS[S.tab](add);
+  c.hidden = !c.children.length;
+}
+function explicar(A, B) {
+  const keys = KEYS[B.tab];
+  const k = keys.find((x) => (typeof A[x] === 'number' ? Math.abs(A[x] - B[x]) > 1e-9 : A[x] !== B[x]));
+  if (!k) return null;
+  return EXPL[B.tab](A, B, k);
+}
+const tituloCambio = (A, B, k) => `${NK[k] || k}: ${typeof A[k] === 'number' ? (VALF[k] || ((v) => fmt(v, DEC[k] ?? 2)))(A[k]) : A[k]} → ${typeof B[k] === 'number' ? (VALF[k] || ((v) => fmt(v, DEC[k] ?? 2)))(B[k]) : B[k]}`;
+function dibujar() { DIB[S.tab](); refrescar(); PINTAR.n(); }
+function abrir(k, conExplicacion) {
+  S.tab = k;
+  document.querySelectorAll('#tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.k === k)));
+  document.getElementById('mirar').innerHTML = MIRAR[k];
+  chipsExtra(); dibujar();
+  if (conExplicacion) mostrarPorque('n', INI[k]());
+}
+PINTAR.n = () => pintarConceptos('con-n', FICHAS[S.tab](), ULT.n || new Set());
+function arrancar(def) {
+  construir();
+  const TAB0 = NOM[location.hash.slice(1)] ? location.hash.slice(1) : def;
+  abrir(TAB0, false);
+  mostrarPorque('n', INI[TAB0]());
+  window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (NOM[h]) abrir(h, true); });
+}
+function lectura(html) { const lec = document.getElementById('lec-n'); lec.innerHTML = html; montar(lec); }
+function nota(html) { document.getElementById('nota').innerHTML = html; }
+
+/* ===================================================================== estado (primera generación) */
+const TABS = [['menu', 'Costes de menú · §1. 2. 2'], ['bk', 'Blanchard-Kiyotaki · §1. 3'], ['sw', 'Stiglitz-Weiss · §1. 4. 2. 1'], ['solow', 'Solow · §1. 4. 3. 1'], ['ss', 'Shapiro-Stiglitz · §1. 4. 3. 2'], ['nairu', 'NAIRU · §1. 6']];
+const NOM = Object.fromEntries(TABS);
+const S = { tab: 'menu',
+  sd: 2, bd: 1, kc: 0, z: 0.5, H: 1,
+  x: 5, th: 5, phi: 1, zb: 0.1,
+  kap: 8, D0: 70, sl: 10, perf: false,
+  wb: 1, be: 0.5, A: 1,
+  q: 0.5, bs: 0.1, eb: 1, ad: 12, sub: 0,
+  mu: 0.2, Z: 0, al: 2, PAT: 1, h: 0, U1: 15, sinprod: false };
+const SN = sesion('n', S, explicar, () => dibujar());
+const CTL = { menu: ['sd', 'bd', 'kc', 'z', 'H'], bk: ['x', 'th', 'phi', 'zb'], sw: ['kap', 'D0', 'sl', 'perf'], solow: ['wb', 'be', 'A'], ss: ['q', 'bs', 'eb', 'ad', 'sub'], nairu: ['mu', 'Z', 'al', 'PAT', 'h', 'U1', 'sinprod'] };
+const KEYS = CTL;
+const DEC = { H: 0, x: 1, th: 1, D0: 0, kap: 1, sl: 1, mu: 2, Z: 3, U1: 1, bs: 3, zb: 2 };
+const VALF = { x: (v) => fmt(v, 1) + ' %', zb: (v) => fmt(v, 2) + ' %', kap: (v) => fmt(v, 1) + ' %', U1: (v) => fmt(v, 1) + ' %' };
+const NK = { sd: 'Caída de la demanda', bd: 'Pendiente de la demanda', kc: 'Pendiente del CMg', z: 'Coste de menú z', H: 'Horizonte', x: 'Caída de M', th: 'θ', phi: 'φ', zb: 'Coste de menú z', kap: 'r′', D0: 'Demanda de crédito', sl: 'Fondos por punto de ρ', perf: 'Información perfecta', wb: 'w̄', be: 'β', A: 'A', q: 'q', bs: 'b', eb: 'ē', ad: 'Demanda de trabajo', sub: 'Subsidio w̄', mu: 'μ', Z: 'Z', al: 'α', PAT: 'PAT', h: 'h', U1: 'U₋₁', sinprod: 'SRN sin productividad' };
+const MIRAR = {
+  menu: 'Un monopolista con coste marginal CMg y demanda D₀ está en Y. Cae la demanda a D₁: el nuevo óptimo es W, pero si mantiene P₀ produce Q* (punto J). El triángulo rojo T-V es lo que gana la empresa cambiando el precio; el área verde, lo que pierde la sociedad si no lo cambia. Compara las dos con el coste de menú z.',
+  bk: 'Cae la oferta monetaria. Si todas las empresas bajan el precio, nada real cambia. Si ninguna lo baja, M/P cae y con él la demanda de todas. A la izquierda, la pérdida privada de no ajustar (de segundo orden, curva) frente a la social (de primer orden, recta): para shocks pequeños el coste de menú puede superar la primera y quedarse muy por debajo de la segunda.',
+  sw: 'El banco fija el tipo que maximiza su rendimiento esperado, r′, no el que vacía el mercado, r*. Abajo, ρ(r) = r · p(repago), medido hacia abajo como en el tema; arriba, la oferta de crédito (la misma joroba) y la demanda. Entre las dos, el exceso de demanda a r′: el racionamiento.',
+  solow: 'La empresa no minimiza el salario, sino el coste del trabajo eficiente, w/e(w). Elige el punto en que el rayo desde el origen es tangente a la función de esfuerzo: la elasticidad esfuerzo-salario es 1. Mueve A: cambia el empleo, no el salario.',
+  ss: 'La CNE es el salario mínimo que hace que el trabajador no eluda para cada nivel de empleo; se dispara al acercarse al pleno empleo L̄, porque entonces el despido no castiga. El equilibrio está donde la CNE corta a la demanda de trabajo: w* por encima del de vaciado y paro involuntario L̄ − L*.',
+  nairu: 'Las empresas fijan precios con un mark-up (SRP, horizontal) y los trabajadores negocian salarios que suben cuando baja el paro (SRN). Solo hay un nivel de empleo en que las dos aspiraciones son compatibles: la NAIRU. A la izquierda, en el plano del empleo; a la derecha, en el del paro.',
+};
+const AYUDA = {
+  menu: 'Con demanda lineal P = a − bQ, el ingreso marginal tiene pendiente 2b. «Horizonte» multiplica la ganancia de ajustar, porque el coste de menú se paga una vez.',
+  bk: 'φ = 1: la empresa querría bajar su precio tanto como M. φ < 1: hay rigidez real y querría bajarlo menos, así que la pérdida de no ajustar es aún menor.',
+  sw: 'r′ es el tipo que maximiza ρ. Bájalo para un mercado donde el impago reacciona antes al tipo.',
+  solow: 'Función de esfuerzo e(w) = (w − w̄)<sup>β</sup>. El salario de eficiencia es w* = w̄/(1 − β): no depende de A.',
+  ss: 'El tema escribe la CNE sin subsidio de desempleo; en Shapiro y Stiglitz (1984) el subsidio w̄ suma directamente al salario. Déjalo en 0 para ver la fórmula del tema.',
+  nairu: 'Con h = 0 es el modelo del tema. h > 0 añade histéresis: los insiders negocian mirando el cambio del paro y no su nivel, y la NAIRU se arrastra hacia el paro pasado.',
+};
+
+/* ===================================================================== 1. Costes de menú */
+const MC_ = { a0: 10, c: 2 };
+function mMenu(s) {
+  const b = s.bd, k = s.kc, a0 = MC_.a0, a1 = a0 - s.sd, c = MC_.c;
+  const Q0 = (a0 - c) / (2 * b + k), P0 = a0 - b * Q0, Q1 = (a1 - c) / (2 * b + k), P1 = a1 - b * Q1;
+  const Qs = Math.max(0, (a1 - P0) / b);
+  const MC = (Q) => c + k * Q, MR1 = (Q) => a1 - 2 * b * Q, D1 = (Q) => a1 - b * Q;
+  const G = integra((Q) => MR1(Q) - MC(Q), Qs, Q1), W = integra((Q) => D1(Q) - MC(Q), Qs, Q1);
+  const ajusta = s.H * G > s.z + 1e-12;
+  return { a1, Q0, P0, Q1, P1, Qs, G, W, ajusta, MC, MR1, D1 };
+}
+function dibMenu() {
+  lienzo(1000, 480);
+  const s = S, m = mMenu(s), b = s.bd;
+  const P = panel(svg, 70, 36, 520, 370, [0, 10], [0, 11]);
+  titulo(P, 'MONOPOLISTA ANTE UNA CAÍDA DE LA DEMANDA'); ejesD(P, 'Q', 'P', ticks(0, 10, 2), ticks(0, 10, 2));
+  if (m.Q1 > m.Qs) {
+    const n = 40, sup = [], tri = [];
+    for (let j = 0; j <= n; j++) { const Q = m.Qs + (m.Q1 - m.Qs) * j / n; sup.push([Q, m.D1(Q)]); tri.push([Q, m.MR1(Q)]); }
+    poligono(P, [...sup, ...[...sup].reverse().map(([Q]) => [Q, m.MC(Q)])], { fill: 'var(--verde)', style: 'fill:var(--verde);opacity:.18;stroke:none' });
+    poligono(P, [...tri, [m.Q1, m.MC(m.Q1)], [m.Qs, m.MC(m.Qs)]], { fill: 'var(--rojo)', style: 'fill:var(--rojo);opacity:.55;stroke:none' });
+  }
+  curva(P, (Q) => MC_.a0 - b * Q, 0, 10, { class: 'cur', stroke: 'var(--verde)' }); rot(P, Math.min(9.2, (MC_.a0 - 0.6) / b), 0.9, 'D_0', 'var(--verde)');
+  curva(P, (Q) => MC_.a0 - 2 * b * Q, 0, 10, { class: 'rayo', stroke: 'var(--gris)' }); rot(P, Math.min(9.2, (MC_.a0 - 0.6) / (2 * b)) + 0.1, 0.5, 'IMg_0', 'var(--gris)');
+  if (s.sd > 0.01) {
+    curva(P, m.D1, 0, 10, { class: 'cur', stroke: 'var(--naranja)' }); rot(P, Math.min(9.2, (m.a1 - 1.4) / b), 1.7, 'D_1', 'var(--naranja)');
+    curva(P, m.MR1, 0, 10, { class: 'cur', stroke: 'var(--naranja)', 'stroke-dasharray': '5 4' }); rot(P, (m.a1 - 0.9) / (2 * b) + 0.12, 0.9, 'IMg_1', 'var(--naranja)');
+  }
+  curva(P, m.MC, 0, 10, { class: 'cur', stroke: 'var(--azul)' }); rot(P, 9.1, m.MC(9.1) + 0.35, 'CMg', 'var(--azul)');
+  hguia(P, m.Q0, m.P0, 'P_0'); vguia(P, m.Q0, m.P0, 'Q_0'); pto(P, m.Q0, m.P0, 'Y');
+  pto(P, m.Q0, m.MC(m.Q0), 'X', { r: 4, dy: 18 });
+  if (s.sd > 0.01) {
+    hguia(P, m.Q1, m.P1, 'P_1'); vguia(P, m.Q1, m.P1, 'Q_1'); pto(P, m.Q1, m.P1, 'W', { hueco: !m.ajusta, dx: 10, dy: 18 });
+    vguia(P, m.Qs, m.P0, 'Q*'); pto(P, m.Qs, m.P0, 'J', { hueco: m.ajusta, dx: -20 });
+    pto(P, m.Qs, m.MC(m.Qs), 'T', { r: 4, dx: -16, dy: 18 }); pto(P, m.Q1, m.MC(m.Q1), 'V', { r: 4, dy: 18 });
+    flecha(P, m.Q0, m.P0, m.ajusta ? m.Q1 : m.Qs, m.ajusta ? m.P1 : m.P0);
+  }
+  /* barras */
+  const B = panel(svg, 700, 36, 260, 370, [0, 3], [0, Math.max(4, m.W * 1.15, s.z * 1.15, s.H * m.G * 1.15)]);
+  titulo(B, 'COMPARACIÓN');
+  ejesD(B, '', '', [], ticks(0, B.yr[1], B.yr[1] > 8 ? 2 : 1));
+  const barra = (i, v, col, et) => { el('rect', { x: B.sx(i + 0.2), y: B.sy(v), width: B.sx(0.6) - B.sx(0), height: B.sy(0) - B.sy(v), fill: col, style: `fill:${col}` }, g); el('text', { x: B.sx(i + 0.5), y: B.y0 + B.h + 16, class: 'tlab', 'text-anchor': 'middle' }, g).textContent = et; tx(g, B.sx(i + 0.5), B.sy(v) - 6, f2(v), { 'text-anchor': 'middle', style: 'font-size:12px' }); };
+  barra(0, s.H * m.G, 'var(--rojo)', 'Ganancia privada'); barra(1, s.z, 'var(--gris)', 'Coste de menú'); barra(2, s.H * m.W, 'var(--verde)', 'Pérdida social');
+  lectura(`<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`P = a - ${MV('b')}\,Q,\quad CMg = c + ${MV('k')}\,Q,\quad a_1 = a_0 - ${MV(String.raw`\Delta a`)}`)}
+    ${TX(String.raw`\text{ajusta} \iff ${MV('H')}\int_{Q^*}^{Q_1}(IMg_1 - CMg)\,dQ > ${MV('z')}`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`\text{triángulo} = ${fT(m.G)},\quad H\cdot\text{triángulo} = ${fT(s.H * m.G)}\ ${m.ajusta ? '>' : '\\le'}\ z = ${fT(s.z)}`)}</div>
+    <div class="kv"><div><span>Decisión</span><b>${s.sd < 0.01 ? 'nada que decidir' : m.ajusta ? 'ajusta el precio (W)' : 'mantiene P₀ (J)'}</b></div><div><span>Q₀ → Q₁ · Q*</span><b>${f2(m.Q0)} → ${f2(m.Q1)} · ${f2(m.Qs)}</b></div>
+    <div><span>Pérdida social / privada</span><b>${m.G > 1e-6 ? f1(m.W / m.G) + ' veces' : '—'}</b></div><div><span>P₀ · P₁</span><b>${f2(m.P0)} · ${f2(m.P1)}</b></div></div>`);
+  nota('a₀ = 10 y c = 2 (CMg en Q = 0). El triángulo T-V con vértice en IMg₁ es el beneficio que la empresa deja de ganar si no ajusta: depende del cuadrado del shock (segundo orden). El área verde, entre D₁ y CMg de Q* a Q₁, es el excedente que pierde la sociedad: como P₀ está muy por encima de CMg, es de primer orden. Es la pregunta que abre §1. 3.');
+}
+
+/* ===================================================================== 2. Blanchard-Kiyotaki */
+function perdPriv(x, th, phi) { const d = phi * x / 100, r = th * Math.exp(-th * d) * (Math.exp(d) - 1 + 1 / th); return 100 * (1 - r) / th; }
+const perdSoc = (x, th) => x / th;
+function mBK(s) { const lp = perdPriv(s.x, s.th, s.phi), ls = perdSoc(s.x, s.th), ajusta = lp > s.zb + 1e-12; return { lp, ls, ajusta, dY: ajusta ? 0 : -s.x }; }
+function dibBK() {
+  lienzo(1000, 480);
+  const s = S, m = mBK(s);
+  const ym = Math.max(1, perdSoc(10, s.th) * 1.1);
+  const P = panel(svg, 62, 36, 400, 370, [0, 10], [0, ym]);
+  titulo(P, 'PÉRDIDA DE NO AJUSTAR (% DE LOS INGRESOS)'); ejesD(P, 'caída de M (%)', '%', ticks(0, 10, 2), ticks(0, ym, ym > 3 ? 1 : 0.5), 0, 1);
+  curva(P, (x) => perdSoc(x, s.th), 0, 10, { class: 'cur', stroke: 'var(--verde)' }); rot(P, 7.3, perdSoc(7.3, s.th) + ym * 0.04, 'social (1.er orden)', 'var(--verde)', { style: 'fill:var(--verde);font-size:12px' });
+  curva(P, (x) => perdPriv(x, s.th, s.phi), 0, 10, { class: 'cur', stroke: 'var(--rojo)' }); rot(P, 8.2, perdPriv(8.2, s.th, s.phi) + ym * 0.05, 'privada (2.º orden)', 'var(--rojo)', { style: 'fill:var(--rojo);font-size:12px' });
+  curva(P, () => s.zb, 0, 10, { class: 'rayo', stroke: 'var(--gris)' }); rot(P, 0.2, s.zb + ym * 0.03, 'z', 'var(--gris)');
+  vguia(P, s.x, m.ls, ''); pto(P, s.x, m.lp, '', { color: 'var(--rojo)' }); pto(P, s.x, m.ls, '', { color: 'var(--verde)' });
+  const xz = biseccion((x) => perdPriv(x, s.th, s.phi) - s.zb, 0, 10);
+  if (Number.isFinite(xz)) { el('rect', { x: P.sx(0), y: P.y0, width: P.sx(xz) - P.sx(0), height: P.h, fill: 'var(--gris)', style: 'fill:var(--gris);opacity:.10' }, clip(P)); tx(g, P.sx(xz / 2), P.y0 + 16, 'nadie ajusta', { 'text-anchor': 'middle', style: 'font-size:12px' }); }
+  /* derecha: producción según la fracción que ajusta */
+  const R = panel(svg, 580, 36, 380, 370, [0, 1], [-10, 1]);
+  titulo(R, 'PRODUCCIÓN SEGÚN CUÁNTAS EMPRESAS AJUSTAN'); ejesD(R, 'fracción que ajusta', 'ΔY (%)', ticks(0, 1, 0.25), ticks(-10, 0, 2), 2, 0, true);
+  curva(R, (f) => -s.x * (1 - f), 0, 1, { class: 'cur', stroke: 'var(--azul)' });
+  pto(R, m.ajusta ? 1 : 0, m.dY, m.ajusta ? 'todas' : 'ninguna', { dx: m.ajusta ? -50 : 8 });
+  rot(R, 0.55, -s.x * 0.45 - 0.9, 'ΔY = −Δm·(1 − f)', 'var(--azul)', { style: 'fill:var(--azul);font-size:12px' });
+  lectura(`<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`Y_i^d = \frac{M}{P}\Bigl(\frac{P_i}{P}\Bigr)^{-${MV(String.raw`\theta`)}},\qquad \text{precio deseado: } \Delta p_i^* = ${MV(String.raw`\varphi`)}\,\Delta m`)}
+    ${TX(String.raw`\text{privada} \approx \tfrac12(\theta-1)\,\varphi^2\Delta m^2\quad\text{frente a}\quad \text{social} \approx \frac{\Delta m}{\theta}`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`\text{privada} = ${fT(m.lp, 3)}\,\%,\quad \text{social} = ${fT(m.ls, 2)}\,\%,\quad z = ${fT(s.zb)}\,\%`)}</div>
+    <div class="kv"><div><span>¿Ajusta cada empresa?</span><b>${m.ajusta ? 'sí' : 'no'}</b></div><div><span>Caída de la producción</span><b>${f1(Math.abs(m.dY))} %</b></div>
+    <div><span>Social / privada</span><b>${m.lp > 1e-6 ? f1(m.ls / m.lp) + ' veces' : '—'}</b></div><div><span>Mark-up 1/(θ − 1)</span><b>${fmt(100 / (s.th - 1), 0)} %</b></div></div>`);
+  nota('Cálculo exacto de la pérdida privada con demanda de elasticidad constante θ y coste marginal constante; la social se aproxima por el margen precio-coste (1/θ de los ingresos) por la caída de la producción. Con competencia monopolística P > CMg, así que cada unidad que se deja de producir es una pérdida de primer orden; la empresa individual no la tiene en cuenta: es la externalidad de demanda agregada.');
+}
+
+/* ===================================================================== 3. Stiglitz-Weiss */
+const rhoSW = (r, s) => (s.perf ? r : r / (1 + Math.pow(r / s.kap, 2)));
+const LS = (r, s) => s.sl * rhoSW(r, s), LD = (r, s) => s.D0 - 2.5 * r;
+function mSW(s) {
+  const rp = s.perf ? Infinity : s.kap;
+  const rc = biseccion((r) => LS(r, s) - LD(r, s), 0.01, 30);           /* primer corte */
+  let rs = rc, rac = 0, rb = rc;
+  if (!s.perf && Number.isFinite(rc) && rc > rp) { rb = rp; rac = LD(rp, s) - LS(rp, s); rs = biseccion((r) => LS(r, s) - LD(r, s), rp, 30); }
+  else if (!s.perf && !Number.isFinite(rc)) { rb = rp; rac = LD(rp, s) - LS(rp, s); rs = NaN; }
+  return { rp, rc, rs, rb, rac, rho: rhoSW(rb, s) };
+}
+function dibSW() {
+  lienzo(1000, 600);
+  const s = S, m = mSW(s);
+  const U = panel(svg, 70, 36, 600, 330, [0, 25], [0, 110]);
+  titulo(U, 'MERCADO DE CRÉDITO'); ejesD(U, '', 'Q', [], ticks(0, 100, 20));
+  curva(U, (r) => LD(r, s), 0, 25, { class: 'cur', stroke: 'var(--azul)' }); rot(U, 23.4, Math.max(4, LD(23.4, s)) + 5, 'L^D', 'var(--azul)');
+  curva(U, (r) => LS(r, s), 0, 25, { class: 'cur', stroke: 'var(--rojo)' }); rot(U, 23.4, LS(23.4, s) + 6, 'L^S', 'var(--rojo)');
+  /* eje r común y cuadrante inferior hacia abajo */
+  const rmax = s.perf ? 25 : Math.max(5, s.kap / 2 * 1.25);
+  const D = panel(svg, 70, 376, 600, 190, [0, 25], [-rmax, 0]);
+  el('line', { x1: D.x0, y1: D.y0 - 10, x2: D.x0, y2: D.y0 + D.h + 8, class: 'eje' }, g);
+  el('path', { d: `M${D.x0 - 4},${D.y0 + D.h + 8}l4,7l4,-7z`, fill: 'var(--fg)' }, g);
+  tx(g, D.x0 + 10, D.y0 + D.h + 12, 'ρ', {});
+  el('line', { x1: U.x0, y1: U.sy(0), x2: U.x0 + U.w + 8, y2: U.sy(0), class: 'eje' }, g);
+  el('path', { d: `M${U.x0 + U.w + 8},${U.sy(0) - 4}l7,4l-7,4z`, fill: 'var(--fg)' }, g);
+  tx(g, U.x0 + U.w + 20, U.sy(0) + 5, 'r (%)', {});
+  for (const v of ticks(0, 25, 5)) { el('text', { x: U.sx(v), y: U.sy(0) + 15, class: 'tlab', 'text-anchor': 'middle' }, g).textContent = fmt(v, 0); }
+  curva(D, (r) => -rhoSW(r, s), 0, 25, { class: 'cur', stroke: 'var(--rojo)' });
+  rot(D, 18, -rhoSW(18, s) - rmax * 0.12, 'ρ(r) = r · p(repago)', 'var(--rojo)', { style: 'fill:var(--rojo);font-size:13px' });
+  const y0top = U.sy(0);
+  if (Number.isFinite(m.rs) && m.rs < 25) { el('line', { x1: U.sx(m.rs), y1: U.sy(LS(m.rs, s)), x2: U.sx(m.rs), y2: y0top, class: 'guia' }, g); tx(g, U.sx(m.rs) + 4, y0top - 6, 'r*', { style: 'font-size:13px' }); pto(U, m.rs, LS(m.rs, s), '', { hueco: !s.perf && m.rac > 0 }); }
+  if (!s.perf) {
+    el('line', { x1: U.sx(m.rp), y1: U.sy(LD(m.rp, s)), x2: U.sx(m.rp), y2: D.sy(-rhoSW(m.rp, s)), class: 'guia' }, g);
+    tx(g, U.sx(m.rp) - 14, y0top - 6, 'r′', { style: 'font-size:13px' });
+    pto(D, m.rp, -rhoSW(m.rp, s), '');
+    if (m.rac > 0.05) { flecha(U, m.rp, LS(m.rp, s), m.rp, LD(m.rp, s), 'var(--verde)'); flecha(U, m.rp, LD(m.rp, s), m.rp, LS(m.rp, s), 'var(--verde)'); tx(g, U.sx(m.rp) - 10, U.sy((LS(m.rp, s) + LD(m.rp, s)) / 2), 'exceso de demanda', { 'text-anchor': 'end', style: 'fill:var(--verde);font-size:12px' }); pto(U, m.rp, LS(m.rp, s), ''); }
+    else pto(U, m.rc, LS(m.rc, s), 'vacía');
+  }
+  lectura(`<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\rho(r) = r\cdot p(r),\quad p(r) = \frac{1}{1 + (r/${MV("r'")})^2}\ \Rightarrow\ \arg\max\rho = r'`)}
+    ${TX(String.raw`L^S = ${MV('s')}\,\rho(r),\qquad L^D = ${MV('D_0')} - 2{,}5\,r`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(s.perf ? String.raw`\text{sin asimetría: } r^* = ${fT(m.rc)}\,\%,\ L = ${fT(LS(m.rc, s), 1)}` : String.raw`r' = ${fT(m.rp, 1)}\,\%,\ \ L^D(r') - L^S(r') = ${fT(Math.max(0, m.rac), 1)}`)}</div>
+    <div class="kv"><div><span>Tipo que fija el banco</span><b>${f1(s.perf ? m.rc : m.rb)} %</b></div><div><span>Tipo de vaciado r*</span><b>${Number.isFinite(m.rs) ? f1(m.rs) + ' %' : 'no existe'}</b></div>
+    <div><span>Crédito concedido</span><b>${f1(LS(s.perf ? m.rc : m.rb, s))}</b></div><div><span>Racionamiento</span><b>${!s.perf && m.rac > 0.05 ? f1(m.rac) : 'no hay'}</b></div></div>`);
+  nota('La probabilidad de repago cae con el tipo por selección adversa (se van los proyectos seguros) y por riesgo moral (los que quedan eligen proyectos más arriesgados). Forma funcional ilustrativa. Como en el tema, ρ se mide hacia abajo: el máximo es el punto más bajo de la curva.');
+}
+
+/* ===================================================================== 4. Solow */
+const SO = { c: 18, Lb: 100 };
+function mSolow(s) {
+  const e = (w) => (w > s.wb ? Math.pow(w - s.wb, s.be) : 0);
+  const ws = s.wb / (1 - s.be), es = e(ws);
+  const Ld = (w, ef) => Math.pow(SO.c * s.A * Math.sqrt(ef) / w, 2);
+  const Ls = Ld(ws, es);
+  const wc = SO.c * s.A * Math.sqrt(es) / Math.sqrt(SO.Lb);  /* salario al que L^D(e*) = L̄ */
+  return { e, ws, es, Ld, Ls, paro: Math.max(0, SO.Lb - Ls), wc };
+}
+function dibSolow() {
+  lienzo(1000, 480);
+  const s = S, m = mSolow(s);
+  const P = panel(svg, 62, 36, 400, 370, [0, 7], [0, 2.4]);
+  titulo(P, 'FUNCIÓN DE ESFUERZO Y SALARIO DE EFICIENCIA'); ejesD(P, 'w', 'e', ticks(0, 7, 1), ticks(0, 2.4, 0.5), 0, 1);
+  curva(P, m.e, 0, 7, { class: 'cur', stroke: 'var(--azul)' }); rot(P, 6.3, m.e(6.3) + 0.1, 'e(w)', 'var(--azul)');
+  curva(P, (w) => m.es / m.ws * w, 0, 7, { class: 'rayo', stroke: 'var(--naranja)' }); rot(P, Math.min(6.4, 2.25 * m.ws / m.es), Math.min(2.25, 6.4 * m.es / m.ws) - 0.12, 'rayo e/w máx.', 'var(--naranja)', { style: 'fill:var(--naranja);font-size:12px', 'text-anchor': 'end' });
+  hguia(P, m.ws, m.es, 'e*'); vguia(P, m.ws, m.es, 'w*'); pto(P, m.ws, m.es, '');
+  vguia(P, s.wb, 0, 'w̄');
+  const R = panel(svg, 580, 36, 380, 370, [0, 130], [0, 7]);
+  titulo(R, 'MERCADO DE TRABAJO'); ejesD(R, 'L', 'w', ticks(0, 120, 20), ticks(0, 7, 1));
+  curva(R, (L) => SO.c * s.A * Math.sqrt(m.es) / Math.sqrt(L), 1, 130, { class: 'cur', stroke: 'var(--azul)' }); rot(R, 22, SO.c * s.A * Math.sqrt(m.es) / Math.sqrt(22) + 0.2, 'L^D', 'var(--azul)');
+  el('line', { x1: R.sx(SO.Lb), y1: R.y0, x2: R.sx(SO.Lb), y2: R.y0 + R.h, class: 'cur', stroke: 'var(--rojo)', 'stroke-dasharray': '6 4' }, clip(R)); rot(R, SO.Lb + 2, 6.6, 'L̄', 'var(--rojo)');
+  curva(R, () => m.ws, 0, 130, { class: 'cur', stroke: 'var(--naranja)' }); rot(R, 3, m.ws + 0.2, 'w* = w̄/(1 − β)', 'var(--naranja)', { style: 'fill:var(--naranja);font-size:12px' });
+  pto(R, Math.min(m.Ls, 129), m.ws, ''); vguia(R, Math.min(m.Ls, 129), m.ws, 'L*');
+  if (m.paro > 1) { flecha(R, m.Ls, 0.5, SO.Lb, 0.5, 'var(--verde)'); flecha(R, SO.Lb, 0.5, m.Ls, 0.5, 'var(--verde)'); tx(g, R.sx((m.Ls + SO.Lb) / 2), R.sy(0.8), 'paro involuntario', { 'text-anchor': 'middle', style: 'fill:var(--verde);font-size:12px' }); }
+  lectura(`<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\max_{w,L}\ \pi = ${MV('A')}\,F\bigl(e(w)L\bigr) - wL,\qquad e(w) = (w - ${MV(String.raw`\bar w`)})^{${MV(String.raw`\beta`)}}`)}
+    ${TX(String.raw`\varepsilon_{e,w} = \frac{w}{e(w)}\,e'(w) = 1\ \Rightarrow\ w^* = \frac{\bar w}{1-\beta}`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`w^* = ${fT(m.ws)},\quad e^* = ${fT(m.es, 3)},\quad \frac{w^*}{e^*} = ${fT(m.ws / m.es, 3)},\quad L^* = ${fT(m.Ls, 1)}`)}</div>
+    <div class="kv"><div><span>Salario de eficiencia w*</span><b>${f2(m.ws)}</b></div><div><span>Salario al que L<sup>D</sup>(e*) = L̄</span><b>${Number.isFinite(m.wc) ? f2(m.wc) : '—'}</b></div>
+    <div><span>Empleo L* (de L̄ = 100)</span><b>${f1(Math.min(m.Ls, 999))}</b></div><div><span>Paro involuntario</span><b>${f1(m.paro)}</b></div></div>`);
+  nota('F(eL) = 36·(eL)<sup>1/2</sup> con L̄ = 100. Con w* fijo, la demanda de trabajo se lee con el esfuerzo e*. Si w* supera al salario de vaciado, quienes no encuentran empleo aceptarían trabajar por menos, pero a la empresa no le compensa: bajar el salario bajaría el esfuerzo más que el coste.');
+}
+
+/* ===================================================================== 5. Shapiro-Stiglitz */
+const SSc = { rho: 0.05, Lb: 100, dpend: 0.1 };
+function mSS(s) {
+  const CNE = (L) => (L < SSc.Lb ? s.eb + s.sub + (SSc.rho + SSc.Lb * s.bs / (SSc.Lb - L)) * s.eb / s.q : NaN);
+  const Ld = (L) => s.ad - SSc.dpend * L;
+  const Ls = biseccion((L) => CNE(L) - Ld(L), 0, SSc.Lb - 1e-6), ws = Ld(Ls);
+  const wv = Ld(SSc.Lb);
+  return { CNE, Ld, Ls, ws, wv, paro: SSc.Lb - Ls };
+}
+function dibSS() {
+  lienzo(1000, 480);
+  const s = S, m = mSS(s);
+  const P = panel(svg, 70, 36, 700, 370, [0, 115], [0, 16]);
+  titulo(P, 'CONDICIÓN DE NO ELUDIR Y DEMANDA DE TRABAJO'); ejesD(P, 'L', 'w', ticks(0, 110, 10), ticks(0, 16, 2));
+  curva(P, m.Ld, 0, 115, { class: 'cur', stroke: 'var(--azul)' }); rot(P, 110, m.Ld(110) + 0.5, 'L^d', 'var(--azul)');
+  curva(P, m.CNE, 0, SSc.Lb - 0.05, { class: 'cur', stroke: 'var(--rojo)' }, 600);
+  const Lt = biseccion((L) => m.CNE(L) - 14.5, 0, SSc.Lb - 1e-6); rot(P, (Lt || 95) - 9, 14.5, 'CNE', 'var(--rojo)');
+  el('line', { x1: P.sx(SSc.Lb), y1: P.y0, x2: P.sx(SSc.Lb), y2: P.y0 + P.h, class: 'cur', stroke: 'var(--gris)', 'stroke-dasharray': '6 4' }, g); rot(P, SSc.Lb + 1, 15.4, 'L̄', 'var(--gris)');
+  curva(P, () => s.eb + s.sub, 0, 115, { class: 'rayo', stroke: 'var(--gris)' }); rot(P, 2, s.eb + s.sub + 0.3, s.sub > 0 ? 'ē + w̄' : 'ē', 'var(--gris)');
+  if (Number.isFinite(m.Ls)) {
+    hguia(P, m.Ls, m.ws, 'w*'); vguia(P, m.Ls, m.ws, 'L*'); pto(P, m.Ls, m.ws, '');
+    if (m.paro > 1) { flecha(P, m.Ls, 0.45, SSc.Lb, 0.45, 'var(--verde)'); flecha(P, SSc.Lb, 0.45, m.Ls, 0.45, 'var(--verde)'); tx(g, P.sx(m.Ls) - 6, P.sy(0.45) + 4, 'paro involuntario', { 'text-anchor': 'end', style: 'fill:var(--verde);font-size:12px' }); }
+  }
+  pto(P, SSc.Lb, m.wv, '', { hueco: true }); tx(g, P.sx(SSc.Lb) + 8, P.sy(m.wv) - 10, 'vaciado (supervisión perfecta)', { style: 'font-size:11px' });
+  lectura(`<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`CNE:\ w = ${MV(String.raw`\bar e`)} + ${MV(String.raw`\bar w`)} + \Bigl(\rho + \frac{\bar L\,${MV('b')}}{\bar L - NL}\Bigr)\frac{\bar e}{${MV('q')}}`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`w^* = ${fT(m.ws)},\quad L^* = ${fT(m.Ls, 1)},\quad \bar L - L^* = ${fT(m.paro, 1)}`)}</div>
+    <div class="kv"><div><span>Salario de eficiencia w*</span><b>${f2(m.ws)}</b></div><div><span>Salario de vaciado</span><b>${f2(m.wv)}</b></div>
+    <div><span>Empleo L*</span><b>${f1(m.Ls)}</b></div><div><span>Paro involuntario</span><b>${f1(m.paro)}</b></div></div>`);
+  nota('ρ = 0,05 y L̄ = 100; demanda de trabajo lineal w = posición − 0,1·L. En el modelo q y b son tasas por unidad de tiempo (tiempo continuo); el tema las llama probabilidades. La CNE del tema no lleva subsidio (w̄ = 0); Shapiro y Stiglitz (1984) lo incluyen sumado a ē.');
+}
+
+/* ===================================================================== 6. NAIRU */
+function mNA(s) {
+  const srp = s.PAT / (1 + s.mu);
+  const srn = (U) => (s.sinprod ? (1 - s.al * U + s.Z - s.h * (U - s.U1 / 100)) : (1 - s.al * U + s.Z - s.h * (U - s.U1 / 100)) * s.PAT);
+  const Un = s.sinprod ? (1 + s.Z + s.h * s.U1 / 100 - srp) / (s.al + s.h) : (s.mu / (1 + s.mu) + s.Z + s.h * s.U1 / 100) / (s.al + s.h);
+  return { srp, srn, Un, Ln: 100 * (1 - Un) };
+}
+function dibNA() {
+  lienzo(1000, 480);
+  const s = S, m = mNA(s), ymax = 1.8;
+  const L = panel(svg, 62, 36, 400, 370, [0, 115], [0, ymax]);
+  titulo(L, 'PLANO DEL EMPLEO'); ejesD(L, 'L', 'W/P', ticks(0, 100, 20), ticks(0, ymax, 0.3), 0, 1);
+  curva(L, () => m.srp, 0, 115, { class: 'cur', stroke: 'var(--rojo)' }); rot(L, 102, m.srp + 0.06, 'SRP', 'var(--rojo)');
+  curva(L, (l) => m.srn(1 - l / 100), 0, 100, { class: 'cur', stroke: 'var(--azul)' }); rot(L, 78, m.srn(0.22) + 0.07, 'SRN', 'var(--azul)', { 'text-anchor': 'end' });
+  el('line', { x1: L.sx(100), y1: L.y0, x2: L.sx(100), y2: L.y0 + L.h, class: 'cur', stroke: 'var(--gris)', 'stroke-dasharray': '6 4' }, g); rot(L, 101, ymax - 0.08, 'L^T', 'var(--gris)');
+  const ok = m.Un > 0 && m.Un < 1;
+  if (ok) { pto(L, m.Ln, m.srp, ''); vguia(L, m.Ln, m.srp, 'L_0'); if (m.Un > 0.03) { flecha(L, m.Ln, 0.12, 100, 0.12, 'var(--verde)'); flecha(L, 100, 0.12, m.Ln, 0.12, 'var(--verde)'); tx(g, L.sx((m.Ln + 100) / 2), L.sy(0.2), 'NAIRU (parados)', { 'text-anchor': 'middle', style: 'fill:var(--verde);font-size:12px' }); } }
+  const R = panel(svg, 580, 36, 380, 370, [0, 0.5], [0, ymax]);
+  titulo(R, 'PLANO DEL PARO'); ejesD(R, 'U', 'W/P', ticks(0, 0.5, 0.1), ticks(0, ymax, 0.3), 1, 1);
+  curva(R, () => m.srp, 0, 0.5, { class: 'cur', stroke: 'var(--rojo)' }); rot(R, 0.44, m.srp + 0.06, 'SRP', 'var(--rojo)');
+  curva(R, m.srn, 0, 0.5, { class: 'cur', stroke: 'var(--azul)' }); rot(R, 0.03, m.srn(0.03) + 0.07, 'SRN', 'var(--azul)');
+  if (ok) { pto(R, m.Un, m.srp, ''); vguia(R, m.Un, m.srp, 'U_n'); }
+  if (s.h > 0) { vguia(R, s.U1 / 100, 0.02, ''); tx(g, R.sx(s.U1 / 100), R.y0 + R.h - 8, 'U₋₁', { 'text-anchor': 'middle', style: 'font-size:11px' }); }
+  const f = s.sinprod ? String.raw`U_n = \frac{1}{\alpha+h}\Bigl(\frac{1+\mu-PAT}{1+\mu} + Z + h\,U_{-1}\Bigr)` : String.raw`U_n = \frac{1}{\alpha + h}\Bigl(\frac{\mu}{1+\mu} + Z + h\,U_{-1}\Bigr)`;
+  lectura(`<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`SRP:\ \frac{W}{P} = \frac{${MV('PAT')}}{1+${MV(String.raw`\mu`)}},\qquad SRN:\ \frac{W}{P^e} = \bigl(1 - ${MV(String.raw`\alpha`)}U + ${MV('Z')} - ${MV('h')}(U - ${MV('U_{-1}')})\bigr)${s.sinprod ? '' : String.raw`\cdot PAT^e`}`)}
+    ${TX(f)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`U_n = ${ok ? fT(100 * m.Un, 1) + String.raw`\,\%` : String.raw`\text{fuera de rango}`},\quad W/P = ${fT(m.srp, 3)}`)}</div>
+    <div class="kv"><div><span>NAIRU</span><b>${ok ? f1(100 * m.Un) + ' %' : '—'}</b></div><div><span>Empleo L₀ (de L<sup>T</sup> = 100)</span><b>${ok ? f1(m.Ln) : '—'}</b></div>
+    <div><span>Salario real</span><b>${f3(m.srp)}</b></div><div><span>¿Depende de PAT?</span><b>${s.sinprod ? 'sí (SRN sin productividad)' : 'no'}</b></div></div>`);
+  nota('En equilibrio Pᵉ = P y PATᵉ = PAT. Con h = 0 la NAIRU es la del tema, U<sub>n</sub> = (μ/(1 + μ) + Z)/α. h es una extensión para ver la histéresis de Blanchard y Summers (1986): la SRN depende también de U − U₋₁ (los insiders), y con h grande la NAIRU se queda cerca del paro pasado.');
+}
+
+const DIB = { menu: dibMenu, bk: dibBK, sw: dibSW, solow: dibSolow, ss: dibSS, nairu: dibNA };
+
+/* ===================================================================== chips */
+const CHIPS = {
+  menu: (add) => { add('Shock pequeño', S.sd === 1, () => { S.sd = 1; }); add('Shock grande', S.sd === 3.5, () => { S.sd = 3.5; }); add('CMg plano (rigidez real)', S.kc === 0, () => { S.kc = 0; }); add('CMg empinado', S.kc === 0.8, () => { S.kc = 0.8; }); },
+  bk: (add) => { add('Sin rigidez real (φ = 1)', S.phi === 1, () => { S.phi = 1; }); add('Rigidez real (φ = 0,3)', S.phi === 0.3, () => { S.phi = 0.3; }); },
+  sw: (add) => { add('Credit crunch: cae la oferta de fondos', false, () => { S.sl = Math.max(6, S.sl - 2); }); add('Más demanda de crédito', false, () => { S.D0 = Math.min(100, S.D0 + 10); }); },
+  solow: (add) => { add('Shock negativo (A = 0,8)', S.A === 0.8, () => { S.A = 0.8; }); add('A = 1', S.A === 1, () => { S.A = 1; }); },
+  ss: (add) => { add('Supervisión casi perfecta (q = 2)', S.q === 2, () => { S.q = 2; }); add('Caída de la demanda de trabajo', false, () => { S.ad = Math.max(8, S.ad - 2); }); add('Subsidio salarial (+2)', false, () => { S.ad = Math.min(16, S.ad + 2); }); },
+  nairu: (add) => { add('Modelo del tema (h = 0)', S.h === 0 && !S.sinprod, () => { S.h = 0; S.sinprod = false; }); add('Histéresis fuerte (h = 5)', S.h === 5, () => { S.h = 5; }); },
+};
+
+/* ===================================================================== explicaciones */
+const INI = {
+  menu: () => { const m = mMenu(S); return { titulo: NOM.menu, cambia: new Set(['menu', 'triangulo']), p: [MIRAR.menu, `Ahora el triángulo vale ${f2(m.G)} y la pérdida social ${f2(m.W)}: ${m.G > 1e-6 ? f1(m.W / m.G) : '—'} veces más.`] }; },
+  bk: () => ({ titulo: NOM.bk, cambia: new Set(['externalidad']), p: [MIRAR.bk] }),
+  sw: () => ({ titulo: NOM.sw, cambia: new Set(['racionamiento']), p: [MIRAR.sw] }),
+  solow: () => ({ titulo: NOM.solow, cambia: new Set(['condicion']), p: [MIRAR.solow] }),
+  ss: () => ({ titulo: NOM.ss, cambia: new Set(['cne']), p: [MIRAR.ss] }),
+  nairu: () => ({ titulo: NOM.nairu, cambia: new Set(['nairu']), p: [MIRAR.nairu] }),
+};
+const EXPL = {
+  menu(A, B, k) {
+    const a = mMenu(A), b = mMenu(B), p = [], c = new Set(['triangulo']);
+    if (k === 'sd') p.push(`La demanda cae ${f2(B.sd)}. El triángulo pasa de ${f2(a.G)} a ${f2(b.G)}: crece con el cuadrado del shock (lo que se pierde por no ajustar es de segundo orden). La pérdida social pasa de ${f2(a.W)} a ${f2(b.W)} y crece casi en proporción al shock (primer orden). Es el primer incentivo del tema: más incentivo a cambiar precios cuanto mayor el cambio de la demanda.`);
+    if (k === 'bd') p.push(`Con una demanda ${B.bd > A.bd ? 'más empinada' : 'más plana'} el ingreso marginal también lo es (pendiente 2b = ${f2(2 * B.bd)}). El triángulo pasa de ${f2(a.G)} a ${f2(b.G)}. Es el tercer incentivo del tema: cuanto más plano el IMg (menos poder de mercado), más se pierde por no ajustar.`);
+    if (k === 'kc') { c.add('rigidez'); p.push(`Con un CMg ${B.kc > A.kc ? 'más empinado' : 'más plano'} (pendiente ${f2(B.kc)}), el triángulo pasa de ${f2(a.G)} a ${f2(b.G)}. Es el segundo incentivo: si el coste marginal cae mucho al bajar la producción, mantener el precio sale caro. Un CMg plano es una rigidez real, y por eso Ball y Romer (1990) dicen que las rigideces reales amplifican las nominales.`); }
+    if (k === 'z') p.push(`El coste de menú es ahora ${f2(B.z)}. La empresa ${b.ajusta ? 'ajusta el precio: la ganancia supera al coste' : 'mantiene el precio: la ganancia no cubre el coste'}.`);
+    if (k === 'H') p.push(`Si el shock dura ${B.H} periodos, la ganancia de ajustar se cobra ${B.H} veces y el coste de menú una sola: ${f2(B.H * b.G)} frente a ${f2(B.z)}. Es el cuarto y quinto incentivo del tema (horizonte y permanencia del shock).`);
+    if (a.ajusta !== b.ajusta && k !== 'z') p.push(b.ajusta ? 'Ahora sí le compensa cambiar el precio: pasa de J a W.' : 'Ahora ya no le compensa cambiar el precio: se queda en J con P₀ y la cantidad cae hasta Q*.');
+    return { titulo: tituloCambio(A, B, k), p, cambia: c };
+  },
+  bk(A, B, k) {
+    const a = mBK(A), b = mBK(B), p = [], c = new Set(['externalidad']);
+    if (k === 'x') p.push(`M cae un ${f1(B.x)} %. La pérdida privada de no ajustar es ${fmt(b.lp, 3)} % de los ingresos; la social, ${f2(b.ls)} %. Para shocks pequeños la primera es casi nula (segundo orden) y la segunda no (primer orden).`);
+    if (k === 'th') p.push(`Con θ = ${f1(B.th)} el mark-up es ${fmt(100 / (B.th - 1), 0)} %. Más competencia (θ alto) aumenta la pérdida privada (${fmt(a.lp, 3)} → ${fmt(b.lp, 3)} %), porque desviarse del precio óptimo cuesta más clientes, y reduce la social (${f2(a.ls)} → ${f2(b.ls)} %), porque el precio está más cerca del coste marginal.`);
+    if (k === 'phi') { c.add('rigidezreal'); p.push(`Con φ = ${f2(B.phi)} la empresa querría bajar su precio solo un ${f1(B.phi * B.x)} %. La pérdida privada pasa de ${fmt(a.lp, 3)} a ${fmt(b.lp, 3)} %: con rigidez real, un coste de menú todavía menor basta para que no ajuste. Es el mensaje de Ball y Romer (1990).`); }
+    if (k === 'zb') p.push(`Coste de menú ${f2(B.zb)} %. ${b.ajusta ? 'Supera a la pérdida privada: cada empresa ajusta.' : 'No la supera: ninguna ajusta y la producción cae.'}`);
+    if (a.ajusta !== b.ajusta) p.push(b.ajusta ? 'Ahora todas ajustan: M/P y P<sub>i</sub>/P no cambian y no hay efecto real.' : `Ahora ninguna ajusta: P no baja, M/P cae un ${f1(B.x)} % y con él la demanda de todas. Si todas bajaran el precio estarían mejor, pero a ninguna le compensa hacerlo sola: es el fallo de coordinación.`);
+    return { titulo: tituloCambio(A, B, k), p, cambia: c };
+  },
+  sw(A, B, k) {
+    const a = mSW(A), b = mSW(B), p = [], c = new Set(['racionamiento']);
+    if (k === 'perf') { c.add('asimetria'); p.push(B.perf ? `Sin asimetría informativa la probabilidad de repago no depende del tipo: ρ = r crece siempre, la oferta de crédito también y el mercado se vacía en r = ${f1(b.rc)} %.` : `Vuelve la asimetría: ρ tiene un máximo en r′ = ${f1(B.kap)} % y el banco no sube de ahí aunque haya exceso de demanda.`); }
+    if (k === 'kap') p.push(`El rendimiento esperado alcanza su máximo en r′ = ${f1(B.kap)} %. ${b.rac > 0.05 ? `A ese tipo la demanda supera a la oferta en ${f1(b.rac)}: hay racionamiento.` : 'A ese tipo la oferta ya cubre la demanda: no hay racionamiento.'}`);
+    if (k === 'D0') p.push(`La demanda de crédito se desplaza. El banco ${b.rac > 0.05 ? `sigue en r′ = ${f1(b.rp)} % y solo crece el racionamiento: ${f1(Math.max(0, a.rac))} → ${f1(b.rac)}. El ajuste se hace por cantidades, no por el precio.` : 'puede vaciar el mercado sin pasar de r′.'}`);
+    if (k === 'sl') p.push(`Cambia la oferta de fondos por punto de rendimiento. Crédito concedido: ${f1(LS(A.perf ? a.rc : a.rb, A))} → ${f1(LS(B.perf ? b.rc : b.rb, B))}. Con racionamiento, la política monetaria actúa por cantidades (canal del crédito).`);
+    return { titulo: tituloCambio(A, B, k), p, cambia: c };
+  },
+  solow(A, B, k) {
+    const a = mSolow(A), b = mSolow(B), p = [], c = new Set(['condicion']);
+    if (k === 'A') { c.add('rigidez'); p.push(`La productividad (o la demanda) pasa a ${f2(B.A)}. El salario de eficiencia no cambia (w* = ${f2(b.ws)}): la condición ε = 1 no depende de A. Todo el ajuste es por empleo: L* pasa de ${f1(a.Ls)} a ${f1(b.Ls)}. Es la rigidez real del salario.`); }
+    if (k === 'wb') p.push(`Con un salario alternativo w̄ = ${f2(B.wb)}, el esfuerzo empieza más tarde y la tangencia se desplaza: w* = w̄/(1 − β) pasa de ${f2(a.ws)} a ${f2(b.ws)}. El empleo pasa de ${f1(a.Ls)} a ${f1(b.Ls)}.`);
+    if (k === 'be') p.push(`Con β = ${f2(B.be)}, el esfuerzo responde ${B.be > A.be ? 'más' : 'menos'} al salario. w* pasa de ${f2(a.ws)} a ${f2(b.ws)} y e* de ${f3(a.es)} a ${f3(b.es)}.`);
+    return { titulo: tituloCambio(A, B, k), p, cambia: c };
+  },
+  ss(A, B, k) {
+    const a = mSS(A), b = mSS(B), p = [], c = new Set(['cne']);
+    const res = `w* pasa de ${f2(a.ws)} a ${f2(b.ws)}, el empleo de ${f1(a.Ls)} a ${f1(b.Ls)} y el paro de ${f1(a.paro)} a ${f1(b.paro)}.`;
+    if (k === 'q') p.push(`${B.q > A.q ? 'Mejor supervisión' : 'Peor supervisión'} (q = ${f2(B.q)}): hace falta ${B.q > A.q ? 'menos' : 'más'} prima para que no compense eludir y la CNE se desplaza ${B.q > A.q ? 'hacia abajo' : 'hacia arriba'}. ${res} Es la estática comparativa 1 del tema; con q muy alto el salario tiende a ē.`);
+    if (k === 'bs') p.push(`Con más destrucción de empleo (b = ${f3(B.bs)}) el trabajador pierde el puesto aunque se esfuerce, y el despido castiga menos: la CNE sube. ${res}`);
+    if (k === 'eb') p.push(`Cambia la desutilidad del esfuerzo. ${res}`);
+    if (k === 'ad') p.push(`${B.ad < A.ad ? 'Cae' : 'Sube'} la demanda de trabajo. ${res} ${B.ad < A.ad ? 'El salario baja poco porque el mayor paro abarata inducir el esfuerzo, pero el ajuste es sobre todo por cantidades (estática comparativa 3).' : 'Es lo que hace un subsidio salarial financiado con impuestos de suma fija: sube salario y empleo a lo largo de la CNE.'}`);
+    if (k === 'sub') { c.add('subsidio'); p.push(`Con un subsidio de desempleo w̄ = ${f2(B.sub)} estar en paro es menos malo y hay que pagar más para que no compense eludir. ${res} Es la estática comparativa 2 del tema, que la fórmula de la CNE del tema no recoge.`); }
+    return { titulo: tituloCambio(A, B, k), p, cambia: c };
+  },
+  nairu(A, B, k) {
+    const a = mNA(A), b = mNA(B), p = [], c = new Set(['nairu']);
+    const res = `La NAIRU pasa de ${f1(100 * a.Un)} % a ${f1(100 * b.Un)} %.`;
+    if (k === 'mu') { c.add('srp'); p.push(`Un mark-up ${B.mu > A.mu ? 'mayor' : 'menor'} ${B.mu > A.mu ? 'baja' : 'sube'} el salario real que las empresas están dispuestas a pagar: la SRP se desplaza. ${res} Más poder de mercado, más paro de equilibrio.`); }
+    if (k === 'Z') { c.add('z'); p.push(`Los factores institucionales Z (subsidio, costes de despido, poder sindical…) ${B.Z > A.Z ? 'suben' : 'bajan'} la SRN. ${res}`); }
+    if (k === 'al') p.push(`Con α = ${f2(B.al)} el salario negociado responde ${B.al > A.al ? 'más' : 'menos'} al paro (SRN ${B.al > A.al ? 'más' : 'menos'} empinada en el plano U). ${res} Hace falta ${B.al > A.al ? 'menos' : 'más'} paro para moderar las aspiraciones salariales.`);
+    if (k === 'PAT') { c.add('pat'); p.push(B.sinprod ? `Con la SRN sin productividad, una mayor PAT sube la SRP pero no la SRN: ${res} La NAIRU depende del nivel de productividad.` : `La productividad sube las dos curvas en la misma proporción: el salario real pasa a ${f3(b.srp)} pero ${res.replace('pasa de', 'se queda en').replace(/ a .*%\./, '.')} Es el resultado de Layard y Nickell: a largo plazo la NAIRU no depende de la productividad.`); }
+    if (k === 'sinprod') { c.add('pat'); p.push(B.sinprod ? `Versión de la SRN sin productividad (W/Pᵉ = 1 − αU + Z): PAT ya no se cancela. ${res}` : `Versión de Layard y Nickell, con PATᵉ en la SRN: PAT se cancela. ${res}`); }
+    if (k === 'h') { c.add('histeresis'); p.push(`Con h = ${f1(B.h)} los insiders negocian mirando el cambio del paro. ${res} Cuanto mayor h, más se parece la NAIRU al paro del periodo anterior (${f1(B.U1)} %): un shock que sube el paro deja huella.`); }
+    if (k === 'U1') { c.add('histeresis'); p.push(B.h > 0 ? `Con histéresis, el paro pasado arrastra la NAIRU: ${res}` : 'Con h = 0 el paro pasado no influye: sube h para verlo.'); }
+    return { titulo: tituloCambio(A, B, k), p, cambia: c };
+  },
+};
+
+/* ===================================================================== fichas */
+const FICHAS = {
+  menu: () => [
+    { k: 'menu', n: 'Costes de menú', d: 'Todo coste de cambiar el precio nominal: reuniones, información, imprimir listas, imagen. Pequeños, pero pueden superar el beneficio de ajustar ante shocks pequeños.', v: `z = ${f2(S.z)}`, ref: '3A7 §1. 2. 2 · Mankiw (1985)' },
+    { k: 'triangulo', n: 'Pérdida privada (triángulo T-V)', d: 'Beneficio que la empresa deja de ganar si no ajusta: el área entre IMg₁ y CMg de Q* a Q₁. Es de segundo orden en el tamaño del shock.', f: String.raw`G = \int_{Q^*}^{Q_1}(IMg_1 - CMg)\,dQ`, v: f2(mMenu(S).G), ref: '3A7 §1. 2. 2' },
+    { k: 'social', n: 'Pérdida social', d: 'Excedente que pierde la sociedad si la empresa no ajusta: el área entre D₁ y CMg de Q* a Q₁. Es de primer orden, porque el precio está por encima del coste marginal.', v: f2(mMenu(S).W), ref: '3A7 §1. 2. 2 y §1. 3' },
+    { k: 'rigidez', n: 'Rigidez real', d: 'Todo lo que hace que el precio óptimo responda poco a la demanda: CMg plano, demanda poco elástica… Por sí sola no da rigidez nominal, pero multiplica el efecto de pequeños costes de menú.', ref: '3A7 §1. 2. 2 · Ball y Romer (1990)' },
+  ],
+  bk: () => [
+    { k: 'externalidad', n: 'Externalidad de demanda agregada', d: 'Cuando una empresa baja su precio, sube M/P y con él la demanda de todas las demás. Ninguna lo tiene en cuenta, así que el equilibrio con precios rígidos es ineficiente.', ref: '3A7 §1. 3 · Blanchard y Kiyotaki (1987)' },
+    { k: 'demanda', n: 'Demanda de la empresa i', d: 'Depende de los saldos reales y de su precio relativo con elasticidad θ.', f: String.raw`Y_i^d = \frac{M}{P}\Bigl(\frac{P_i}{P}\Bigr)^{-\theta}`, v: `θ = ${f1(S.th)}`, ref: '3A7 §1. 3' },
+    { k: 'orden', n: 'Primer frente a segundo orden', d: 'Cerca del óptimo, la pérdida de beneficio por un precio desviado crece con el cuadrado de la desviación; la caída de la producción, en proporción al shock. Por eso costes de menú pequeños dan efectos reales grandes.', ref: '3A7 §1. 3' },
+    { k: 'rigidezreal', n: 'Rigidez real (φ)', d: 'Si el precio óptimo responde poco a la demanda, la pérdida de no ajustar es aún menor.', v: `φ = ${f2(S.phi)}`, ref: '3A7 §1. 2. 2' },
+  ],
+  sw: () => [
+    { k: 'racionamiento', n: 'Racionamiento del crédito', d: 'Entre solicitantes idénticos unos obtienen préstamo y otros no, y los rechazados pagarían un tipo mayor. El banco no sube el tipo porque bajaría su rendimiento esperado.', v: mSW(S).rac > 0.05 && !S.perf ? f1(mSW(S).rac) : 'no hay', ref: '3A7 §1. 4. 2. 1 · Stiglitz y Weiss (1981), AER 71(3)' },
+    { k: 'rho', n: 'Rendimiento esperado ρ(r)', d: 'Tipo cobrado por probabilidad de repago. Sube con r hasta r′ y luego baja, porque domina el mayor impago.', f: String.raw`\rho(r) = r\cdot p(\text{repago})`, ref: '3A7 §1. 4. 2. 1' },
+    { k: 'asimetria', n: 'Selección adversa y riesgo moral', d: 'Al subir el tipo se retiran los proyectos seguros (selección adversa, antes de firmar) y los que quedan eligen proyectos más arriesgados (riesgo moral, después).', ref: '3A7 §1. 4. 2. 1' },
+    { k: 'tipos', n: 'r′ y r*', d: 'r′ maximiza el rendimiento del banco; r* vaciaría el mercado. Con r′ < r* hay exceso de demanda en equilibrio.', v: `r′ = ${S.perf ? '—' : f1(S.kap) + ' %'}`, ref: '3A7 §1. 4. 2. 1' },
+  ],
+  solow: () => [
+    { k: 'condicion', n: 'Condición de Solow', d: 'El salario que minimiza el coste del trabajo eficiente w/e(w) es aquel en que la elasticidad del esfuerzo respecto al salario es 1, sea cual sea A.', f: String.raw`\frac{w}{e(w)}\,\frac{\partial e(w)}{\partial w} = 1`, v: `w* = ${f2(mSolow(S).ws)}`, ref: '3A7 §1. 4. 3. 1 y Anexo 1' },
+    { k: 'esfuerzo', n: 'Función de esfuerzo', d: 'El esfuerzo crece con el salario: nutrición, coste del despido, selección, lealtad, rotación.', f: String.raw`e(w) = (w - \bar w)^{\beta}`, ref: '3A7 §1. 4. 3. 1' },
+    { k: 'rigidez', n: 'Rigidez real del salario', d: 'Como w* no depende de A, un shock de demanda o productividad se ajusta por empleo y no por salario.', v: `L* = ${f1(mSolow(S).Ls)}`, ref: '3A7 §1. 4. 3. 1' },
+  ],
+  ss: () => [
+    { k: 'cne', n: 'Condición de no eludir (CNE)', d: 'Salario mínimo que hace que al trabajador no le compense eludir para cada nivel de empleo. Tiende a infinito en el pleno empleo, porque entonces el despido no castiga.', f: String.raw`w = \bar e + \Bigl(\rho + \frac{\bar L b}{\bar L - NL}\Bigr)\frac{\bar e}{q}`, ref: '3A7 §1. 4. 3. 2 y Anexo 2' },
+    { k: 'involuntario', n: 'Desempleo involuntario', d: 'Los parados preferirían trabajar al salario vigente, pero no pueden hacerlo bajar: no pueden comprometerse de forma creíble a no eludir.', v: f1(mSS(S).paro), ref: '3A7 §1. 4. 3. 2' },
+    { k: 'subsidio', n: 'Subsidio de desempleo', d: 'Sube el valor de estar parado y obliga a pagar un salario mayor para inducir esfuerzo. En Shapiro y Stiglitz (1984) aparece sumado a ē en la CNE.', v: `w̄ = ${f2(S.sub)}`, ref: '3A7 §1. 4. 3. 2 (estática comparativa 2)' },
+    { k: 'ineficiencia', n: 'Ineficiencia del equilibrio', d: 'En el pleno empleo la productividad marginal supera a ē: todos querrían trabajar y la empresa contratarlos. Soluciones: subir q o subsidios salariales.', ref: '3A7 §1. 4. 3. 2' },
+  ],
+  nairu: () => [
+    { k: 'nairu', n: 'NAIRU', d: 'Tasa de paro en que las aspiraciones de empresas (SRP) y trabajadores (SRN) son compatibles y la inflación no se acelera.', f: String.raw`U_n = \frac{1}{\alpha}\Bigl(\frac{\mu}{1+\mu} + Z\Bigr)`, v: f1(100 * mNA(S).Un) + ' %', ref: '3A7 §1. 6. 2. 3 · Layard y Nickell (1985)' },
+    { k: 'srp', n: 'Curva SRP', d: 'Salario real que las empresas están dispuestas a pagar, de la regla de mark-up sobre el coste laboral unitario. Horizontal.', f: String.raw`\frac{W}{P} = \frac{PAT}{1+\mu}`, ref: '3A7 §1. 6. 2. 1' },
+    { k: 'srn', n: 'Curva SRN', d: 'Salario real negociado: baja con el paro y sube con los factores institucionales Z.', f: String.raw`\frac{W}{P^e} = (1 - \alpha U + Z)\cdot PAT^e`, ref: '3A7 §1. 6. 2. 2' },
+    { k: 'z', n: 'Factores institucionales Z', d: 'Subsidio de desempleo y su duración, costes de despido, salario mínimo, poder sindical, centralización de la negociación (efecto en U invertida).', v: f3(S.Z), ref: '3A7 §1. 6. 2. 2' },
+    { k: 'pat', n: 'Productividad y NAIRU', d: 'Si la SRN lleva PATᵉ, la productividad se cancela y no afecta a la NAIRU; si no, sí.', ref: '3A7 §1. 6. 2. 3' },
+    { k: 'histeresis', n: 'Histéresis', d: 'El paro de equilibrio depende del paro pasado: los insiders negocian para ellos y los parados de larga duración pierden capacidades.', v: `h = ${f1(S.h)}`, ref: '3A7 §1. 6. 5 · Blanchard y Summers (1986)' },
+  ],
+};
+
+arrancar('menu');
+
+</script>
+
+</body>
+</html>

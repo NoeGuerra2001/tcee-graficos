@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+/* Parámetros: ?tema=claro|oscuro (fuerza el tema), ?compacto=1 (oculta la cabecera, para insertar en Obsidian) */
+(function () { try {
+  var q = new URLSearchParams(location.search), t = q.get('tema');
+  if (t === 'oscuro' || t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  if (t === 'claro' || t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  if (q.get('compacto')) document.documentElement.classList.add('compacto');
+} catch (e) {} })();
+</script>
+<style>
+html, body { margin: 0; }
+body { font-family: system-ui, sans-serif; font-size: 14px; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.compacto header { display: none !important; }
+.compacto body { padding-block: 8px 24px !important; }
+</style>
+<title>NEK: segunda generación</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script>
+window.MathJax = {
+  tex: { packages: { '[+]': ['html'] } },
+  svg: { fontCache: 'local' },
+  options: { enableAssistiveMml: false },
+  startup: { typeset: false, ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => { try { document.head.appendChild(MathJax.svgStylesheet()); } catch (e) {} window.__mjListo = true; if (window.montar) window.montar(document.body); }); } },
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg-full.min.js"></script>
+<style>
+/* Layout: lámina de pizarra a la izquierda (SVG), lectura y mandos a la derecha; una columna en móvil. Dos pestañas: corto y largo plazo. */
+:root {
+  --bg: #fbfaf7; --fg: #1d2230; --muted: #5f6676; --line: #d9dbe2; --panel: #f1f2f5;
+  --azul: #2E5C8A; --naranja: #D9671E; --verde: #548235; --rojo: #C00000; --gris: #7F7F7F; --punto: #1F3864;
+  --z1: rgba(192,0,0,.07); --z2: rgba(84,130,53,.10); --z3: rgba(127,127,127,.12);
+  --f-math: "STIX Two Text", "STIXGeneral", "Cambria Math", "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15181f; --fg: #e6e8ee; --muted: #9aa1b0; --line: #343a47; --panel: #1d212b;
+  --azul: #7FB0E6; --naranja: #F2A060; --verde: #8CC56A; --rojo: #FF6B66; --gris: #8d93a0; --punto: #e6e8ee;
+  --z1: rgba(255,107,102,.09); --z2: rgba(140,197,106,.11); --z3: rgba(141,147,160,.13); color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+header { display: flex; flex-direction: column; gap: 4px; }
+.eyebrow { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-math); font-weight: 600; font-size: 32px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.intro { color: var(--muted); max-width: 70ch; margin: 0; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tabs button, .chips button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--fg); cursor: pointer; }
+.tabs button[aria-selected="true"], .chips button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.mirar { font-size: 13.5px; max-width: 80ch; margin: 0; padding-left: 12px; border-left: 2px solid var(--line); }
+
+.vista { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+@media (min-width: 960px) { .vista { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } }
+.figs { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.figs .controles { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+svg.lamina { width: 100%; max-width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+svg text { fill: var(--fg); }
+.m { font-family: var(--f-math); font-style: italic; font-size: 15px; }
+.r { font-family: var(--f-body); font-style: normal; font-size: 11.5px; letter-spacing: .04em; }
+.eje { stroke: var(--fg); stroke-width: 1.3; fill: none; }
+.tick { stroke: var(--fg); stroke-width: 1; }
+.tlab { font-family: var(--f-body); font-size: 11px; fill: var(--muted) !important; }
+.guia { stroke: var(--gris); stroke-width: .9; stroke-dasharray: 4 4; fill: none; }
+.cur { fill: none; stroke-width: 2.4; }
+.cur-fina { fill: none; stroke-width: 1.1; opacity: .55; }
+.tang { fill: none; stroke-width: 1.6; }
+.rayo { fill: none; stroke-width: 1.4; stroke-dasharray: 6 4; }
+.pto { stroke: var(--bg); stroke-width: 1.5; }
+.drag { cursor: grab; }
+.drag:active { cursor: grabbing; }
+.z1 { fill: var(--z1); } .z2 { fill: var(--z2); } .z3 { fill: var(--z3); }
+
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.lectura { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.lectura .f { font-family: var(--f-math); font-style: italic; font-size: 16px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 2px 22px; font-variant-numeric: tabular-nums; }
+.kv div { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
+.kv b { font-weight: 500; }
+.lectura .msg { margin-top: 4px; }
+.etapa { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px; border: 1px solid currentColor; }
+.e1 { color: var(--rojo); } .e2 { color: var(--verde); } .e3 { color: var(--muted); }
+.controles { display: flex; flex-direction: column; gap: 6px; }
+.fila { display: grid; grid-template-columns: minmax(8.5em, 12em) minmax(0, 1fr) 3.6em; align-items: center; gap: 8px; }
+.fila input[type=range] { width: 100%; accent-color: var(--azul); }
+.val { text-align: right; font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ayuda { color: var(--muted); font-size: 12.5px; }
+.nota { font-size: 12.5px; color: var(--muted); max-width: 80ch; margin: 0; }
+sub, sup { font-size: 72%; }
+.porque { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.porque .eti, .sec-eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.porque h3 { font-family: var(--f-math); font-size: 19px; font-weight: 600; margin: 0; }
+.porque p { margin: 0; }
+.porque details { margin-top: 4px; }
+.porque summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.porque .prev { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.ctl-ayuda { margin: -2px 0 6px; font-size: 12.5px; color: var(--muted); }
+.sec { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.sec h2 { font-family: var(--f-math); font-size: 22px; font-weight: 600; margin: 0; }
+.conceptos { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.concepto { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.concepto.cambia { border-color: var(--rojo); background: var(--z1); }
+.concepto .cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.concepto h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.concepto p { margin: 0; font-size: 13px; }
+.concepto .formula { font-family: var(--f-math); font-style: italic; font-size: 15px; overflow-x: auto; }
+.concepto .valor { font-variant-numeric: tabular-nums; }
+.concepto .ref { color: var(--muted); font-size: 11.5px; }
+.formas { display: flex; flex-direction: column; gap: 3px; }
+.formas .lbl { font-family: var(--f-body); font-style: normal; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.formas .ec { font-family: var(--f-math); font-style: italic; font-size: 16px; overflow-x: auto; }
+.formas .fijo { font-family: var(--f-body); font-style: normal; font-size: 12.5px; color: var(--muted); }
+.tex { display: inline-block; max-width: 100%; vertical-align: middle; }
+.tex[data-d="1"] { display: block; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.tex:not([data-ok]) { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); white-space: pre-wrap; }
+.tex mjx-container { margin: 0 !important; }
+.tex[data-d="1"] mjx-container { text-align: left !important; }
+.tex g.mv { color: var(--azul); fill: var(--azul); stroke: var(--azul); }
+.formas .tex[data-d="1"] { font-size: 112%; }
+.mod { color: var(--azul); font-weight: 600; border-bottom: 1px dotted currentColor; }
+.chip-cambia { font-size: 11px; color: var(--rojo); border: 1px solid currentColor; border-radius: 999px; padding: 0 7px; white-space: nowrap; }
+</style>
+<style>
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer; }
+.vista.ancha { grid-template-columns: 1fr !important; }
+.panel.dos { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 960px) { .panel.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.panel.dos .col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.chips button:disabled, input:disabled { opacity: .4; cursor: not-allowed; }
+.figs .controles .chips { margin: 2px 0 4px; }
+@media (min-width: 960px) { .figs .controles { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; row-gap: 8px; align-items: center; } .figs .controles > .aviso, .figs .controles > .chips, .figs .controles > .ctl-ayuda { grid-column: 1 / -1; } }
+.tabs { gap: 6px; }
+.lecturas2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 720px) { .lecturas2 { grid-template-columns: 1fr 1fr; } }
+.kv-panel { background: var(--panel); border-radius: 10px; padding: 8px 12px; grid-template-columns: 1fr !important; font-size: 13px; }
+.kv-tit { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); justify-content: flex-start !important; }
+.aviso { border: 1px solid var(--naranja); color: var(--naranja); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+.cadena { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.cadena .eti { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.cadena p { margin: 0; }
+a.term { color: inherit; text-decoration: underline dotted; text-underline-offset: 2px; cursor: pointer; }
+.concepto.destello { animation: destello 1.6s ease-out; }
+@keyframes destello { 0% { box-shadow: 0 0 0 3px var(--azul); } 100% { box-shadow: 0 0 0 0 transparent; } }
+[hidden] { display: none !important; }
+.tabla-reg { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+.tabla-reg th, .tabla-reg td { border: 1px solid var(--line); padding: 5px 7px; text-align: center; }
+.tabla-reg th { font-weight: 500; color: var(--muted); }
+.tabla-reg td.act { background: var(--fg); color: var(--bg); font-weight: 600; }
+</style>
+<style>
+.tabla-reg td.si { color: var(--verde); font-weight: 600; } .tabla-reg td.no { color: var(--rojo); font-weight: 600; }
+#chips-extra[hidden] { display: none !important; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TCEE · Parte A) · 3A7 · Segunda generación · §1. 5 y §2</div>
+    <h1>Nueva Economía Keynesiana: segunda generación</h1>
+    <p class="intro">El modelo canónico y su representación gráfica: Carlin y Soskice (§2. 2. 5), las tres ecuaciones con impulso-respuesta (§2. 2 y Anexo 5), el principio de Taylor (§2. 3. 1), la divina coincidencia (§2. 3. 2) y el escalonamiento de precios de Fischer, Taylor y Calvo (§1. 5. 1 y §2. 2. 3). Mueve los mandos de debajo del gráfico: el recuadro «Qué ha cambiado y por qué» explica cada cambio y abajo tienes la ficha de cada concepto.</p>
+  </header>
+  <div class="tabs" role="tablist" aria-label="Modelo" id="tabs"></div>
+  <section class="vista-wrap">
+    <p class="mirar" id="mirar"></p>
+    <div class="figs" style="margin-top:12px">
+      <svg class="lamina" id="svg-n" role="img" aria-label="Modelos de la segunda generación de la NEK"></svg>
+      <div class="controles">
+        <div class="chips" id="chips-extra" role="group"></div>
+                <div class="fila" data-ctl="mag"><label>Tamaño del shock</label><input id="nm-mag" data-k="mag" type="range" min="0" max="6" step="0.1"><span class="val" id="nm-mag-v"></span></div>
+        <div class="fila" data-ctl="al"><label>α (pendiente de la curva de Phillips)</label><input id="nm-al" data-k="al" type="range" min="0.2" max="1.5" step="0.01"><span class="val" id="nm-al-v"></span></div>
+        <div class="fila" data-ctl="be"><label>β (aversión a la inflación del banco central)</label><input id="nm-be" data-k="be" type="range" min="0.25" max="4" step="0.05"><span class="val" id="nm-be-v"></span></div>
+        <div class="fila" data-ctl="a0"><label>a₀ (sensibilidad de la demanda al tipo)</label><input id="nm-a0" data-k="a0" type="range" min="0.5" max="4" step="0.05"><span class="val" id="nm-a0-v"></span></div>
+        <div class="fila" data-ctl="per"><label>Periodos que se muestran</label><input id="nm-per" data-k="per" type="range" min="0" max="10" step="1"><span class="val" id="nm-per-v"></span></div>
+        <div class="fila" data-ctl="rho"><label>ρ (persistencia del shock)</label><input id="nm-rho" data-k="rho" type="range" min="0" max="0.95" step="0.01"><span class="val" id="nm-rho-v"></span></div>
+        <div class="fila" data-ctl="eta"><label>η (proporción que no ajusta precios, Calvo)</label><input id="nm-eta" data-k="eta" type="range" min="0.3" max="0.95" step="0.01"><span class="val" id="nm-eta-v"></span></div>
+        <div class="fila" data-ctl="fpi"><label>φ<sub>π</sub> (reacción a la inflación)</label><input id="nm-fpi" data-k="fpi" type="range" min="0" max="3" step="0.01"><span class="val" id="nm-fpi-v"></span></div>
+        <div class="fila" data-ctl="fy"><label>φ<sub>y</sub> (reacción al output gap)</label><input id="nm-fy" data-k="fy" type="range" min="0" max="1.5" step="0.005"><span class="val" id="nm-fy-v"></span></div>
+        <div class="fila" data-ctl="th"><label>θ (inversa de la elasticidad intertemporal)</label><input id="nm-th" data-k="th" type="range" min="0.5" max="5" step="0.05"><span class="val" id="nm-th-v"></span></div>
+        <div class="fila" data-ctl="lam"><label>λ (peso del output gap en la pérdida)</label><input id="nm-lam" data-k="lam" type="range" min="0.005" max="1" step="0.005"><span class="val" id="nm-lam-v"></span></div>
+        <div class="fila" data-ctl="gam"><label>γ (cuánto pesa la demanda en el precio que se fija)</label><input id="nm-gam" data-k="gam" type="range" min="0.02" max="1" step="0.01"><span class="val" id="nm-gam-v"></span></div>
+        <p class="ctl-ayuda" id="ayuda-ctl"></p>
+      </div>
+    </div>
+    <div class="vista ancha" style="margin-top:14px">
+      <div class="panel dos">
+        <div class="col"><div class="porque" id="porque-n" aria-live="polite"></div></div>
+        <div class="col"><div class="lectura" id="lec-n"></div><p class="nota" id="nota"></p></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-eti">Conceptos que intervienen</div><h2>Qué es cada cosa</h2><div class="conceptos" id="con-n"></div></div>
+  </section>
+</div>
+<script>
+'use strict';
+const NS = 'http://www.w3.org/2000/svg';
+const fmt = (v, d = 2) => Number.isFinite(v)
+  ? v.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—';
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+/* ------------------------------------------------ ecuaciones con MathJax (SVG) */
+const TEXC = new Map();
+const escH = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const TX = (tex) => `<span class="tex" data-d="1">${escH(tex)}</span>`;
+const TI = (tex) => `<span class="tex">${escH(tex)}</span>`;
+const fT = (v, d = 2) => fmt(v, d).replace(/,/g, '{,}');
+const MV = (t) => String.raw`\class{mv}{${t}}`;
+function montar(root) {
+  if (!window.__mjListo || !root) return;
+  root.querySelectorAll('span.tex:not([data-ok])').forEach((s) => {
+    const tex = s.textContent, d = s.dataset.d === '1', key = (d ? 'D' : 'I') + tex;
+    try {
+      let n = TEXC.get(key);
+      if (!n) { n = MathJax.tex2svg(tex, { display: d }); TEXC.set(key, n); if (TEXC.size > 600) TEXC.delete(TEXC.keys().next().value); }
+      s.replaceChildren(n.cloneNode(true)); s.dataset.ok = '1'; s.setAttribute('aria-label', tex);
+    } catch (e) { /* se queda el texto plano */ }
+  });
+}
+window.montar = montar;
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if ((k === 'stroke' || k === 'fill') && String(v).startsWith('var(')) e.style.setProperty(k, v);
+    else e.setAttribute(k, v);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+/* texto matemático: "PMag_L", "x^2" */
+function tx(parent, x, y, txt, attrs = {}) {
+  const t = el('text', Object.assign({ x, y, class: 'm' }, attrs), parent);
+  const re = /([_^])(\{[^}]*\}|.)/g; let last = 0, m;
+  const push = (s, sh) => { if (!s) return; const ts = el('tspan', {}, t);
+    if (sh) { ts.setAttribute('baseline-shift', sh); ts.setAttribute('font-size', '72%'); } ts.textContent = s; };
+  while ((m = re.exec(txt))) { push(txt.slice(last, m.index)); const b = m[2][0] === '{' ? m[2].slice(1, -1) : m[2];
+    push(b, m[1] === '_' ? 'sub' : 'super'); last = re.lastIndex; }
+  push(txt.slice(last));
+  return t;
+}
+function limpiar(g) { while (g.firstChild) g.removeChild(g.firstChild); }
+function path(pts) {
+  let d = '', on = false;
+  for (const p of pts) { if (!p) { on = false; continue; } d += (on ? 'L' : 'M') + p[0].toFixed(2) + ',' + p[1].toFixed(2); on = true; }
+  return d;
+}
+/* panel con escalas lineales */
+function panel(svg, x0, y0, w, h, xr, yr) {
+  const P = { x0, y0, w, h, xr, yr };
+  P.sx = (x) => x0 + (x - xr[0]) / (xr[1] - xr[0]) * w;
+  P.sy = (y) => y0 + h - (y - yr[0]) / (yr[1] - yr[0]) * h;
+  P.ix = (px) => xr[0] + (px - x0) / w * (xr[1] - xr[0]);
+  P.iy = (py) => yr[0] + (y0 + h - py) / h * (yr[1] - yr[0]);
+  const id = 'c' + Math.random().toString(36).slice(2);
+  const cp = el('clipPath', { id }, svg); el('rect', { x: x0, y: y0 - 2, width: w + 2, height: h + 4 }, cp);
+  P.clip = `url(#${id})`;
+  /* curva f(x) cortada al rango */
+  P.curva = (f, a = xr[0], b = xr[1], n = 400) => {
+    const pts = [];
+    for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n, y = f(x);
+      pts.push(Number.isFinite(y) && y >= yr[0] - (yr[1] - yr[0]) && y <= yr[1] + (yr[1] - yr[0]) ? [P.sx(x), P.sy(y)] : null); }
+    return path(pts);
+  };
+  return P;
+}
+function puntoSVG(svg, evt) {
+  const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+/* arrastre con el estado en el <svg> (cada redibujo sustituye los nodos) */
+function habilitarArrastre(svg, redibujar, alSoltar) {
+  svg._drag = null;
+  svg.addEventListener('pointermove', (e) => { if (!svg._drag) return; svg._drag(puntoSVG(svg, e)); redibujar(); });
+  const fin = (e) => { const habia = !!svg._drag; svg._drag = null; try { svg.releasePointerCapture(e.pointerId); } catch (_) {} if (habia && alSoltar) alSoltar(); };
+  svg.addEventListener('pointerup', fin); svg.addEventListener('pointercancel', fin);
+}
+function arrastrable(svg, nodo, mover, alEmpezar) {
+  nodo.classList.add('drag');
+  nodo.addEventListener('pointerdown', (e) => { e.preventDefault(); if (alEmpezar) alEmpezar(); svg._drag = mover; try { svg.setPointerCapture(e.pointerId); } catch (_) {} });
+}
+function ejes(g, P, xlab, ylab, xt, yt, conCero) {
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0 + P.w + 8, y2: P.y0 + P.h, class: 'eje' }, g);
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0, y2: P.y0 - 8, class: 'eje' }, g);
+  el('path', { d: `M${P.x0 + P.w + 8},${P.y0 + P.h - 4}l7,4l-7,4z`, fill: 'var(--fg)' }, g);
+  el('path', { d: `M${P.x0 - 4},${P.y0 - 8}l4,-7l4,7z`, fill: 'var(--fg)' }, g);
+  tx(g, P.x0 + P.w + 14, P.y0 + P.h + 30, xlab, { 'text-anchor': 'end' });
+  tx(g, P.x0 + 8, P.y0 - 4, ylab, { 'text-anchor': 'start' });
+  for (const v of xt || []) { el('line', { x1: P.sx(v), y1: P.y0 + P.h, x2: P.sx(v), y2: P.y0 + P.h + 4, class: 'tick' }, g);
+    el('text', { x: P.sx(v), y: P.y0 + P.h + 15, class: 'tlab', 'text-anchor': 'middle' }, g).textContent = fmt(v, 0); }
+  for (const v of yt || []) { el('line', { x1: P.x0 - 4, y1: P.sy(v), x2: P.x0, y2: P.sy(v), class: 'tick' }, g);
+    el('text', { x: P.x0 - 7, y: P.sy(v) + 4, class: 'tlab', 'text-anchor': 'end' }, g).textContent = fmt(v, 0); }
+  if (conCero) el('line', { x1: P.x0, y1: P.sy(0), x2: P.x0 + P.w, y2: P.sy(0), class: 'eje', 'stroke-width': .8 }, g);
+}
+
+
+/* ===================================================================== marco común (3A7) */
+const f1 = (v) => fmt(v, 1), f2 = (v) => fmt(v, 2), f3 = (v) => fmt(v, 3);
+const sg = (v, d = 2) => (v > 0 ? '+' : '') + fmt(v, d);
+const HIST = {}, ULT = {}, PINTAR = {};
+function mostrarPorque(k, e) {
+  HIST[k] = [e, ...(HIST[k] || [])].slice(0, 6); ULT[k] = e.cambia || new Set();
+  const box = document.getElementById('porque-' + k), [act, ...prev] = HIST[k];
+  box.innerHTML = `<div class="eti">Qué ha cambiado y por qué</div><h3>${act.titulo}</h3>` + act.p.map((t) => `<p>${t}</p>`).join('') +
+    (prev.length ? `<details><summary>Cambios anteriores (${prev.length})</summary>` + prev.map((h) => `<div class="prev"><b>${h.titulo}</b>${h.p.map((t) => `<p>${t}</p>`).join('')}</div>`).join('') + '</details>' : '');
+  montar(box); PINTAR[k]();
+}
+function pintarConceptos(id, lista, cambia) {
+  const c = document.getElementById(id);
+  c.innerHTML = lista.map((x) => `
+    <article class="concepto${cambia.has(x.k) ? ' cambia' : ''}">
+      <div class="cab"><h4>${x.n}</h4>${cambia.has(x.k) ? '<span class="chip-cambia">ha cambiado</span>' : ''}</div>
+      <p class="def">${x.d}</p>
+      ${x.f ? `<div class="formula">${TX(x.f)}</div>` : ''}
+      ${x.v !== undefined ? `<p class="valor">Ahora: <b>${x.v}</b></p>` : ''}
+      ${x.ref ? `<p class="ref">${x.ref}</p>` : ''}
+    </article>`).join('');
+  montar(c);
+}
+function sesion(k, estado, explicar, redibujar) {
+  let snap = null;
+  return {
+    empezar: () => { if (!snap) snap = JSON.parse(JSON.stringify(estado)); },
+    cerrar: () => { if (!snap) return; const e = explicar(snap, JSON.parse(JSON.stringify(estado))); snap = null; if (e) { if (redibujar) redibujar(); mostrarPorque(k, e); } },
+  };
+}
+const svg = document.getElementById('svg-n');
+let g = el('g', {}, svg);
+function lienzo(w, h) { limpiar(svg); svg.setAttribute('viewBox', `0 0 ${w} ${h}`); g = el('g', {}, svg); }
+const linea = (pts, attrs, parent) => el('path', Object.assign({ d: path(pts) }, attrs), parent || g);
+const rot = (P, x, y, t, color, extra = {}) => tx(g, P.sx(x), P.sy(y), t, Object.assign({ style: `fill:${color}` }, extra));
+function pto(P, x, y, et, o = {}) {
+  if (![x, y].every(Number.isFinite)) return;
+  el('circle', o.hueco ? { cx: P.sx(x), cy: P.sy(y), r: o.r || 5.5, fill: 'var(--bg)', stroke: o.color || 'var(--punto)', 'stroke-width': 1.8 } : { cx: P.sx(x), cy: P.sy(y), r: o.r || 6, class: 'pto', fill: o.color || 'var(--punto)' }, g);
+  if (et) tx(g, P.sx(x) + (o.dx ?? 8), P.sy(y) + (o.dy ?? -8), et, { style: `font-size:${o.fs || 14}px;font-style:normal;font-weight:600;fill:${o.color || 'var(--punto)'}` });
+}
+function hguia(P, x, y, et) { el('line', { x1: P.x0, y1: P.sy(y), x2: P.sx(x), y2: P.sy(y), class: 'guia' }, g); if (et) tx(g, P.x0 + 5, P.sy(y) - 4, et, { style: 'font-size:12px' }); }
+function vguia(P, x, y, et, y0) { el('line', { x1: P.sx(x), y1: P.sy(y), x2: P.sx(x), y2: y0 ?? (P.y0 + P.h), class: 'guia' }, g); if (et) tx(g, P.sx(x), (y0 ?? (P.y0 + P.h)) + 30, et, { 'text-anchor': 'middle', style: 'font-size:12px' }); }
+const titulo = (P, t) => { el('text', { x: P.x0 + P.w / 2, y: P.y0 - 16, class: 'r', 'text-anchor': 'middle' }, g).textContent = t; };
+const clip = (P) => el('g', { 'clip-path': P.clip }, g);
+const curva = (P, fn, a, b, attrs, n = 300) => { const pts = []; for (let j = 0; j <= n; j++) { const x = a + (b - a) * j / n, y = fn(x); pts.push(Number.isFinite(y) ? [P.sx(x), P.sy(y)] : null); } return linea(pts, attrs, clip(P)); };
+const serieP = (P, xs, ys, attrs) => linea(xs.map((x, j) => (Number.isFinite(ys[j]) ? [P.sx(x), P.sy(ys[j])] : null)), attrs, clip(P));
+const ticks = (a, b, st) => { const t = []; for (let v = a; v <= b + 1e-9; v += st) t.push(Math.round(v * 1000) / 1000 + 0); return t; };
+function flecha(P, x1, y1, x2, y2, color = 'var(--punto)') {
+  const X1 = P.sx(x1), Y1 = P.sy(y1), X2 = P.sx(x2), Y2 = P.sy(y2), L = Math.hypot(X2 - X1, Y2 - Y1); if (L < 16) return;
+  const ux = (X2 - X1) / L, uy = (Y2 - Y1) / L, xb = X2 - ux * 10, yb = Y2 - uy * 10;
+  el('line', { x1: X1 + ux * 9, y1: Y1 + uy * 9, x2: xb, y2: yb, stroke: color, 'stroke-width': 1.6 }, g);
+  el('path', { d: `M${xb + ux * 2},${yb + uy * 2}l${-ux * 9 - uy * 4.5},${-uy * 9 + ux * 4.5}l${uy * 9},${-ux * 9}z`, fill: color }, g);
+}
+/* ejes con decimales en las marcas */
+function ejesD(P, xlab, ylab, xt, yt, dx = 0, dy = 0, conCero) {
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0 + P.w + 8, y2: P.y0 + P.h, class: 'eje' }, g);
+  el('line', { x1: P.x0, y1: P.y0 + P.h, x2: P.x0, y2: P.y0 - 8, class: 'eje' }, g);
+  el('path', { d: `M${P.x0 + P.w + 8},${P.y0 + P.h - 4}l7,4l-7,4z`, fill: 'var(--fg)' }, g);
+  el('path', { d: `M${P.x0 - 4},${P.y0 - 8}l4,-7l4,7z`, fill: 'var(--fg)' }, g);
+  tx(g, P.x0 + P.w + 14, P.y0 + P.h + 30, xlab, { 'text-anchor': 'end' });
+  tx(g, P.x0 + 8, P.y0 - 4, ylab, { 'text-anchor': 'start' });
+  for (const v of xt || []) { el('line', { x1: P.sx(v), y1: P.y0 + P.h, x2: P.sx(v), y2: P.y0 + P.h + 4, class: 'tick' }, g);
+    el('text', { x: P.sx(v), y: P.y0 + P.h + 15, class: 'tlab', 'text-anchor': 'middle' }, g).textContent = fmt(v, dx); }
+  for (const v of yt || []) { el('line', { x1: P.x0 - 4, y1: P.sy(v), x2: P.x0, y2: P.sy(v), class: 'tick' }, g);
+    el('text', { x: P.x0 - 7, y: P.sy(v) + 4, class: 'tlab', 'text-anchor': 'end' }, g).textContent = fmt(v, dy); }
+  if (conCero) el('line', { x1: P.x0, y1: P.sy(0), x2: P.x0 + P.w, y2: P.sy(0), class: 'eje', 'stroke-width': .8 }, g);
+}
+function biseccion(f, a, b, n = 80) { let fa = f(a); if (fa * f(b) > 0) return NaN; for (let i = 0; i < n; i++) { const m = (a + b) / 2, fm = f(m); if (fa * fm <= 0) b = m; else { a = m; fa = fm; } } return (a + b) / 2; }
+function integra(f, a, b, n = 200) { if (!(b > a)) return 0; let s = 0; const h = (b - a) / n; for (let i = 0; i < n; i++) s += f(a + (i + 0.5) * h); return s * h; }
+function poligono(P, pts, attrs) { return el('path', Object.assign({ d: path(pts.map(([x, y]) => [P.sx(x), P.sy(y)])) + 'Z' }, attrs), clip(P)); }
+
+/* ===================================================================== mandos genéricos */
+function construir() {
+  const tabs = document.getElementById('tabs');
+  for (const [k, t] of TABS) { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.k = k; b.textContent = t; b.addEventListener('click', () => abrir(k, true)); tabs.appendChild(b); }
+  document.querySelectorAll('input[data-k]').forEach((inp) => {
+    const k = inp.dataset.k;
+    if (inp.type === 'range') { inp.addEventListener('input', () => { SN.empezar(); S[k] = parseFloat(inp.value); dibujar(); }); inp.addEventListener('change', SN.cerrar); }
+    else inp.addEventListener('change', (e) => { SN.empezar(); S[k] = e.target.checked; dibujar(); SN.cerrar(); });
+  });
+}
+function refrescar() {
+  const act = new Set(CTL[S.tab]);
+  document.querySelectorAll('[data-ctl]').forEach((n) => { n.hidden = !act.has(n.dataset.ctl); });
+  document.querySelectorAll('input[data-k]').forEach((inp) => {
+    const k = inp.dataset.k;
+    if (inp.type === 'range') { inp.value = S[k]; document.getElementById(inp.id + '-v').textContent = (VALF[k] || ((v) => fmt(v, DEC[k] ?? 2)))(S[k]); }
+    else inp.checked = !!S[k];
+  });
+  document.getElementById('ayuda-ctl').innerHTML = AYUDA[S.tab] || '';
+}
+function chipsExtra() {
+  const c = document.getElementById('chips-extra'); c.innerHTML = '';
+  const add = (t, act, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.setAttribute('aria-pressed', String(act)); b.addEventListener('click', () => { SN.empezar(); fn(); dibujar(); SN.cerrar(); chipsExtra(); }); c.appendChild(b); };
+  if (CHIPS[S.tab]) CHIPS[S.tab](add);
+  c.hidden = !c.children.length;
+}
+function explicar(A, B) {
+  const keys = KEYS[B.tab];
+  const k = keys.find((x) => (typeof A[x] === 'number' ? Math.abs(A[x] - B[x]) > 1e-9 : A[x] !== B[x]));
+  if (!k) return null;
+  return EXPL[B.tab](A, B, k);
+}
+const tituloCambio = (A, B, k) => `${NK[k] || k}: ${typeof A[k] === 'number' ? (VALF[k] || ((v) => fmt(v, DEC[k] ?? 2)))(A[k]) : A[k]} → ${typeof B[k] === 'number' ? (VALF[k] || ((v) => fmt(v, DEC[k] ?? 2)))(B[k]) : B[k]}`;
+function dibujar() { DIB[S.tab](); refrescar(); PINTAR.n(); }
+function abrir(k, conExplicacion) {
+  S.tab = k;
+  document.querySelectorAll('#tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.k === k)));
+  document.getElementById('mirar').innerHTML = MIRAR[k];
+  chipsExtra(); dibujar();
+  if (conExplicacion) mostrarPorque('n', INI[k]());
+}
+PINTAR.n = () => pintarConceptos('con-n', FICHAS[S.tab](), ULT.n || new Set());
+function arrancar(def) {
+  construir();
+  const TAB0 = NOM[location.hash.slice(1)] ? location.hash.slice(1) : def;
+  abrir(TAB0, false);
+  mostrarPorque('n', INI[TAB0]());
+  window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (NOM[h]) abrir(h, true); });
+}
+function lectura(html) { const lec = document.getElementById('lec-n'); lec.innerHTML = html; montar(lec); }
+function nota(html) { document.getElementById('nota').innerHTML = html; }
+
+/* ===================================================================== estado (segunda generación) */
+const TABS = [['cs', 'Carlin-Soskice · §2. 2. 5'], ['irf', 'Modelo canónico · §2. 2'], ['det', 'Principio de Taylor · §2. 3. 1'], ['dc', 'Divina coincidencia · §2. 3. 2'], ['esc', 'Escalonamiento · §1. 5. 1']];
+const NOM = Object.fromEntries(TABS);
+const S = { tab: 'cs',
+  tipo: 'inf', mag: 3, al: 0.5, be: 1, a0: 2, per: 3,
+  choque: 'd', rho: 0.5, eta: 0.75, fpi: 1.5, fy: 0.125, th: 1,
+  lam: 0.1, choqueDC: 'c',
+  gam: 0.25 };
+const BETA = 0.99;
+const SN = sesion('n', S, explicar, () => dibujar());
+const CTL = { cs: ['mag', 'al', 'be', 'a0', 'per'], irf: ['rho', 'eta', 'fpi', 'fy', 'th'], det: ['eta', 'fpi', 'fy'], dc: ['lam', 'rho', 'eta'], esc: ['gam', 'eta'] };
+const KEYS = { cs: ['tipo', ...CTL.cs], irf: ['choque', ...CTL.irf], det: CTL.det, dc: ['choqueDC', ...CTL.dc], esc: CTL.esc };
+const DEC = { per: 0, fy: 3, lam: 3 };
+const VALF = {};
+const NK = { tipo: 'Shock', mag: 'Tamaño', al: 'α', be: 'β', a0: 'a₀', per: 'Periodos', choque: 'Shock', rho: 'ρ', eta: 'η', fpi: 'φ_π', fy: 'φ_y', th: 'θ', lam: 'λ', choqueDC: 'Shock', gam: 'γ' };
+const MIRAR = {
+  cs: 'Arriba la IS, con la demanda de t dependiendo del tipo fijado en t − 1; abajo la curva de Phillips con inercia y la MR del banco central. Tras el shock (B), el banco fija hoy el tipo que lleva la economía mañana a la MR (C) y desde ahí desciende por la MR (D, E, F…) hasta volver a A. Sube «Periodos» para ver la secuencia.',
+  irf: 'Las tres ecuaciones del modelo canónico: IS dinámica, Phillips de Calvo y regla de Taylor. Elige el shock y mira cómo responden el output gap, la inflación y los tipos. A diferencia de Carlin-Soskice, aquí no hay inercia: todo salta en el momento del shock y vuelve con la persistencia del propio shock.',
+  det: 'El equilibrio es único solo a la derecha de la frontera δ(φ<sub>π</sub> − 1) + (1 − β)φ<sub>y</sub> = 0. A la izquierda hay indeterminación (sunspots). La frontera casi coincide con φ<sub>π</sub> = 1 porque (1 − β)/δ es pequeño.',
+  dc: 'Con un shock de demanda el banco central puede cerrar a la vez el output gap y la desviación de la inflación moviendo el tipo con el tipo natural: es la divina coincidencia. Con un shock de costes no: tiene que elegir un punto de la frontera según λ.',
+  esc: 'La oferta monetaria sube un 1 % de forma permanente e inesperada en t = 0. Con ajuste sincronizado el efecto real dura un periodo; con contratos escalonados (Fischer, Taylor) o con Calvo se alarga, porque nadie ajusta del todo mientras los demás no lo hacen.',
+};
+const AYUDA = {
+  cs: 'Valores de partida: y<sub>e</sub> = 100, π<sup>T</sup> = 2 % y r<sub>S</sub> = 3 %. El tamaño del shock está en unidades de producción (demanda), en puntos de inflación (inflación) y en tercios de punto de bajada del objetivo.',
+  irf: 'Calibración trimestral de Galí: β = 0,99, regla i = r<sup>n</sup> + φ<sub>π</sub>π + φ<sub>y</sub>ŷ. φ<sub>y</sub> = 0,125 es el 0,5 de Taylor (1993) pasado a trimestres.',
+  det: 'δ = (1 − η)(1 − βη)/η con β = 0,99. Cuanto más rígidos los precios (η alto), más plana la Phillips y más pesa φ<sub>y</sub>.',
+  dc: 'Política discrecional óptima con pérdida π² + λŷ². Woodford deriva λ = δ/ε, del orden de 0,01-0,05 trimestral.',
+  esc: 'γ pequeño: el precio que fija cada empresa mira mucho al de las demás (complementariedad estratégica, rigidez real) y el ajuste es lento.',
+};
+
+/* ===================================================================== 1. Carlin-Soskice */
+const CSc = { ye: 100, piT: 2, rS: 3, N: 10 };
+function simCS(s) {
+  const A0 = CSc.ye + s.a0 * CSc.rS;
+  let dA = 0, perm = false, pT = CSc.piT, dpi = 0;
+  if (s.tipo === 'dt') dA = s.mag; else if (s.tipo === 'dp') { dA = s.mag; perm = true; } else if (s.tipo === 'inf') dpi = s.mag; else pT = CSc.piT - s.mag / 3;
+  const T = [{ t: -1, y: CSc.ye, pi: CSc.piT, r: CSc.rS }];
+  const y0 = A0 + dA - s.a0 * CSc.rS, pi0 = CSc.piT + s.al * (y0 - CSc.ye) + dpi;
+  T.push({ t: 0, y: y0, pi: pi0 });
+  const Afut = perm ? A0 + dA : A0;
+  for (let t = 0; t < CSc.N; t++) {
+    const cur = T[T.length - 1];
+    const x = -s.al * s.be * (cur.pi - pT) / (1 + s.al * s.al * s.be);
+    const y1 = CSc.ye + x, pi1 = cur.pi + s.al * x;
+    cur.r = (Afut - y1) / s.a0;
+    T.push({ t: t + 1, y: y1, pi: pi1 });
+  }
+  T[T.length - 1].r = (Afut - CSc.ye) / s.a0;
+  return { T, A0, Afut, pT, rS1: (Afut - CSc.ye) / s.a0, y0, pi0 };
+}
+const LET = 'ABCDEFGHIJKLMN';
+function dibCS() {
+  lienzo(1000, 640);
+  const s = S, m = simCS(s), n = Math.min(s.per, CSc.N) + 2, vis = m.T.slice(0, n);
+  const ys = m.T.map((p) => p.y), pis = m.T.map((p) => p.pi);
+  const yr = [Math.min(94, Math.min(...ys) - 1), Math.max(106, Math.max(...ys) + 1)];
+  const pr = [Math.min(-1, Math.min(...pis, m.pT) - 1), Math.max(6, Math.max(...pis) + 1)];
+  const rr = [0, Math.max(8, ...m.T.map((p) => p.r || 0)) + 1];
+  const U = panel(svg, 62, 40, 420, 240, yr, rr), D = panel(svg, 62, 340, 420, 250, yr, pr);
+  titulo(U, 'IS'); ejesD(U, 'y', 'r_{t−1}', ticks(Math.ceil(yr[0] / 2) * 2, yr[1], 2), ticks(0, rr[1], 2));
+  titulo(D, 'CURVA DE PHILLIPS Y MR'); ejesD(D, 'y', 'π', ticks(Math.ceil(yr[0] / 2) * 2, yr[1], 2), ticks(Math.ceil(pr[0]), pr[1], 1), 0, 0, pr[0] < 0);
+  for (const P of [U, D]) el('line', { x1: P.sx(CSc.ye), y1: P.y0, x2: P.sx(CSc.ye), y2: P.y0 + P.h, class: 'cur', stroke: 'var(--naranja)' }, clip(P));
+  rot(D, CSc.ye + 0.3, pr[1] - 0.3, 'y_e', 'var(--naranja)');
+  curva(U, (y) => (m.A0 - y) / s.a0, yr[0], yr[1], { class: 'cur', stroke: 'var(--azul)' }); rot(U, yr[1] - 3, (m.A0 - yr[1] + 3) / s.a0 + 0.6, 'IS_0', 'var(--azul)');
+  if (s.tipo === 'dt' || s.tipo === 'dp') { curva(U, (y) => (m.A0 + s.mag - y) / s.a0, yr[0], yr[1], { class: 'rayo', stroke: 'var(--azul)' }); rot(U, yr[1] - 2, (m.A0 + s.mag - yr[1] + 2) / s.a0 + 0.6, s.tipo === 'dp' ? 'IS_1 (permanente)' : 'IS_1 (solo t = 0)', 'var(--azul)', { style: 'fill:var(--azul);font-size:12px', 'text-anchor': 'end' }); }
+  /* MR */
+  curva(D, (y) => m.pT - (y - CSc.ye) / (s.al * s.be), yr[0], yr[1], { class: 'cur', stroke: 'var(--verde)' }); { const xm = Math.min(yr[1] - 0.5, CSc.ye + (m.pT - pr[0] - 0.8) * s.al * s.be); rot(D, xm + 0.3, m.pT - (xm - CSc.ye) / (s.al * s.be), 'MR-AD', 'var(--verde)'); }
+  hguia(D, CSc.ye, m.pT, 'π^T');
+  /* PC de cada periodo: pasa por (ye, π_{t−1}) */
+  for (let j = 1; j < vis.length; j++) {
+    const choqueInf = j === 1 && s.tipo === 'inf', pp = vis[j - 1].pi + (choqueInf ? s.mag : 0), ult = j === vis.length - 1;
+    if (!(j <= 2 || ult)) continue;
+    curva(D, (y) => pp + s.al * (y - CSc.ye), yr[0], yr[1], { class: ult ? 'cur' : 'rayo', style: `stroke:var(--rojo);opacity:${ult ? 1 : 0.55}` });
+    if (j === 1 || ult) { const xl = yr[0] + 0.3, yl = pp + s.al * (xl - CSc.ye); if (yl > pr[0] + 0.3) rot(D, xl, yl + 0.3, choqueInf ? 'PC_0 (π_{−1} + shock)' : `PC(π_{t−1} = ${f1(pp)})`, 'var(--rojo)', { style: 'fill:var(--rojo);font-size:11px' }); }
+  }
+  /* puntos */
+  const et = (j) => (j <= 5 ? LET[j] : '');
+  vis.forEach((p, j) => { pto(D, p.y, p.pi, et(j), { r: j === vis.length - 1 ? 6 : 4.5, dx: 7, dy: -7 }); if (j > 0) flecha(D, vis[j - 1].y, vis[j - 1].pi, p.y, p.pi); });
+  vis.forEach((p, j) => { if (j >= 1 && j < vis.length - 1 && Number.isFinite(p.r)) pto(U, vis[j + 1].y, p.r, et(j + 1), { r: 4.5 }); });
+  pto(U, CSc.ye, CSc.rS, 'A', { r: 4.5, dx: -16 });
+  if (m.rS1 !== CSc.rS) { hguia(U, CSc.ye, m.rS1, "r_S'"); pto(U, CSc.ye, m.rS1, 'Z', { hueco: true, r: 4.5 }); }
+  hguia(U, CSc.ye, CSc.rS, 'r_S');
+  /* sendas */
+  const ts = m.T.map((p) => p.t), sh = [36, 236, 436], hh = 150;
+  const series = [['OUTPUT GAP y − y_e', m.T.map((p) => p.y - CSc.ye), 'var(--azul)'], ['INFLACIÓN π (%)', pis, 'var(--rojo)'], ['TIPO REAL r_t (%)', m.T.map((p) => p.r), 'var(--verde)']];
+  series.forEach(([tt, v, col], i) => {
+    const vv = v.filter(Number.isFinite), lo = Math.min(0, ...vv) - 0.5, hi = Math.max(1, ...vv) + 0.5;
+    const R = panel(svg, 600, sh[i] + 14, 360, hh, [-1, CSc.N], [lo, hi]);
+    titulo(R, tt); ejesD(R, 't', '', ticks(0, CSc.N, 2), ticks(Math.ceil(lo), Math.floor(hi), Math.max(1, Math.round((hi - lo) / 4))), 0, 0, lo < 0);
+    serieP(R, ts.slice(0, n), v.slice(0, n), { class: 'cur', stroke: col, 'stroke-width': 2 });
+    serieP(R, ts, v, { class: 'rayo', style: `stroke:${col};opacity:.35` });
+    if (i === 1) curva(R, () => m.pT, -1, CSc.N, { class: 'guia' });
+    if (i === 2) curva(R, () => m.rS1, -1, CSc.N, { class: 'guia' });
+  });
+  const B = m.T[1], C = m.T[2];
+  lectura(`<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`IS:\ y_t = A - ${MV('a_0')}\,r_{t-1},\qquad PC:\ \pi_t = \pi_{t-1} + ${MV(String.raw`\alpha`)}(y_t - y_e)`)}
+    ${TX(String.raw`\min\ \mathcal L = (y_t - y_e)^2 + ${MV(String.raw`\beta`)}(\pi_t - \pi^T)^2\ \Rightarrow\ MR:\ y_t - y_e = -\alpha\beta(\pi_t - \pi^T)`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`\text{pendiente de la MR en }(y,\pi):\ -\frac{1}{\alpha\beta} = ${fT(-1 / (s.al * s.be))},\quad r_0 = ${fT(B.r)},\quad C = (${fT(C.y, 1)},\ ${fT(C.pi)})`)}</div>
+    <div class="kv"><div><span>B (shock)</span><b>y = ${f1(B.y)} · π = ${f2(B.pi)}</b></div><div><span>Tipo que fija el BC en t = 0</span><b>${f2(B.r)} %</b></div>
+    <div><span>Periodos hasta |π − π<sup>T</sup>| &lt; 0,1</span><b>${(() => { const k = m.T.findIndex((p, j) => j > 1 && Math.abs(p.pi - m.pT) < 0.1); return k < 0 ? '> 10' : k - 1; })()}</b></div><div><span>Pérdida de producción acumulada</span><b>${f1(m.T.slice(1).reduce((a, p) => a + Math.max(0, CSc.ye - p.y), 0))}</b></div></div>`);
+  nota('Carlin y Soskice sustituyen la Phillips forward-looking por una con inercia (π<sup>e</sup> = π<sub>t−1</sub>) y la regla de Taylor por la MR, derivada de la pérdida del banco central (con la desviación de la inflación al cuadrado). El banco actúa en t sobre y<sub>t+1</sub> por el retardo de la IS. Línea fina: la senda completa; gruesa: los periodos que muestras.');
+}
+
+/* ===================================================================== 2. Modelo canónico */
+const kappa = (eta) => (1 - eta) * (1 - BETA * eta) / eta;
+function solNK(s, ch, rho) {
+  const k = kappa(s.eta), sig = s.th, cu = ch === 'd' ? 1 : 0, ce = ch === 'c' ? 1 : 0, cv = ch === 'm' ? 0.25 : 0;
+  const D = (1 - rho + s.fy / sig) * (1 - BETA * rho) + k * (s.fpi - rho) / sig;
+  const a = ((cu - cv / sig) * (1 - BETA * rho) - ce * (s.fpi - rho) / sig) / D;
+  const b = ((1 - rho + s.fy / sig) * ce + k * (cu - cv / sig)) / D;
+  const det = k * (s.fpi - 1) + (1 - BETA) * s.fy > 0;
+  const T = 13, t = [], y = [], pi = [], i = [], r = [];
+  for (let j = 0; j < T; j++) { const sh = Math.pow(rho, j); t.push(j); y.push(a * sh); pi.push(b * sh); const ii = s.fpi * b * sh + s.fy * a * sh + cv * sh; i.push(ii); r.push(ii - rho * b * sh); }
+  return { k, a, b, det, t, y, pi, i, r };
+}
+function dibIRF() {
+  lienzo(1000, 480);
+  const s = S, m = solNK(s, s.choque, s.rho);
+  const all1 = [...m.y, ...m.pi], all2 = [...m.i, ...m.r];
+  const rg = (v) => { const lo = Math.min(0, ...v), hi = Math.max(0, ...v), d = Math.max(0.2, hi - lo); return [lo - 0.12 * d, hi + 0.12 * d]; };
+  const L = panel(svg, 70, 36, 380, 370, [0, 12], rg(all1)), R = panel(svg, 580, 36, 380, 370, [0, 12], rg(all2));
+  const tk = (P) => { const [lo, hi] = P.yr, st = Math.pow(10, Math.floor(Math.log10((hi - lo) / 3))); const stp = (hi - lo) / st > 12 ? st * 5 : (hi - lo) / st > 6 ? st * 2 : st; return ticks(Math.ceil(lo / stp) * stp, hi, stp); };
+  const dd = (P) => Math.max(0, -Math.floor(Math.log10((P.yr[1] - P.yr[0]) / 3)));
+  titulo(L, 'OUTPUT GAP E INFLACIÓN (% , TRIMESTRAL)'); ejesD(L, 't', '%', ticks(0, 12, 2), tk(L), 0, dd(L), true);
+  titulo(R, 'TIPO NOMINAL Y TIPO REAL (DESVIACIÓN DE rⁿ)'); ejesD(R, 't', '%', ticks(0, 12, 2), tk(R), 0, dd(R), true);
+  const st = m.det ? {} : { 'stroke-dasharray': '6 4' };
+  serieP(L, m.t, m.y, Object.assign({ class: 'cur', stroke: 'var(--azul)', 'stroke-width': 2 }, st)); rot(L, 1, m.y[1] + (L.yr[1] - L.yr[0]) * 0.04, 'ŷ_t', 'var(--azul)');
+  serieP(L, m.t, m.pi, Object.assign({ class: 'cur', stroke: 'var(--rojo)', 'stroke-width': 2 }, st)); rot(L, 2.2, m.pi[2] + (L.yr[1] - L.yr[0]) * 0.04, 'π_t', 'var(--rojo)');
+  serieP(R, m.t, m.i, Object.assign({ class: 'cur', stroke: 'var(--verde)', 'stroke-width': 2 }, st)); rot(R, 1, m.i[1] + (R.yr[1] - R.yr[0]) * 0.04, 'i_t − rⁿ', 'var(--verde)');
+  serieP(R, m.t, m.r, Object.assign({ class: 'cur', stroke: 'var(--naranja)', 'stroke-width': 2 }, st)); rot(R, 3, m.r[3] - (R.yr[1] - R.yr[0]) * 0.05, 'r_t − rⁿ', 'var(--naranja)');
+  if (!m.det) tx(g, 500, 460, 'Indeterminado: hay infinitas soluciones; se dibuja solo una (discontinua).', { 'text-anchor': 'middle', style: 'fill:var(--rojo);font-size:13px;font-style:normal' });
+  const nomb = { d: 'demanda (u_t = 1)', c: 'costes (e_t = 1)', m: 'monetario (ε_t = 0,25)' }[s.choque];
+  lectura(`<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\hat y_t = E_t\hat y_{t+1} - \tfrac{1}{${MV(String.raw`\theta`)}}\bigl(i_t - E_t\pi_{t+1} - r^n_t\bigr) + u_t`)}
+    ${TX(String.raw`\pi_t = \beta E_t\pi_{t+1} + \delta\,\hat y_t + e_t,\quad \delta = \frac{(1-${MV(String.raw`\eta`)})(1-\beta\eta)}{\eta}`)}
+    ${TX(String.raw`i_t = r^n_t + ${MV(String.raw`\varphi_\pi`)}\pi_t + ${MV(String.raw`\varphi_y`)}\hat y_t + \varepsilon_t,\qquad \text{shocks AR(1) con } ${MV(String.raw`\rho`)}`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`\delta = ${fT(m.k, 4)},\quad \hat y_0 = ${fT(m.a, 3)},\quad \pi_0 = ${fT(m.b, 3)}`)}</div>
+    <div class="kv"><div><span>Shock</span><b>${nomb}</b></div><div><span>¿Equilibrio único?</span><b>${m.det ? 'sí' : 'no (falla el principio de Taylor)'}</b></div>
+    <div><span>Impacto en ŷ · π</span><b>${sg(m.a, 3)} · ${sg(m.b, 3)}</b></div><div><span>Impacto en i · r</span><b>${sg(m.i[0], 3)} · ${sg(m.r[0], 3)}</b></div></div>`);
+  nota('Solución exacta por coeficientes indeterminados: con shocks AR(1) cada variable es proporcional al shock. Sin inercia en la Phillips, la inflación hereda solo la persistencia del shock: es la crítica de §2. 2. 3. La regla está escrita como en Galí (y en el Anexo 9 del tema), con φ<sub>π</sub> como respuesta total a la inflación.');
+}
+
+/* ===================================================================== 3. Determinación */
+function dibDet() {
+  lienzo(1000, 480);
+  const s = S, k = kappa(s.eta), fr = (fy) => 1 - (1 - BETA) * fy / k;
+  const P = panel(svg, 80, 36, 560, 370, [0, 3], [0, 1.5]);
+  titulo(P, 'REGIÓN DE DETERMINACIÓN EN EL PLANO (φ_π, φ_y)'); ejesD(P, 'φ_π', 'φ_y', ticks(0, 3, 0.5), ticks(0, 1.5, 0.25), 1, 2);
+  const pts = []; for (let j = 0; j <= 60; j++) { const fy = 1.5 * j / 60; pts.push([Math.max(0, fr(fy)), fy]); }
+  poligono(P, [[0, 0], ...pts, [0, 1.5]], { fill: 'var(--gris)', style: 'fill:var(--gris);opacity:.22;stroke:none' });
+  linea(pts.map(([x, y]) => [P.sx(x), P.sy(y)]), { class: 'cur', stroke: 'var(--rojo)' }, clip(P));
+  el('line', { x1: P.sx(1), y1: P.y0, x2: P.sx(1), y2: P.y0 + P.h, class: 'guia' }, g); tx(g, P.sx(1) + 4, P.y0 + 14, 'φ_π = 1', { style: 'font-size:12px' });
+  tx(g, P.sx(0.35), P.sy(1.25), 'indeterminado', { 'text-anchor': 'middle', style: 'font-size:13px' });
+  tx(g, P.sx(2.2), P.sy(1.25), 'equilibrio único', { 'text-anchor': 'middle', style: 'font-size:13px' });
+  pto(P, 1.5, 0.125, 'Taylor (1993), trimestral', { r: 4, color: 'var(--azul)', fs: 11 });
+  pto(P, 1.5, 0.5, 'Taylor (1993), anual', { r: 4, color: 'var(--azul)', fs: 11 });
+  pto(P, 0.5, 0.5, '0,5 leído como φ_π total', { r: 4, color: 'var(--naranja)', fs: 11, dx: 8, dy: 16 });
+  pto(P, s.fpi, Math.min(1.5, s.fy), 'tu regla');
+  const det = k * (s.fpi - 1) + (1 - BETA) * s.fy > 0;
+  lectura(`<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\delta(${MV(String.raw`\varphi_\pi`)} - 1) + (1-\beta)\,${MV(String.raw`\varphi_y`)} > 0 \iff \varphi_\pi + \frac{(1-\beta)\varphi_y}{\delta} > 1`)}
+    ${TX(String.raw`\varphi_\pi > 1\ \Rightarrow\ \text{determinación (si } \varphi_y \ge 0),\ \text{no al revés}`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`\delta = ${fT(k, 4)},\quad \frac{1-\beta}{\delta} = ${fT((1 - BETA) / k, 3)},\quad \varphi_\pi + \tfrac{(1-\beta)\varphi_y}{\delta} = ${fT(s.fpi + (1 - BETA) * s.fy / k, 3)}`)}</div>
+    <div class="kv"><div><span>¿Equilibrio único?</span><b>${det ? 'sí' : 'no'}</b></div><div><span>φ_π mínimo con tu φ_y</span><b>${f3(fr(s.fy))}</b></div>
+    <div><span>Respuesta total del tipo a 1 punto de π</span><b>${f2(s.fpi)}</b></div><div><span>El tipo real ante más inflación</span><b>${s.fpi > 1 ? 'sube' : s.fpi < 1 ? 'baja' : 'no cambia'}</b></div></div>`);
+  nota('Condición de Bullard y Mitra (2002) y Galí (2015, cap. 3) para la regla i = rⁿ + φ<sub>π</sub>π + φ<sub>y</sub>ŷ. Ojo con la regla del §2. 2. 4 del tema, i = r* + π + φ<sub>y</sub>ŷ + φ<sub>π</sub>(π − π*): ahí la respuesta total a la inflación es 1 + φ<sub>π</sub>, y el φ<sub>π</sub> de esta figura equivale a 1 + φ<sub>π</sub> del tema. Leer el 0,5 de Taylor como respuesta total (punto naranja) caería en la zona indeterminada.');
+}
+
+/* ===================================================================== 4. Divina coincidencia */
+function mDC(s) {
+  const k = kappa(s.eta), D = k * k + s.lam * (1 - BETA * s.rho);
+  const b = s.lam / D, a = -k / D;           /* respuesta a e_t = 1 */
+  return { k, a, b, x1: 1 / k, y1: 1 / (1 - BETA * s.rho) };
+}
+function dibDC() {
+  lienzo(1000, 480);
+  const s = S, m = mDC(s), dem = s.choqueDC === 'd';
+  const xm = Math.min(m.x1 * 1.1, 40), ym = m.y1 * 1.15;
+  const P = panel(svg, 70, 36, 400, 370, [0, xm], [0, ym]);
+  titulo(P, 'IMPACTO DE UN SHOCK DE COSTES: |ŷ| FRENTE A π');
+  const stx = xm > 20 ? 5 : xm > 8 ? 2 : 1; ejesD(P, '|ŷ_0|', 'π_0', ticks(0, xm, stx), ticks(0, ym, ym > 4 ? 1 : 0.5), 0, 1);
+  curva(P, (x) => (1 - m.k * x) / (1 - BETA * s.rho), 0, m.x1, { class: 'cur', stroke: 'var(--rojo)' });
+  rot(P, m.x1 * 0.55, (1 - m.k * m.x1 * 0.55) / (1 - BETA * s.rho) + ym * 0.04, 'frontera (shock de costes)', 'var(--rojo)', { style: 'fill:var(--rojo);font-size:12px' });
+  if (dem) pto(P, 0, 0, 'shock de demanda: origen', { dx: 10, dy: -10 });
+  else { pto(P, -m.a, m.b, `λ = ${f3(s.lam)}`, { dy: 20 }); pto(P, 0, m.y1, 'sólo inflación', { r: 4, color: 'var(--gris)', fs: 11 }); pto(P, m.x1, 0, 'sólo output', { r: 4, color: 'var(--gris)', fs: 11, dx: -60, dy: -10 }); }
+  /* IRF */
+  const T = 13, t = [...Array(T).keys()], y = t.map((j) => (dem ? 0 : m.a * Math.pow(s.rho, j))), pi = t.map((j) => (dem ? 0 : m.b * Math.pow(s.rho, j)));
+  const rn = t.map((j) => (dem ? s.th * (1 - s.rho) * Math.pow(s.rho, j) : NaN));
+  const lo = Math.min(-0.5, ...y) * 1.1, hi = Math.max(0.5, ...pi, ...rn.filter(Number.isFinite)) * 1.1;
+  const R = panel(svg, 580, 36, 380, 370, [0, 12], [lo, hi]);
+  titulo(R, dem ? 'SHOCK DE DEMANDA: IMPULSO-RESPUESTA' : 'SHOCK DE COSTES: IMPULSO-RESPUESTA');
+  const st2 = (hi - lo) > 8 ? 2 : (hi - lo) > 3 ? 1 : 0.5; ejesD(R, 't', '%', ticks(0, 12, 2), ticks(Math.ceil(lo / st2) * st2, hi, st2), 0, st2 < 1 ? 1 : 0, true);
+  serieP(R, t, y, { class: 'cur', stroke: 'var(--azul)', 'stroke-width': 2 }); rot(R, 1, y[1] - (hi - lo) * 0.06, 'ŷ_t', 'var(--azul)');
+  serieP(R, t, pi, { class: 'cur', stroke: 'var(--rojo)', 'stroke-width': 2, 'stroke-dasharray': dem ? '6 4' : 'none' }); rot(R, 2, pi[2] + (hi - lo) * 0.05, 'π_t', 'var(--rojo)');
+  if (dem) { serieP(R, t, rn, { class: 'cur', stroke: 'var(--verde)', 'stroke-width': 2 }); rot(R, 2, rn[2] + (hi - lo) * 0.05, 'i_t = rⁿ_t (sube con el shock)', 'var(--verde)', { style: 'fill:var(--verde);font-size:12px' }); }
+  lectura(`<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\min\ \pi_t^2 + ${MV(String.raw`\lambda`)}\,\hat y_t^2\ \text{ s.a. } \pi_t = \beta E_t\pi_{t+1} + \delta\hat y_t + e_t\ \Rightarrow\ \hat y_t = -\frac{\delta}{\lambda}\,\pi_t`)}
+    ${TX(String.raw`\pi_t = \frac{\lambda}{\delta^2 + \lambda(1-\beta${MV(String.raw`\rho`)})}\,e_t,\qquad \hat y_t = -\frac{\delta}{\delta^2 + \lambda(1-\beta\rho)}\,e_t`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(dem ? String.raw`\text{demanda: } \hat y_t = \pi_t = 0\ \text{con } i_t = r^n_t` : String.raw`\delta = ${fT(m.k, 4)}:\quad \pi_0 = ${fT(m.b, 3)},\ \ \hat y_0 = ${fT(m.a, 3)}`)}</div>
+    <div class="kv"><div><span>Shock</span><b>${dem ? 'demanda' : 'costes'}</b></div><div><span>¿Trade-off?</span><b>${dem ? 'no: divina coincidencia' : 'sí'}</b></div>
+    <div><span>Inflación en t = 0</span><b>${dem ? '0' : f3(m.b)}</b></div><div><span>Output gap en t = 0</span><b>${dem ? '0' : f3(m.a)}</b></div></div>`);
+  nota('Política óptima discrecional (Clarida, Galí y Gertler, 1999). Con shock de demanda el banco mueve el tipo uno a uno con el tipo natural y deja ŷ = π = 0 (el tipo natural se dibuja con θ = 1). Con shock de costes la frontera es una recta: λ → 0 es estabilizar solo la inflación; λ grande, solo el output.');
+}
+
+/* ===================================================================== 5. Escalonamiento */
+function mEsc(s) {
+  const T = 13, t = [...Array(T).keys()], lam = (1 - Math.sqrt(s.gam)) / (1 + Math.sqrt(s.gam));
+  const sinc = t.map((j) => (j === 0 ? 0 : 1)), fis = t.map((j) => (j === 0 ? 0 : j === 1 ? 0.5 : 1));
+  const tay = t.map((j) => 1 - Math.pow(lam, j)), cal = t.map((j) => 1 - Math.pow(s.eta, j));
+  return { t, lam, sinc, fis, tay, cal };
+}
+function dibEsc() {
+  lienzo(1000, 480);
+  const s = S, m = mEsc(s);
+  const L = panel(svg, 62, 36, 400, 370, [0, 12], [0, 1.1]), R = panel(svg, 580, 36, 380, 370, [0, 12], [0, 1.1]);
+  titulo(L, 'NIVEL DE PRECIOS p_t (Δm = 1)'); ejesD(L, 't', 'p_t', ticks(0, 12, 2), ticks(0, 1, 0.25), 0, 2);
+  titulo(R, 'PRODUCCIÓN y_t = m − p_t'); ejesD(R, 't', 'y_t', ticks(0, 12, 2), ticks(0, 1, 0.25), 0, 2);
+  const S4 = [['sincronizado', m.sinc, 'var(--gris)', '6 4'], ['Fischer (2 periodos)', m.fis, 'var(--naranja)', 'none'], ['Taylor', m.tay, 'var(--azul)', 'none'], ['Calvo', m.cal, 'var(--rojo)', 'none']];
+  S4.forEach(([n, v, c, d], i) => {
+    serieP(L, m.t, v, { class: 'cur', stroke: c, 'stroke-width': 2, 'stroke-dasharray': d });
+    serieP(R, m.t, v.map((x) => 1 - x), { class: 'cur', stroke: c, 'stroke-width': 2, 'stroke-dasharray': d });
+    tx(g, R.x0 + R.w - 4, R.y0 + 14 + 16 * i, n, { 'text-anchor': 'end', style: `fill:${c};font-size:12px;font-style:normal` });
+  });
+  const vida = (v) => { const j = v.findIndex((x) => 1 - x < 0.05); return j < 0 ? '> 12' : j; };
+  lectura(`<div class="formas"><span class="lbl">Forma general · en color, lo que puedes mover</span>
+    ${TX(String.raw`\text{Taylor: } x_t = \tfrac12(p_t + E_tp_{t+1}) + ${MV(String.raw`\gamma`)}\,(y_t + E_ty_{t+1})\ \Rightarrow\ p_t = \lambda p_{t-1} + (1-\lambda)m_{t-1},\ \ \lambda = \frac{1-\sqrt{\gamma}}{1+\sqrt{\gamma}}`)}
+    ${TX(String.raw`\text{Calvo: } p_t = ${MV(String.raw`\eta`)}\,p_{t-1} + (1-\eta)\,m_{t-1}`)}
+    <span class="lbl" style="margin-top:6px">Con tus valores</span>
+    ${TX(String.raw`\lambda = ${fT(m.lam, 3)},\quad \eta = ${fT(s.eta)}`)}</div>
+    <div class="kv"><div><span>Periodos con efecto real > 5 %: sincronizado</span><b>${vida(m.sinc)}</b></div><div><span>Fischer</span><b>${vida(m.fis)}</b></div>
+    <div><span>Taylor</span><b>${vida(m.tay)}</b></div><div><span>Calvo</span><b>${vida(m.cal)}</b></div></div>`);
+  nota('Esquema estilizado: shock monetario permanente e inesperado justo después de una revisión. Fischer: contratos de dos periodos firmados con el nivel de precios esperado, la mitad se renueva cada periodo. Taylor: contratos solapados en los que cada salario mira al de los demás (solución de Romer, Advanced Macroeconomics, cap. 7). Calvo, sin complementariedad estratégica. Es persistencia, no permanencia: a largo plazo y = 0.');
+}
+
+const DIB = { cs: dibCS, irf: dibIRF, det: dibDet, dc: dibDC, esc: dibEsc };
+
+/* ===================================================================== chips */
+const CHIPS = {
+  cs: (add) => { [['dt', 'Demanda temporal'], ['dp', 'Demanda permanente'], ['inf', 'Shock de inflación'], ['obj', 'Bajar el objetivo π^T']].forEach(([k, t]) => add(t, S.tipo === k, () => { S.tipo = k; })); add('BC muy averso (β = 3)', S.be === 3, () => { S.be = 3; }); add('BC poco averso (β = 0,4)', S.be === 0.4, () => { S.be = 0.4; }); },
+  irf: (add) => { [['d', 'Shock de demanda'], ['c', 'Shock de costes'], ['m', 'Shock monetario']].forEach(([k, t]) => add(t, S.choque === k, () => { S.choque = k; })); add('Taylor (1993): φ_π = 1,5, φ_y = 0,125', S.fpi === 1.5 && S.fy === 0.125, () => { S.fpi = 1.5; S.fy = 0.125; }); add('Banco pasivo: φ_π = 0,8', S.fpi === 0.8, () => { S.fpi = 0.8; S.fy = 0; }); },
+  det: (add) => { add('Taylor (1993)', S.fpi === 1.5 && S.fy === 0.125, () => { S.fpi = 1.5; S.fy = 0.125; }); add('φ_π < 1 compensado con φ_y alto', S.fpi === 0.95 && S.fy === 1, () => { S.fpi = 0.95; S.fy = 1; }); },
+  dc: (add) => { add('Shock de demanda', S.choqueDC === 'd', () => { S.choqueDC = 'd'; }); add('Shock de costes', S.choqueDC === 'c', () => { S.choqueDC = 'c'; }); add('λ de Woodford (≈ 0,014)', Math.abs(S.lam - 0.015) < 1e-9, () => { S.lam = 0.015; }); },
+  esc: null,
+};
+
+/* ===================================================================== explicaciones */
+const INI = {
+  cs: () => ({ titulo: NOM.cs, cambia: new Set(['mr', 'pc']), p: [MIRAR.cs] }),
+  irf: () => ({ titulo: NOM.irf, cambia: new Set(['is', 'pcnk', 'taylor']), p: [MIRAR.irf] }),
+  det: () => ({ titulo: NOM.det, cambia: new Set(['principio']), p: [MIRAR.det, 'El punto naranja señala la confusión de notación del §2. 2. 4: allí el 0,5 se suma a una respuesta de 1 a la inflación; si se lee como respuesta total, la regla incumpliría el principio.'] }),
+  dc: () => ({ titulo: NOM.dc, cambia: new Set(['divina']), p: [MIRAR.dc] }),
+  esc: () => ({ titulo: NOM.esc, cambia: new Set(['escalonamiento']), p: [MIRAR.esc] }),
+};
+const EXPL = {
+  cs(A, B, k) {
+    const a = simCS(A), b = simCS(B), p = [], c = new Set(['mr']);
+    const B1 = b.T[1];
+    if (k === 'tipo') {
+      c.add('pc');
+      if (B.tipo === 'dt') p.push(`Shock de demanda temporal: la IS se desplaza solo en t = 0. La producción sube a ${f1(B1.y)} y, por la Phillips, la inflación a ${f2(B1.pi)} (B). El banco ya no puede evitar esa inflación, pero sube el tipo a ${f2(B1.r)} % para llevar la economía a C, en la MR, y desde ahí la baja gradualmente. Como el shock era temporal, a largo plazo vuelve a r<sub>S</sub> = 3 %.`);
+      if (B.tipo === 'dp') { c.add('rs'); p.push(`Shock de demanda permanente: la IS se queda desplazada. Además de corregir la inflación, el banco tiene que encontrar el nuevo tipo estabilizador r<sub>S</sub>′ = ${f2(b.rS1)} %, más alto que el anterior. Si se quedara en 3 %, la producción seguiría por encima de y<sub>e</sub> y la inflación subiría sin parar.`); }
+      if (B.tipo === 'inf') p.push(`Shock de inflación de ${f1(B.mag)} puntos: la Phillips se desplaza hacia arriba y la economía salta a B con y = y<sub>e</sub> y π = ${f2(B1.pi)}. Por la inercia, el banco no puede bajar la inflación sin coste: sube el tipo a ${f2(B1.r)} %, la producción cae a C y la inflación desciende por la MR.`);
+      if (B.tipo === 'obj') p.push(`El banco baja el objetivo de 2 % a ${f2(b.pT)} %. La MR se desplaza hacia abajo: la inflación heredada (2 %) ya está por encima del objetivo, así que hay que provocar una recesión para desinflar. Es la desinflación con coste que la Phillips pura no generaría (paradoja de Ball).`);
+    } else if (k === 'be') { p.push(`Con β = ${f2(B.be)} el banco es ${B.be > A.be ? 'más' : 'menos'} averso a la inflación y la MR, de pendiente −1/(αβ), se hace ${B.be > A.be ? 'más plana' : 'más empinada'}. El tipo en t = 0 pasa de ${f2(a.T[1].r)} a ${f2(B1.r)} %: corrige la inflación ${B.be > A.be ? 'más deprisa, con más pérdida de producción al principio' : 'más despacio, con menos pérdida de producción al principio'}.`); }
+    else if (k === 'al') { c.add('pc'); p.push(`Con α = ${f2(B.al)} la Phillips es ${B.al > A.al ? 'más' : 'menos'} empinada: cada punto de output gap mueve más la inflación. Cambian tanto la PC como la MR, de pendiente −1/(αβ).`); }
+    else if (k === 'a0') { c.add('is'); p.push(`Con a₀ = ${f2(B.a0)} la demanda responde ${B.a0 > A.a0 ? 'más' : 'menos'} al tipo (IS ${B.a0 > A.a0 ? 'más plana' : 'más empinada'}). Para el mismo objetivo de producción el banco necesita mover ${B.a0 > A.a0 ? 'menos' : 'más'} el tipo: r₀ pasa de ${f2(a.T[1].r)} a ${f2(B1.r)} %. La senda de y y π no cambia, porque la elige el banco en la MR.`); }
+    else if (k === 'per') p.push(B.per === 0 ? 'Solo A y el shock B.' : `Se muestran ${B.per} periodos tras el shock. En cada uno el banco mira la inflación del periodo, se sitúa en la PC del siguiente y elige el punto de la MR.`);
+    else p.push(`Tamaño del shock: ${f1(B.mag)}. El punto B pasa a y = ${f1(B1.y)}, π = ${f2(B1.pi)}.`);
+    return { titulo: k === 'tipo' ? { dt: 'Shock de demanda temporal', dp: 'Shock de demanda permanente', inf: 'Shock de inflación', obj: 'Nuevo objetivo de inflación' }[B.tipo] : tituloCambio(A, B, k), p, cambia: c };
+  },
+  irf(A, B, k) {
+    const a = solNK(A, A.choque, A.rho), b = solNK(B, B.choque, B.rho), p = [], c = new Set();
+    if (k === 'choque') {
+      if (B.choque === 'd') { c.add('is'); p.push(`Shock de demanda: el output gap sube ${f3(b.a)} y, por la Phillips, la inflación ${f3(b.b)}. La regla sube el tipo nominal más que la inflación esperada (φ<sub>π</sub> > 1), sube el tipo real y frena la demanda.`); }
+      if (B.choque === 'c') { c.add('pcnk'); p.push(`Shock de costes: la inflación sube ${f3(b.b)} y la regla sube los tipos, lo que abre un output gap negativo (${f3(b.a)}). Es el trade-off que rompe la divina coincidencia.`); }
+      if (B.choque === 'm') { c.add('taylor'); p.push(`Shock monetario contractivo de 0,25: sube el tipo real, caen el output gap (${f3(b.a)}) y la inflación (${f3(b.b)}). Como baja la inflación, la regla responde bajando el tipo, y el tipo nominal sube menos que el shock (${f3(b.i[0])}).`); }
+    } else if (k === 'eta') { c.add('calvo'); p.push(`Con η = ${f2(B.eta)} cambian precios ${fmt(100 * (1 - B.eta), 0)} % de las empresas por trimestre (duración media ${f1(1 / (1 - B.eta))} trimestres). δ pasa de ${fmt(a.k, 4)} a ${fmt(b.k, 4)}: ${B.eta > A.eta ? 'más rigidez, Phillips más plana, la inflación se mueve menos y el output más' : 'menos rigidez, Phillips más empinada'}. Impacto: ŷ ${sg(a.a, 3)} → ${sg(b.a, 3)}, π ${sg(a.b, 3)} → ${sg(b.b, 3)}.`); }
+    else if (k === 'fpi' || k === 'fy') { c.add('taylor'); p.push(`Regla más ${B[k] > A[k] ? 'agresiva' : 'suave'} con ${k === 'fpi' ? 'la inflación' : 'el output gap'}. Impacto: ŷ ${sg(a.a, 3)} → ${sg(b.a, 3)}, π ${sg(a.b, 3)} → ${sg(b.b, 3)}.`); if (a.det !== b.det) { c.add('principio'); p.push(b.det ? 'Vuelve a cumplirse el principio de Taylor: el equilibrio es único.' : 'Deja de cumplirse el principio de Taylor: ante más inflación el tipo real baja, la demanda sube y la inflación esperada se autoconfirma. Hay infinitas soluciones (sunspots); la dibujada es solo una de ellas.'); } }
+    else if (k === 'th') { c.add('is'); p.push(`Con θ = ${f2(B.th)} la elasticidad de sustitución intertemporal es ${f2(1 / B.th)}: la demanda responde ${B.th < A.th ? 'más' : 'menos'} al tipo real.`); }
+    else if (k === 'rho') p.push(`Persistencia del shock ρ = ${f2(B.rho)}. Sin inercia, la senda de cada variable decae exactamente al ritmo ρ<sup>t</sup>: toda la persistencia viene del shock.`);
+    return { titulo: k === 'choque' ? { d: 'Shock de demanda', c: 'Shock de costes', m: 'Shock monetario' }[B.choque] : tituloCambio(A, B, k), p, cambia: c };
+  },
+  det(A, B, k) {
+    const ka = kappa(B.eta), det = ka * (B.fpi - 1) + (1 - BETA) * B.fy > 0, p = [], c = new Set(['principio']);
+    if (k === 'eta') p.push(`Con η = ${f2(B.eta)}, δ = ${fmt(ka, 4)} y (1 − β)/δ = ${f3((1 - BETA) / ka)}. ${B.eta > A.eta ? 'Más rigidez: la frontera se inclina más y φ_y ayuda más a la determinación.' : 'Menos rigidez: la frontera se acerca a la vertical φ_π = 1.'}`);
+    else p.push(`Tu regla: φ_π = ${f2(B.fpi)}, φ_y = ${f3(B.fy)}. ${det ? 'Está en la zona de equilibrio único' : 'Está en la zona indeterminada'}${B.fpi < 1 && det ? ': con φ_π < 1, φ_y basta para compensar. Por eso φ_π > 1 es condición suficiente y no necesaria.' : '.'}`);
+    return { titulo: tituloCambio(A, B, k), p, cambia: c };
+  },
+  dc(A, B, k) {
+    const b = mDC(B), p = [], c = new Set(['divina']);
+    if (k === 'choqueDC') p.push(B.choqueDC === 'd' ? 'Shock de demanda: el tipo natural sube y el banco sube el tipo lo mismo. Output gap e inflación quedan en cero: no hay que elegir. Es la divina coincidencia (Blanchard y Galí).' : `Shock de costes: inflación cero ya no implica output gap cero. Con λ = ${f3(B.lam)} el banco acepta π₀ = ${f3(b.b)} y ŷ₀ = ${f3(b.a)}.`);
+    else if (k === 'lam') { c.add('perdida'); p.push(`Con λ = ${f3(B.lam)} el banco pesa ${B.lam > A.lam ? 'más' : 'menos'} el output gap: el punto se mueve ${B.lam > A.lam ? 'hacia más inflación y menos recesión' : 'hacia menos inflación y más recesión'} (π₀ = ${f3(b.b)}, ŷ₀ = ${f3(b.a)}).`); }
+    else p.push(`Con ${k === 'rho' ? 'ρ' : 'η'} = ${f2(B[k])} la frontera cambia: π₀ = ${f3(b.b)}, ŷ₀ = ${f3(b.a)}.`);
+    return { titulo: k === 'choqueDC' ? (B.choqueDC === 'd' ? 'Shock de demanda' : 'Shock de costes') : tituloCambio(A, B, k), p, cambia: c };
+  },
+  esc(A, B, k) {
+    const b = mEsc(B), p = [], c = new Set(['escalonamiento']);
+    if (k === 'gam') { c.add('complementariedad'); p.push(`Con γ = ${f2(B.gam)}, λ = ${f3(b.lam)}. ${B.gam < A.gam ? 'Cada contrato mira más a los vigentes: quien renueva no se aleja de los demás y el ajuste es más lento.' : 'Los contratos miran más a la demanda: el ajuste es más rápido.'} Con γ = 1, λ = 0 y Taylor se parece al ajuste sincronizado.`); }
+    if (k === 'eta') { c.add('calvo'); p.push(`Con η = ${f2(B.eta)} cada periodo ajusta un ${fmt(100 * (1 - B.eta), 0)} % de empresas: el precio cubre el ${fmt(100 * (1 - B.eta), 0)} % del hueco cada periodo.`); }
+    return { titulo: tituloCambio(A, B, k), p, cambia: c };
+  },
+};
+
+/* ===================================================================== fichas */
+const FICHAS = {
+  cs: () => [
+    { k: 'is', n: 'Curva IS', d: 'La demanda de t depende del tipo real fijado en t − 1: la política tarda un periodo en llegar al gasto.', f: String.raw`y_t = A - a_0\,r_{t-1}`, v: `a₀ = ${f2(S.a0)}`, ref: '3A7 §2. 2. 5' },
+    { k: 'pc', n: 'Curva de Phillips con inercia', d: 'La inflación esperada es la del periodo anterior (indexación): crea la sucesión de periodos que permite dibujar el modelo.', f: String.raw`\pi_t = \pi_{t-1} + \alpha(y_t - y_e)`, v: `α = ${f2(S.al)}`, ref: '3A7 §2. 2. 5' },
+    { k: 'mr', n: 'Curva MR-AD', d: 'Regla del banco central que sale de minimizar su pérdida sujeta a la Phillips. Un banco más averso (β alto) tiene una MR más plana.', f: String.raw`y_t - y_e = -\alpha\beta(\pi_t - \pi^T)`, v: `pendiente ${f2(-1 / (S.al * S.be))}`, ref: '3A7 §2. 2. 5' },
+    { k: 'perdida', n: 'Función de pérdida del banco central', d: 'Cuadrática en las dos desviaciones; β mide la aversión a la inflación.', f: String.raw`\mathcal L = (y_t - y_e)^2 + \beta(\pi_t - \pi^T)^2`, v: `β = ${f2(S.be)}`, ref: '3A7 §2. 2. 5 (en el tema falta el cuadrado del segundo término)' },
+    { k: 'rs', n: 'Tipo estabilizador r_S', d: 'Tipo real que sitúa la demanda en y_e. Cambia si el shock de demanda es permanente.', v: `${f2(simCS(S).rS1)} %`, ref: '3A7 §2. 2. 5 (el texto lo llama r_e)' },
+  ],
+  irf: () => [
+    { k: 'is', n: 'IS dinámica', d: 'Sale de la ecuación de Euler del hogar: el output gap depende del esperado y de la diferencia entre el tipo real y el natural.', f: String.raw`\hat y_t = E_t\hat y_{t+1} - \tfrac1\theta(i_t - E_t\pi_{t+1} - r^n_t) + u_t`, ref: '3A7 §2. 2. 2 y Anexo 5' },
+    { k: 'pcnk', n: 'Phillips de la NEK', d: 'Forward-looking: la inflación depende de la esperada y del output gap. Sin inercia.', f: String.raw`\pi_t = \beta E_t\pi_{t+1} + \delta\hat y_t + e_t`, v: `δ = ${fmt(kappa(S.eta), 4)}`, ref: '3A7 §2. 2. 3' },
+    { k: 'calvo', n: 'Fijación à la Calvo', d: 'Cada periodo solo una proporción 1 − η de empresas puede ajustar; las que lo hacen, lo hacen óptimamente.', f: String.raw`\delta = \frac{(1-\eta)(1-\beta\eta)}{\eta}`, v: `η = ${f2(S.eta)}`, ref: '3A7 §2. 2. 3' },
+    { k: 'taylor', n: 'Regla de Taylor', d: 'Cierra el sistema: el banco fija el tipo según inflación y output gap. Aquí con φ_π como respuesta total.', f: String.raw`i_t = r^n_t + \varphi_\pi\pi_t + \varphi_y\hat y_t + \varepsilon_t`, ref: '3A7 §2. 2. 4 y Anexo 9' },
+    { k: 'principio', n: 'Principio de Taylor', d: 'Condición de equilibrio único.', f: String.raw`\delta(\varphi_\pi - 1) + (1-\beta)\varphi_y > 0`, ref: '3A7 §2. 3. 1' },
+  ],
+  det: () => [
+    { k: 'principio', n: 'Principio de Taylor', d: 'El tipo nominal debe responder más que proporcionalmente a la inflación para que suba el tipo real y el equilibrio sea único.', f: String.raw`\varphi_\pi + \frac{(1-\beta)\varphi_y}{\delta} > 1`, ref: '3A7 §2. 3. 1' },
+    { k: 'sunspots', n: 'Indeterminación y sunspots', d: 'Si la regla es pasiva, expectativas de inflación sin fundamento se autoconfirman: hay infinitos equilibrios.', ref: '3A7 §2. 3. 1 · Blanchard y Fischer (1989)' },
+    { k: 'notacion', n: 'Dos formas de escribir la regla', d: 'i = r* + π + φ_y ŷ + φ_π(π − π*) (Taylor, 1993; §2. 2. 4) da respuesta total 1 + φ_π; i = rⁿ + φ_π π + φ_y ŷ (Galí; Anexo 9) da respuesta total φ_π. El principio se refiere a la respuesta total.', ref: '3A7 §2. 2. 4, §2. 3. 1 y Anexo 9' },
+  ],
+  dc: () => [
+    { k: 'divina', n: 'Divina coincidencia', d: 'Sin imperfecciones reales, estabilizar la inflación estabiliza también el output gap. Se rompe con shocks de costes o rigideces reales de salarios.', ref: '3A7 §2. 3. 2 · Blanchard y Galí (2007)' },
+    { k: 'perdida', n: 'Pérdida microfundamentada', d: 'Aproximación de segundo orden a la utilidad del hogar representativo (Woodford). λ es el peso del output gap.', f: String.raw`\mathcal L = E_0\sum\beta^t(\pi_t^2 + \lambda\hat y_t^2)`, v: `λ = ${f3(S.lam)}`, ref: '3A7 §2. 3. 2' },
+    { k: 'frontera', n: 'Frontera ante un shock de costes', d: 'Combinaciones alcanzables de inflación y output gap; la elegida depende de λ.', f: String.raw`(1-\beta\rho)\,\pi_0 + \delta\,|\hat y_0| = 1`, ref: '3A7 §2. 3. 2' },
+  ],
+  esc: () => [
+    { k: 'escalonamiento', n: 'Escalonamiento', d: 'No todas las empresas revisan a la vez, así que ninguna ajusta del todo desde el principio y los efectos reales de un shock nominal duran más.', ref: '3A7 §1. 5. 1 · Fischer (1977), Taylor (1980)' },
+    { k: 'complementariedad', n: 'Complementariedad estratégica (γ)', d: 'Cuánto mira cada precio a los de las demás. Es una rigidez real: con γ pequeño, el escalonamiento da mucha persistencia.', v: `λ = ${f3(mEsc(S).lam)}`, ref: '3A7 §1. 5. 1' },
+    { k: 'calvo', n: 'Calvo (1983)', d: 'Formalización probabilística del escalonamiento: cada periodo ajusta una fracción 1 − η.', v: `η = ${f2(S.eta)}`, ref: '3A7 §2. 2. 3' },
+  ],
+};
+
+arrancar('cs');
+
+</script>
+
+</body>
+</html>

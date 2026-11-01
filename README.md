@@ -8,6 +8,8 @@ Gráficos interactivos del temario TCEE para insertar en Obsidian con un `<ifram
 - `desequilibrio.html` — keynesianos del desequilibrio (3A4 §2. 3 y Anexos 1-3). Vistas: `#bg`, `#clower`, `#leij`, `#mal`.
 - `marshall.html` — Marshall: periodos de oferta y cuasi-rentas (3A3). Plazo inicial: `#mc`, `#cp`, `#lp`, `#mlp`.
 - `nmc.html` — la Nueva Macroeconomía Clásica (3A6). Vistas: `#lucas`, `#bg`, `#ricardo`, `#rbc`.
+- `nek1.html` — NEK, primera generación (3A7). Vistas: `#menu`, `#bk`, `#sw`, `#solow`, `#ss`, `#nairu`.
+- `nek2.html` — NEK, segunda generación (3A7). Vistas: `#cs`, `#irf`, `#det`, `#dc`, `#esc`.
 - `islm.html` — el IS-LM según las escuelas (3A5, Anexo 3). Pestaña inicial: `#pend`, `#hicks`, `#clas`, `#key`, `#sin`, `#mon`, `#nc`, `#nk`.
 
 Parámetros: `?compacto=1` oculta la cabecera; `?tema=claro|oscuro` fuerza el tema.
