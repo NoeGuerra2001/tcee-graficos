@@ -671,6 +671,43 @@ dibujar();
 mostrarPorque('m', inicial());
 window.addEventListener('hashchange', desdeHash);
 
+/* LEER-INICIO: bloque plegable «Cómo leer este gráfico» */
+(function () {
+  const PAG = "marshall", LEER = {"mc": {"ejes": "A la izquierda, la industria: precio frente a cantidad. A la derecha, la empresa representativa: costes y precio frente a su producción.", "curvas": ["<b>D<sub>0</sub> y D<sub>1</sub></b>: demanda antes y después del shock ΔD.", "<b>S<sub>mc</sub></b>: oferta de muy corto plazo, vertical porque la cantidad ya está producida."], "puntos": ["<b>E<sub>0</sub></b>: equilibrio de largo plazo de partida.", "El nuevo equilibrio sobre la misma vertical."], "sig": "En el periodo de mercado la oferta es fija y la demanda determina por completo el precio: todo el shock va a precio. Cuanto más corto el periodo, más pesa la demanda en el precio; es la primera mitad de la idea de las tijeras de Marshall."}, "cp": {"ejes": "Industria a la izquierda (precio frente a cantidad) y empresa representativa a la derecha (costes frente a producción).", "curvas": ["<b>S<sub>cp</sub></b>: suma de los costes marginales de las empresas por encima del mínimo del coste variable medio.", "En la empresa, <b>CMag</b>, <b>CMeV</b> y <b>CMeT</b>, y la recta del precio."], "puntos": ["El nuevo equilibrio de corto plazo, con un precio menor que en el muy corto plazo.", "El área entre el precio y el CMeV es la <b>cuasi-renta</b>."], "sig": "Con la planta fija, las empresas pueden producir más moviéndose por su CMag: el precio sube menos que en el muy corto plazo. Lo que se gana por encima de los costes variables es la cuasi-renta, la remuneración de los factores fijos, que desaparece a largo plazo cuando todos los factores se pueden ajustar."}, "lp": {"ejes": "Industria a la izquierda y empresa representativa a la derecha.", "curvas": ["<b>S<sub>lp</sub></b>: oferta de largo plazo, horizontal con costes constantes, creciente con costes crecientes y decreciente con costes decrecientes (economías externas).", "En la empresa, el mínimo del <b>CMeT</b>."], "puntos": ["El equilibrio de largo plazo, donde cada empresa produce en el mínimo de su CMeT."], "sig": "Con todos los factores variables entran empresas mientras haya beneficio extraordinario, hasta que el precio iguala el mínimo del coste medio. Con costes constantes el precio vuelve al de partida y todo el shock va a cantidad. Cuanto más largo el periodo, más pesa el coste de producción (la oferta) en el precio."}, "mlp": {"ejes": "Industria a la izquierda y empresa representativa a la derecha.", "curvas": ["<b>S<sub>mlp</sub></b>: oferta de muy largo plazo, desplazada hacia abajo por el cambio técnico τ."], "puntos": ["El equilibrio de muy largo plazo, con un precio que puede quedar por debajo del de partida."], "sig": "En el muy largo plazo cambian la tecnología y la dotación de factores: el coste de producción baja y con él el precio. Es el plazo en que, para Marshall, las remuneraciones de los factores y la técnica determinan el precio, y no al revés."}};
+  const q = (s) => document.querySelector(s);
+  const CONF = {
+    tabs: { tab: () => q('#tabs button[aria-selected="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    secciones: { tab: () => q('.tabs button[aria-selected="true"]')?.id?.replace('tab-', ''), ancla: () => q('section.vista-wrap:not([hidden]) .controles') },
+    marshall: { tab: () => q('#chips-per button[aria-pressed="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    edgeworth: { tab: () => q('#presets button[aria-pressed="true"]')?.dataset.id, ancla: () => q('#app') },
+  }[PAG];
+  const st = document.createElement('style');
+  st.textContent = `details.leer { border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; margin-top: 12px; font-size: 13.5px; line-height: 1.55; grid-column: 1 / -1; }
+details.leer > summary { cursor: pointer; font-weight: 600; letter-spacing: .02em; padding: 2px 0; }
+details.leer[open] > summary { margin-bottom: 6px; }
+details.leer .leer-c p { margin: 6px 0; }
+details.leer .leer-c ul { margin: 4px 0 8px; padding-left: 20px; }
+details.leer .leer-c li { margin: 3px 0; }
+details.leer .leer-c .et { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+details.leer .leer-c .sig { border-left: 3px solid var(--azul); padding-left: 10px; }`;
+  document.head.appendChild(st);
+  const det = document.createElement('details'); det.className = 'leer';
+  det.innerHTML = '<summary>Cómo leer este gráfico</summary><div class="leer-c"></div>';
+  const lista = (t, xs) => (xs && xs.length ? `<div class="et">${t}</div><ul>${xs.map((x) => `<li>${x}</li>`).join('')}</ul>` : '');
+  const html = (d) => (d.ejes ? `<div class="et">Ejes</div><p>${d.ejes}</p>` : '') + lista('Curvas', d.curvas) + lista('Puntos', d.puntos) + `<div class="et">Qué significa</div><p class="sig">${d.sig}</p>`;
+  let ult = null, tmo = null;
+  function act() {
+    if (!CONF) return;
+    const k = CONF.tab(), d = LEER[k], a = CONF.ancla();
+    if (!d || !a) { if (!det.hidden) det.hidden = true; return; }
+    if (det.hidden) det.hidden = false;
+    if (det.previousElementSibling !== a) a.after(det);
+    if (k !== ult) { ult = k; det.querySelector('.leer-c').innerHTML = html(d); }
+  }
+  new MutationObserver(() => { clearTimeout(tmo); tmo = setTimeout(act, 30); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['aria-selected', 'aria-pressed', 'hidden'] });
+  act();
+})();
+/* LEER-FIN */
 </script>
 
 </body>

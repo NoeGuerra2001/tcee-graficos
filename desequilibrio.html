@@ -690,6 +690,43 @@ abrir(TAB0, false);
 mostrarPorque('d', inicial(TAB0));
 window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (NOM[h]) abrir(h, true); });
 
+/* LEER-INICIO: bloque plegable «Cómo leer este gráfico» */
+(function () {
+  const PAG = "tabs", LEER = {"bg": {"ejes": "A la izquierda, el mercado de trabajo: salario real w frente a empleo L. A la derecha, el mercado de bienes: producción Y frente al salario real w.", "curvas": ["<b>L<sup>d</sup></b>: demanda nocional de trabajo, la que haría la empresa si pudiera vender todo lo que quiere.", "<b>L<sup>s</sup></b>: oferta de trabajo.", "<b>Demanda efectiva de trabajo</b>: vertical en L<sub>1</sub>, el empleo necesario para producir lo que se puede vender."], "puntos": ["<b>A</b>: equilibrio walrasiano.", "<b>B</b>: paro keynesiano, con la empresa racionada en ventas.", "<b>D</b>: paro clásico, con un salario real demasiado alto."], "sig": "Barro y Grossman (1971) dan microfundamentos al paro keynesiano: con un precio rígido por encima del walrasiano, las empresas no venden lo que querrían, y esa restricción en el mercado de bienes se traslada al de trabajo. El empleo cae aunque el salario real no sea demasiado alto, y bajar el salario no lo arregla. Es un paro distinto del clásico, que sí se debe al salario."}, "clower": {"ejes": "A la izquierda, consumo C frente a trabajo L, para la empresa y el hogar. A la derecha, el mercado de trabajo.", "curvas": ["La función de producción de la empresa y las curvas de indiferencia del hogar.", "La recta del salario real w′, por encima del walrasiano w*."], "puntos": ["<b>2</b>: lo que quiere la empresa.", "<b>3</b>: lo que quiere el hogar."], "sig": "Con w′ > w* hay exceso de oferta de trabajo y, sobre el papel, exceso de demanda de bienes. Pero el hogar que no consigue vender todo su trabajo gasta según la renta que de verdad obtiene: es la decisión dual de Clower (1965). Ese exceso de demanda nocional no llega al mercado como demanda efectiva, así que no hay señal que empuje los precios y la economía no vuelve sola al equilibrio walrasiano."}, "leij": {"ejes": "A la izquierda, producción y consumo (Y, C) frente a empleo L. A la derecha, el mercado de trabajo.", "curvas": ["La función de producción y la demanda (consumo más demanda autónoma i<sup>D</sup>) según el empleo."], "puntos": ["<b>1 → 2 → 3 → … → N</b>: la cadena de ajuste tras la caída de la demanda autónoma."], "sig": "Leijonhufvud lee a Keynes como un problema de información y coordinación: ante un pesimismo empresarial, las cantidades se ajustan antes que los precios. Menos ventas llevan a menos empleo, menos empleo a menos consumo y menos consumo a menos ventas: un multiplicador de desequilibrio que lleva la economía lejos del pleno empleo."}, "mal": {"ejes": "A la izquierda, el mercado de trabajo. A la derecha, el mapa de regímenes: salario real w en horizontal y demanda autónoma i<sup>D</sup> en vertical.", "curvas": ["Las fronteras entre los tres regímenes de Malinvaud (1977)."], "puntos": ["<b>Punto blanco</b>: el régimen en que está la economía con tus valores."], "sig": "Malinvaud clasifica los desequilibrios por qué mercado raciona a quién. Paro keynesiano: exceso de oferta en bienes y en trabajo; se cura con demanda, y subir el salario puede subir el empleo por el consumo. Paro clásico: exceso de oferta de trabajo con exceso de demanda de bienes; el problema es el salario real. Inflación reprimida: exceso de demanda en los dos mercados. Cada régimen pide una política distinta."}};
+  const q = (s) => document.querySelector(s);
+  const CONF = {
+    tabs: { tab: () => q('#tabs button[aria-selected="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    secciones: { tab: () => q('.tabs button[aria-selected="true"]')?.id?.replace('tab-', ''), ancla: () => q('section.vista-wrap:not([hidden]) .controles') },
+    marshall: { tab: () => q('#chips-per button[aria-pressed="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    edgeworth: { tab: () => q('#presets button[aria-pressed="true"]')?.dataset.id, ancla: () => q('#app') },
+  }[PAG];
+  const st = document.createElement('style');
+  st.textContent = `details.leer { border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; margin-top: 12px; font-size: 13.5px; line-height: 1.55; grid-column: 1 / -1; }
+details.leer > summary { cursor: pointer; font-weight: 600; letter-spacing: .02em; padding: 2px 0; }
+details.leer[open] > summary { margin-bottom: 6px; }
+details.leer .leer-c p { margin: 6px 0; }
+details.leer .leer-c ul { margin: 4px 0 8px; padding-left: 20px; }
+details.leer .leer-c li { margin: 3px 0; }
+details.leer .leer-c .et { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+details.leer .leer-c .sig { border-left: 3px solid var(--azul); padding-left: 10px; }`;
+  document.head.appendChild(st);
+  const det = document.createElement('details'); det.className = 'leer';
+  det.innerHTML = '<summary>Cómo leer este gráfico</summary><div class="leer-c"></div>';
+  const lista = (t, xs) => (xs && xs.length ? `<div class="et">${t}</div><ul>${xs.map((x) => `<li>${x}</li>`).join('')}</ul>` : '');
+  const html = (d) => (d.ejes ? `<div class="et">Ejes</div><p>${d.ejes}</p>` : '') + lista('Curvas', d.curvas) + lista('Puntos', d.puntos) + `<div class="et">Qué significa</div><p class="sig">${d.sig}</p>`;
+  let ult = null, tmo = null;
+  function act() {
+    if (!CONF) return;
+    const k = CONF.tab(), d = LEER[k], a = CONF.ancla();
+    if (!d || !a) { if (!det.hidden) det.hidden = true; return; }
+    if (det.hidden) det.hidden = false;
+    if (det.previousElementSibling !== a) a.after(det);
+    if (k !== ult) { ult = k; det.querySelector('.leer-c').innerHTML = html(d); }
+  }
+  new MutationObserver(() => { clearTimeout(tmo); tmo = setTimeout(act, 30); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['aria-selected', 'aria-pressed', 'hidden'] });
+  act();
+})();
+/* LEER-FIN */
 </script>
 
 </body>

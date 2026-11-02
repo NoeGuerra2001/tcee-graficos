@@ -955,6 +955,43 @@ abrir(TAB0, false);
 mostrarPorque('m', inicial(TAB0));
 window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (NOMBRE[h]) abrir(h, true); });
 
+/* LEER-INICIO: bloque plegable «Cómo leer este gráfico» */
+(function () {
+  const PAG = "tabs", LEER = {"pend": {"ejes": "Renta Y en horizontal y tipo de interés i en vertical, en los dos paneles.", "curvas": ["A la izquierda, <b>IS</b> con distintos valores de b: más plana cuanto más responde el gasto al tipo.", "A la derecha, <b>LM</b> con distintos valores de h: más plana cuanto más responde la demanda de dinero al tipo, hasta la horizontal con h → ∞."], "puntos": ["El punto común por el que pasan todas, y tu curva en trazo grueso."], "sig": "Cada escuela es un juego de pendientes. Con una IS empinada (b pequeño) la política monetaria apenas mueve la renta; con una LM plana (h grande) la política fiscal casi no expulsa inversión. El debate entre keynesianos y monetaristas de los sesenta se puede leer como un debate sobre b y h."}, "hicks": {"ejes": "Renta Y en horizontal y tipo de interés i en vertical.", "curvas": ["<b>LL</b> de Hicks: casi horizontal a la izquierda, porque hay un tipo mínimo por debajo del cual no baja, y casi vertical a la derecha.", "<b>IS</b> en tres posiciones, que cortan cada tramo."], "puntos": ["Los equilibrios en el tramo horizontal, el intermedio y el vertical."], "sig": "Hicks (1937) muestra que «la teoría general» de Keynes y «la clásica» son casos de un mismo modelo: con renta baja, en el tramo horizontal, la política monetaria no sirve y la fiscal sí (economía de la depresión); con renta alta, en el tramo vertical, ocurre lo contrario. Que una política funcione depende de dónde corta la IS."}, "clas": {"ejes": "Renta Y en horizontal y tipo de interés i en vertical.", "curvas": ["<b>LM vertical</b> (h = 0): el dinero solo se demanda para transacciones.", "<b>IS</b> y sus desplazamientos."], "puntos": ["<b>E<sub>0</sub></b>, y el equilibrio tras la política fiscal y tras la monetaria."], "sig": "Si la demanda de dinero no depende del tipo, la renta la fija la cantidad de dinero. Una expansión fiscal solo sube el tipo y expulsa la misma cantidad de inversión privada (expulsión total); la política monetaria mueve la renta en proporción al dinero. Es la teoría cuantitativa dentro del IS-LM."}, "key": {"ejes": "Renta Y en horizontal y tipo de interés i en vertical.", "curvas": ["<b>LM horizontal</b> en el suelo del tipo, i<sub>min</sub>: la trampa de la liquidez.", "<b>IS</b> y sus desplazamientos."], "puntos": ["<b>E<sub>0</sub></b> y los equilibrios tras cada política; el círculo blanco es el multiplicador simple."], "sig": "En la trampa de la liquidez todo dinero adicional se atesora y el tipo no baja: la política monetaria no mueve la renta. La fiscal da el multiplicador simple entero, porque el tipo no sube y no hay expulsión. Es el caso keynesiano extremo."}, "sin": {"ejes": "Renta Y en horizontal y tipo de interés i en vertical.", "curvas": ["<b>IS</b> y <b>LM</b> con pendientes intermedias."], "puntos": ["<b>E<sub>0</sub></b>, el equilibrio tras la política fiscal y tras la monetaria, y el multiplicador simple (círculo blanco)."], "sig": "Con pendientes normales las dos políticas funcionan. La fiscal sube la renta menos que el multiplicador simple, porque el mayor tipo expulsa parte de la inversión; la monetaria baja el tipo y estimula la inversión. Es la síntesis neoclásica: el modelo keynesiano con un mercado de dinero que reacciona."}, "mon": {"ejes": "Renta Y en horizontal y tipo de interés i en vertical.", "curvas": ["<b>IS plana</b> (b grande) y <b>LM empinada</b> (h pequeño)."], "puntos": ["<b>E<sub>0</sub></b> y los equilibrios tras cada política."], "sig": "Con un gasto muy sensible al tipo y una demanda de dinero poco sensible, casi toda la expansión fiscal se expulsa y la política monetaria es muy potente. Es la lectura monetarista del IS-LM, aunque Friedman añadía que los efectos del dinero son inciertos y con retardos, de ahí su regla."}, "nc": {"ejes": "Renta Y en horizontal y nivel de precios P en vertical: la nueva clásica cambia de plano.", "curvas": ["<b>OA de Lucas</b>: vertical para la política anticipada, con pendiente positiva solo ante sorpresas.", "<b>DA</b> y su desplazamiento."], "puntos": ["El equilibrio de partida y el que resulta según la política sea anticipada o no."], "sig": "La nueva clásica no discute las pendientes de IS y LM: sustituye el modelo. Con expectativas racionales, la política anticipada solo sube los precios; solo la sorpresa mueve la renta, y de forma transitoria. Es la proposición de ineficacia de Sargent y Wallace."}, "nk": {"ejes": "Renta Y en horizontal y tipo de interés real r en vertical.", "curvas": ["<b>IS</b>.", "<b>MP</b>: el tipo que fija el banco central con su regla, en lugar de la LM."], "puntos": ["El equilibrio y el que resulta tras la política fiscal y tras una decisión del banco central."], "sig": "Los bancos centrales fijan el tipo de interés y suministran el dinero que se les demande, así que la LM se sustituye por una regla de política monetaria (Romer, 2000). La expulsión fiscal no la decide el mercado de dinero sino la reacción del banco central, φ: si no reacciona, no hay expulsión; si reacciona mucho, la expulsión es grande."}};
+  const q = (s) => document.querySelector(s);
+  const CONF = {
+    tabs: { tab: () => q('#tabs button[aria-selected="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    secciones: { tab: () => q('.tabs button[aria-selected="true"]')?.id?.replace('tab-', ''), ancla: () => q('section.vista-wrap:not([hidden]) .controles') },
+    marshall: { tab: () => q('#chips-per button[aria-pressed="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    edgeworth: { tab: () => q('#presets button[aria-pressed="true"]')?.dataset.id, ancla: () => q('#app') },
+  }[PAG];
+  const st = document.createElement('style');
+  st.textContent = `details.leer { border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; margin-top: 12px; font-size: 13.5px; line-height: 1.55; grid-column: 1 / -1; }
+details.leer > summary { cursor: pointer; font-weight: 600; letter-spacing: .02em; padding: 2px 0; }
+details.leer[open] > summary { margin-bottom: 6px; }
+details.leer .leer-c p { margin: 6px 0; }
+details.leer .leer-c ul { margin: 4px 0 8px; padding-left: 20px; }
+details.leer .leer-c li { margin: 3px 0; }
+details.leer .leer-c .et { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+details.leer .leer-c .sig { border-left: 3px solid var(--azul); padding-left: 10px; }`;
+  document.head.appendChild(st);
+  const det = document.createElement('details'); det.className = 'leer';
+  det.innerHTML = '<summary>Cómo leer este gráfico</summary><div class="leer-c"></div>';
+  const lista = (t, xs) => (xs && xs.length ? `<div class="et">${t}</div><ul>${xs.map((x) => `<li>${x}</li>`).join('')}</ul>` : '');
+  const html = (d) => (d.ejes ? `<div class="et">Ejes</div><p>${d.ejes}</p>` : '') + lista('Curvas', d.curvas) + lista('Puntos', d.puntos) + `<div class="et">Qué significa</div><p class="sig">${d.sig}</p>`;
+  let ult = null, tmo = null;
+  function act() {
+    if (!CONF) return;
+    const k = CONF.tab(), d = LEER[k], a = CONF.ancla();
+    if (!d || !a) { if (!det.hidden) det.hidden = true; return; }
+    if (det.hidden) det.hidden = false;
+    if (det.previousElementSibling !== a) a.after(det);
+    if (k !== ult) { ult = k; det.querySelector('.leer-c').innerHTML = html(d); }
+  }
+  new MutationObserver(() => { clearTimeout(tmo); tmo = setTimeout(act, 30); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['aria-selected', 'aria-pressed', 'hidden'] });
+  act();
+})();
+/* LEER-FIN */
 </script>
 
 </body>

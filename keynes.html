@@ -1098,6 +1098,43 @@ const desdeHash = () => abrir(TABS.includes(location.hash.slice(1)) ? location.h
 desdeHash();
 window.addEventListener('hashchange', desdeHash);
 
+/* LEER-INICIO: bloque plegable «Cómo leer este gráfico» */
+(function () {
+  const PAG = "secciones", LEER = {"trabajo": {"ejes": "Cuatro cuadrantes enlazados. Arriba a la derecha, el mercado de trabajo (salario frente a empleo L). Abajo a la derecha, la función de producción Y = f(L). Abajo a la izquierda, oferta y demanda agregadas frente al nivel de precios p.", "curvas": ["<b>L<sup>D</sup></b>: demanda de trabajo, el valor de la productividad marginal. Keynes la acepta.", "<b>Oferta de trabajo neoclásica</b>, que depende del salario real, frente a la <b>keynesiana</b>: horizontal al salario mínimo, creciente después y vertical en el pleno empleo.", "<b>Y = f(L)</b>: traslada el empleo a producción.", "<b>Demanda agregada</b> frente a p, que desplaza el mando D̄."], "puntos": ["El equilibrio de partida y el que resulta tras el shock de demanda en cada modelo."], "sig": "Ante una caída de la demanda, en el modelo neoclásico bajan precios y salarios y el empleo y la producción no cambian: es la dicotomía clásica. En el keynesiano, con el salario nominal rígido a la baja, el ajuste se hace por cantidades: cae el empleo, cae la producción y aparece desempleo involuntario, que es el tramo entre la oferta de trabajo al salario vigente y el empleo que se demanda."}, "bienes": {"ejes": "Renta o producción Y en horizontal y demanda agregada en vertical.", "curvas": ["<b>Bisectriz de 45°</b>: los puntos donde la demanda iguala a la producción.", "<b>DA = A<sub>0</sub> + c(1 − t)Y</b>: demanda agregada, con ordenada en el gasto autónomo y pendiente igual a la propensión marginal a consumir sobre la renta."], "puntos": ["<b>Equilibrio</b>: donde la DA corta a la bisectriz.", "<b>Rondas del multiplicador</b>: los escalones por los que la renta llega al nuevo equilibrio.", "<b>Y arrastrable</b>: fuera del equilibrio, la diferencia entre producción y demanda es acumulación o desacumulación de existencias."], "sig": "La renta se ajusta hasta que la producción iguala la demanda efectiva. Un aumento del gasto autónomo eleva la renta en un múltiplo, 1/(1 − c(1 − t)), porque cada aumento de renta genera consumo inducido. Fuera del equilibrio la inversión efectiva (planeada más existencias) se separa de la planeada, y esa variación de existencias es la señal que lleva a las empresas a ajustar la producción."}, "inversion": {"ejes": "Inversión acumulada en horizontal; eficiencia marginal del capital y tipo de interés en vertical.", "curvas": ["<b>Curva EMK escalonada</b>: cada escalón es un proyecto, ordenado de mayor a menor EMK δ<sub>j</sub>*.", "<b>Recta horizontal r</b>: el tipo de interés, que viene del mercado de dinero."], "puntos": ["Los proyectos a la izquierda del corte con r son los que se hacen."], "sig": "Se invierte en todo proyecto cuya EMK supera el tipo de interés: la curva EMK es la demanda de inversión. Los animal spirits la desplazan, y la presión sobre el precio de oferta de los bienes de capital la inclina. Si es muy empinada, b es pequeña y la inversión responde poco al tipo: es el segundo eslabón débil de la transmisión monetaria keynesiana."}, "dinero": {"ejes": "A la izquierda, el tipo de interés frente a la cantidad de dinero: el mercado de bonos-dinero. A la derecha, la inversión y el ahorro, al tipo que sale del panel izquierdo.", "curvas": ["<b>Preferencia por la liquidez</b>: demanda de dinero decreciente en el tipo por el motivo especulación, horizontal en la trampa de la liquidez.", "<b>M<sup>S</sup></b>: oferta monetaria, vertical porque es exógena.", "A la derecha, la <b>inversión más el gasto</b> frente al <b>ahorro más los impuestos</b>."], "puntos": ["El tipo de interés de equilibrio y lo que implica para la inversión."], "sig": "Para Keynes el tipo de interés es un fenómeno monetario: lo fija la preferencia por la liquidez, no el ahorro y la inversión, así que nada garantiza que a ese tipo se igualen. Lo que ajusta es la renta. La política monetaria llega a la economía real por la cadena ΔM → Δr → ΔI → ΔY, con dos eslabones débiles: la trampa de la liquidez y la baja sensibilidad de la inversión al tipo."}};
+  const q = (s) => document.querySelector(s);
+  const CONF = {
+    tabs: { tab: () => q('#tabs button[aria-selected="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    secciones: { tab: () => q('.tabs button[aria-selected="true"]')?.id?.replace('tab-', ''), ancla: () => q('section.vista-wrap:not([hidden]) .controles') },
+    marshall: { tab: () => q('#chips-per button[aria-pressed="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    edgeworth: { tab: () => q('#presets button[aria-pressed="true"]')?.dataset.id, ancla: () => q('#app') },
+  }[PAG];
+  const st = document.createElement('style');
+  st.textContent = `details.leer { border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; margin-top: 12px; font-size: 13.5px; line-height: 1.55; grid-column: 1 / -1; }
+details.leer > summary { cursor: pointer; font-weight: 600; letter-spacing: .02em; padding: 2px 0; }
+details.leer[open] > summary { margin-bottom: 6px; }
+details.leer .leer-c p { margin: 6px 0; }
+details.leer .leer-c ul { margin: 4px 0 8px; padding-left: 20px; }
+details.leer .leer-c li { margin: 3px 0; }
+details.leer .leer-c .et { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+details.leer .leer-c .sig { border-left: 3px solid var(--azul); padding-left: 10px; }`;
+  document.head.appendChild(st);
+  const det = document.createElement('details'); det.className = 'leer';
+  det.innerHTML = '<summary>Cómo leer este gráfico</summary><div class="leer-c"></div>';
+  const lista = (t, xs) => (xs && xs.length ? `<div class="et">${t}</div><ul>${xs.map((x) => `<li>${x}</li>`).join('')}</ul>` : '');
+  const html = (d) => (d.ejes ? `<div class="et">Ejes</div><p>${d.ejes}</p>` : '') + lista('Curvas', d.curvas) + lista('Puntos', d.puntos) + `<div class="et">Qué significa</div><p class="sig">${d.sig}</p>`;
+  let ult = null, tmo = null;
+  function act() {
+    if (!CONF) return;
+    const k = CONF.tab(), d = LEER[k], a = CONF.ancla();
+    if (!d || !a) { if (!det.hidden) det.hidden = true; return; }
+    if (det.hidden) det.hidden = false;
+    if (det.previousElementSibling !== a) a.after(det);
+    if (k !== ult) { ult = k; det.querySelector('.leer-c').innerHTML = html(d); }
+  }
+  new MutationObserver(() => { clearTimeout(tmo); tmo = setTimeout(act, 30); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['aria-selected', 'aria-pressed', 'hidden'] });
+  act();
+})();
+/* LEER-FIN */
 </script>
 
 </body>

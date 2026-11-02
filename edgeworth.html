@@ -815,6 +815,43 @@ for (const p of PRESETS) {
 const desdeHash = () => cargar(PRESETS.find((p) => p.id === location.hash.slice(1)) || PRESETS[0]);
 desdeHash();
 window.addEventListener('hashchange', desdeHash);
+/* LEER-INICIO: bloque plegable «Cómo leer este gráfico» */
+(function () {
+  const PAG = "edgeworth", LEER = {"walras": {"ejes": "La caja mide las dotaciones totales: el ancho es la cantidad total del bien 1 y el alto la del bien 2. El consumidor 1 mide sus cantidades desde O<sub>1</sub> (abajo a la izquierda) y el 2 desde O<sub>2</sub> (arriba a la derecha), hacia la izquierda y hacia abajo. Cada punto de la caja es un reparto completo de los dos bienes.", "curvas": ["<b>Curvas de indiferencia</b>: las del consumidor 1 son convexas hacia O<sub>1</sub> y su utilidad crece hacia arriba a la derecha; las del 2, al revés.", "<b>Curva de contrato</b>: los puntos de tangencia entre curvas de indiferencia de los dos (RMS<sub>1</sub> = RMS<sub>2</sub>). Son los repartos eficientes en el sentido de Pareto.", "<b>Núcleo (C–C′)</b>: el tramo de la curva de contrato que deja a los dos al menos tan bien como en la dotación inicial.", "<b>Recta de precios p*</b>: pasa por la dotación α; su pendiente es la ratio de precios de equilibrio."], "puntos": ["<b>α</b>: dotación inicial.", "<b>ε = EGC</b>: equilibrio general competitivo, donde la recta de precios es tangente a las dos curvas de indiferencia."], "sig": "Con precios, cada consumidor elige sobre su recta presupuestaria y a p* sus demandas casan: el EGC. Está en la curva de contrato, así que es eficiente (primer teorema del bienestar), y dentro del núcleo, así que ninguno sale perdiendo respecto a su dotación. Mover α a lo largo de la misma recta no cambia el EGC: lo que cuenta es el valor de la dotación a esos precios, no su composición."}, "neg": {"ejes": "La misma caja: el ancho es el total del bien 1 y el alto el del bien 2, medidos desde O<sub>1</sub> para el consumidor 1 y desde O<sub>2</sub> para el 2.", "curvas": ["<b>Curvas de indiferencia que pasan por α</b>: delimitan la lente de repartos que mejoran a los dos.", "<b>Núcleo (C–C′)</b>: la parte de la curva de contrato dentro de esa lente."], "puntos": ["<b>α</b>: dotación inicial.", "<b>ε</b>: punto negociado, que puedes arrastrar por el núcleo.", "<b>EGC</b>: el único punto del núcleo al que se llega con un precio uniforme."], "sig": "Sin precios, dos agentes que negocian acaban en algún punto del núcleo, pero el modelo no dice en cuál: depende del poder de negociación. Todos esos puntos son eficientes. El mercado competitivo selecciona uno, el EGC, que es el único sostenible con una ratio de intercambio común igual a la RMS de los dos. Con muchos agentes, el núcleo se encoge hacia el EGC (Edgeworth; Debreu y Scarf)."}, "sim": {"ejes": "La misma caja de dotaciones totales, con O<sub>1</sub> abajo a la izquierda y O<sub>2</sub> arriba a la derecha.", "curvas": ["<b>Mapa de indiferencia</b> de cada consumidor, con preferencias Cobb-Douglas de pesos a<sub>1</sub> y a<sub>2</sub>.", "<b>Curva de contrato</b>: con preferencias iguales es la diagonal de la caja."], "puntos": ["<b>α</b> y el <b>EGC</b>, como en las otras pestañas."], "sig": "La forma de la curva de contrato la deciden las preferencias. Si los dos tienen las mismas preferencias homotéticas, en todo reparto eficiente consumen los dos bienes en la misma proporción, así que la curva es la diagonal. Cuanto más distintas son las preferencias, más se arquea: a cada uno le corresponde más del bien que valora relativamente más."}, "eff": {"ejes": "La misma caja de dotaciones totales.", "curvas": ["<b>Curvas de indiferencia que pasan por α</b>: si α ya es eficiente, son tangentes y no queda lente entre ellas.", "<b>Curva de contrato</b>."], "puntos": ["<b>α</b>: dotación inicial, situada sobre la curva de contrato."], "sig": "Si la dotación ya es Pareto eficiente no hay ganancias del intercambio: el núcleo se reduce a α y el EGC es la propia dotación, con precios iguales a la RMS común. Leído al revés es el segundo teorema del bienestar: cualquier asignación eficiente puede ser un EGC si se redistribuyen antes las dotaciones."}};
+  const q = (s) => document.querySelector(s);
+  const CONF = {
+    tabs: { tab: () => q('#tabs button[aria-selected="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    secciones: { tab: () => q('.tabs button[aria-selected="true"]')?.id?.replace('tab-', ''), ancla: () => q('section.vista-wrap:not([hidden]) .controles') },
+    marshall: { tab: () => q('#chips-per button[aria-pressed="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    edgeworth: { tab: () => q('#presets button[aria-pressed="true"]')?.dataset.id, ancla: () => q('#app') },
+  }[PAG];
+  const st = document.createElement('style');
+  st.textContent = `details.leer { border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; margin-top: 12px; font-size: 13.5px; line-height: 1.55; grid-column: 1 / -1; }
+details.leer > summary { cursor: pointer; font-weight: 600; letter-spacing: .02em; padding: 2px 0; }
+details.leer[open] > summary { margin-bottom: 6px; }
+details.leer .leer-c p { margin: 6px 0; }
+details.leer .leer-c ul { margin: 4px 0 8px; padding-left: 20px; }
+details.leer .leer-c li { margin: 3px 0; }
+details.leer .leer-c .et { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+details.leer .leer-c .sig { border-left: 3px solid var(--azul); padding-left: 10px; }`;
+  document.head.appendChild(st);
+  const det = document.createElement('details'); det.className = 'leer';
+  det.innerHTML = '<summary>Cómo leer este gráfico</summary><div class="leer-c"></div>';
+  const lista = (t, xs) => (xs && xs.length ? `<div class="et">${t}</div><ul>${xs.map((x) => `<li>${x}</li>`).join('')}</ul>` : '');
+  const html = (d) => (d.ejes ? `<div class="et">Ejes</div><p>${d.ejes}</p>` : '') + lista('Curvas', d.curvas) + lista('Puntos', d.puntos) + `<div class="et">Qué significa</div><p class="sig">${d.sig}</p>`;
+  let ult = null, tmo = null;
+  function act() {
+    if (!CONF) return;
+    const k = CONF.tab(), d = LEER[k], a = CONF.ancla();
+    if (!d || !a) { if (!det.hidden) det.hidden = true; return; }
+    if (det.hidden) det.hidden = false;
+    if (det.previousElementSibling !== a) a.after(det);
+    if (k !== ult) { ult = k; det.querySelector('.leer-c').innerHTML = html(d); }
+  }
+  new MutationObserver(() => { clearTimeout(tmo); tmo = setTimeout(act, 30); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['aria-selected', 'aria-pressed', 'hidden'] });
+  act();
+})();
+/* LEER-FIN */
 </script>
 
 </body>

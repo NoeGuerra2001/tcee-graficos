@@ -773,6 +773,43 @@ const FICHAS = {
 
 arrancar('cs');
 
+/* LEER-INICIO: bloque plegable «Cómo leer este gráfico» */
+(function () {
+  const PAG = "tabs", LEER = {"cs": {"ejes": "Arriba, producción y en horizontal y tipo real r<sub>t−1</sub> en vertical. Abajo, producción y e inflación π. A la derecha, las sendas del output gap, la inflación y el tipo real en el tiempo.", "curvas": ["<b>IS</b>: la demanda de t depende del tipo fijado en t − 1.", "<b>PC</b>: curva de Phillips con inercia, que pasa por (y<sub>e</sub>, π<sub>t−1</sub>).", "<b>MR-AD</b>: la regla del banco central, que sale de minimizar su pérdida.", "<b>y<sub>e</sub></b>: producción de equilibrio, vertical."], "puntos": ["<b>A</b>: equilibrio inicial.", "<b>B</b>: la economía tras el shock.", "<b>C, D, E…</b>: el camino de vuelta por la MR.", "<b>Z</b> (arriba): el nuevo tipo estabilizador si el shock es permanente."], "sig": "El banco central no puede evitar el efecto del shock en el periodo en que ocurre. Mira la inflación, ve la curva de Phillips del periodo siguiente y fija hoy el tipo que lleva la economía mañana al punto de esa curva que más le conviene, en la MR. Desde ahí la inflación baja periodo a periodo. Un banco más averso a la inflación tiene una MR más plana: desinfla más deprisa con más pérdida de producción."}, "irf": {"ejes": "Trimestres tras el shock en horizontal; desviaciones porcentuales en vertical.", "curvas": ["A la izquierda, <b>output gap ŷ<sub>t</sub></b> e <b>inflación π<sub>t</sub></b>.", "A la derecha, <b>tipo nominal</b> y <b>tipo real</b> respecto al tipo natural.", "Trazo discontinuo: equilibrio indeterminado."], "puntos": ["El impacto en t = 0, que es donde salta todo."], "sig": "Son las funciones de impulso-respuesta con las que Galí expone el modelo canónico. Sin inercia en la Phillips, todo salta en el momento del shock y vuelve al ritmo de su persistencia. Un shock de demanda sube output e inflación y el banco sube el tipo real; uno de costes obliga a elegir entre inflación y actividad; uno monetario contractivo baja los dos."}, "det": {"ejes": "Reacción a la inflación φ<sub>π</sub> en horizontal y reacción al output gap φ<sub>y</sub> en vertical.", "curvas": ["<b>Frontera roja</b>: δ(φ<sub>π</sub> − 1) + (1 − β)φ<sub>y</sub> = 0.", "<b>Zona gris</b>: indeterminación."], "puntos": ["<b>Tu regla</b>.", "<b>Taylor (1993)</b> en trimestres y en años.", "<b>Punto naranja</b>: el 0,5 de Taylor leído por error como respuesta total a la inflación."], "sig": "Para que el equilibrio sea único, el tipo nominal tiene que subir más que la inflación, de modo que suba el tipo real y frene la demanda. Si no, unas expectativas de inflación sin fundamento se autoconfirman. La frontera queda casi en φ<sub>π</sub> = 1 porque (1 − β)/δ es pequeño: φ<sub>π</sub> > 1 basta, pero no es estrictamente necesario."}, "dc": {"ejes": "A la izquierda, la caída del output gap en horizontal y la inflación en vertical, en el momento del shock. A la derecha, las sendas en el tiempo.", "curvas": ["<b>Frontera</b>: las combinaciones de inflación y output gap que puede conseguir el banco ante un shock de costes.", "Sendas de <b>ŷ<sub>t</sub></b>, <b>π<sub>t</sub></b> y, con shock de demanda, del tipo que sigue al natural."], "puntos": ["El punto que elige el banco según λ.", "Con shock de demanda, el origen: inflación y output gap nulos."], "sig": "Con un shock de demanda, al banco le basta con mover el tipo igual que el tipo natural para estabilizar a la vez inflación y actividad: es la divina coincidencia. Con un shock de costes no: inflación cero exige recesión, y el banco elige un punto de la frontera según el peso λ que da al output. El resultado extremo solo vale cuando las rigideces nominales son la única distorsión."}, "esc": {"ejes": "Periodos en horizontal. A la izquierda, nivel de precios p<sub>t</sub>; a la derecha, producción y<sub>t</sub> = m − p<sub>t</sub>, tras subir el dinero un 1 %.", "curvas": ["<b>Sincronizado</b>, <b>Fischer</b>, <b>Taylor</b> y <b>Calvo</b>: cómo llega el precio a su nuevo nivel con cada forma de fijarlo."], "puntos": ["Cuántos periodos dura el efecto real en cada caso (panel de lecturas)."], "sig": "Si todos revisan a la vez, el efecto real de un shock monetario dura hasta la siguiente revisión. Con revisiones escalonadas, quien revisa no se aleja mucho de los precios que siguen vigentes, así que nadie ajusta del todo y el efecto se alarga. Cuanto más mira cada precio a los de los demás (γ pequeño), más persistencia. Persistencia no es permanencia: a largo plazo el dinero es neutral."}};
+  const q = (s) => document.querySelector(s);
+  const CONF = {
+    tabs: { tab: () => q('#tabs button[aria-selected="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    secciones: { tab: () => q('.tabs button[aria-selected="true"]')?.id?.replace('tab-', ''), ancla: () => q('section.vista-wrap:not([hidden]) .controles') },
+    marshall: { tab: () => q('#chips-per button[aria-pressed="true"]')?.dataset.k, ancla: () => q('.figs .controles') },
+    edgeworth: { tab: () => q('#presets button[aria-pressed="true"]')?.dataset.id, ancla: () => q('#app') },
+  }[PAG];
+  const st = document.createElement('style');
+  st.textContent = `details.leer { border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; margin-top: 12px; font-size: 13.5px; line-height: 1.55; grid-column: 1 / -1; }
+details.leer > summary { cursor: pointer; font-weight: 600; letter-spacing: .02em; padding: 2px 0; }
+details.leer[open] > summary { margin-bottom: 6px; }
+details.leer .leer-c p { margin: 6px 0; }
+details.leer .leer-c ul { margin: 4px 0 8px; padding-left: 20px; }
+details.leer .leer-c li { margin: 3px 0; }
+details.leer .leer-c .et { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+details.leer .leer-c .sig { border-left: 3px solid var(--azul); padding-left: 10px; }`;
+  document.head.appendChild(st);
+  const det = document.createElement('details'); det.className = 'leer';
+  det.innerHTML = '<summary>Cómo leer este gráfico</summary><div class="leer-c"></div>';
+  const lista = (t, xs) => (xs && xs.length ? `<div class="et">${t}</div><ul>${xs.map((x) => `<li>${x}</li>`).join('')}</ul>` : '');
+  const html = (d) => (d.ejes ? `<div class="et">Ejes</div><p>${d.ejes}</p>` : '') + lista('Curvas', d.curvas) + lista('Puntos', d.puntos) + `<div class="et">Qué significa</div><p class="sig">${d.sig}</p>`;
+  let ult = null, tmo = null;
+  function act() {
+    if (!CONF) return;
+    const k = CONF.tab(), d = LEER[k], a = CONF.ancla();
+    if (!d || !a) { if (!det.hidden) det.hidden = true; return; }
+    if (det.hidden) det.hidden = false;
+    if (det.previousElementSibling !== a) a.after(det);
+    if (k !== ult) { ult = k; det.querySelector('.leer-c').innerHTML = html(d); }
+  }
+  new MutationObserver(() => { clearTimeout(tmo); tmo = setTimeout(act, 30); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['aria-selected', 'aria-pressed', 'hidden'] });
+  act();
+})();
+/* LEER-FIN */
 </script>
 
 </body>
